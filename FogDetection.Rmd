@@ -22,11 +22,10 @@ knitr::opts_chunk$set(
 library(data.table)
 library(visDec)
 library(ggplot2)
-library(data.table)
 library(doParallel)
 registerDoParallel(cores=2)
 library(imager)
-library(changepoint)
+library(changepoint) # functionality should be included in imager
 ```
 
 ### Computing basis image statistics
@@ -73,7 +72,7 @@ imageSummary <- foreach(file = iter(filenames), .combine = rbind) %dopar% {
 
 
 ### Load sensor values
-```{r, fig.show='hold', cache }
+```{r, fig.show='hold'}
 sensorFiles <- list.files("../visDec/inst/extdata/Sensor",
                           pattern=glob2rx("MOR_DeBilt*.txt"),
                           full.names=TRUE)
@@ -85,22 +84,6 @@ imageSummary[, medianMOR := median(c(FS261, TMM261, FS260), na.rm=TRUE), by = da
 # imageSummary %>% .[ ,medianMOR := median(c(FS261, TMM261, FS260), na.rm =TRUE), by = dateTime]
 ```
 
-### Time series
-```{r, fig.show='hold'}
-ggplot(imageSummary, aes(x = dateTime, y = meanEdge)) + geom_line() + xlab("")
-#ggplot(imageSummary, aes(x = dateTime, y = var)) + geom_line() + xlab("")
-#ggplot(imageSummary, aes(x = dateTime, y = sqrt(var)/mean)) + geom_line() +
-#  xlab("") 
-ggplot(imageSummary, aes(x = dateTime, y= medianMOR)) + geom_line() +
-  xlab("") 
-```
-
-```{r, fig.show='hold'}
-ggplot(imageSummary[hour(dateTime) %in% seq(5, 10, by=1), ],
-       aes(x = dateTime, y = meanEdge)) + geom_line() + xlab("")
-```
-
-
 ### Scatter plots
 ```{r, fig.show='hold'}
 imageSummary[, visibility := factor(2000)]
@@ -109,47 +92,12 @@ imageSummary[medianMOR < 500, visibility := factor(500)]
 imageSummary[medianMOR < 200, visibility := factor(200)]
 #imageSummary[, transmission := read.csv("~/Dropbox/SWI_FogDetection/TrainingSet/Values.csv", sep=";")[, 3]]
 ggplot(imageSummary, aes(x = meanEdge, y = medianMOR, col = visibility)) + geom_point()
-#ggplot(imageSummary, aes(x = var, y = FS261)) + geom_point()
-#ggplot(imageSummary, aes(x = mean, y = var, col = visibility)) + geom_point()
-#ggplot(imageSummary, aes(x = meanThresholdGradientX, y = meanThresholdGradientY, col = visibility)) + geom_point()
 ggplot(imageSummary[hour %in% seq(7, 16, by = 1), ], aes(x = log(medianMOR), y = meanEdge, col = visibility)) + geom_point()
-#ggplot(imageSummary[hour %in% c(seq(0, 4, by = 1), seq(18, 24, by = 1)), ], aes(x = log(FS261), y = meanEdge, col = visibility)) + geom_point()
-#ggplot(imageSummary[hour %in% c(seq(0, 4, by = 1), seq(18, 24, by = 1)), ], aes(x = log(FS261), y = transmission, col = visibility)) + geom_point()
-#ggplot(imageSummary[hour %in% seq(6, 16, by = 1), ], aes(x = log(FS261), y = transmission, col = visibility)) + geom_point()
-#ggplot(imageSummary, aes(x = log(FS261), y = transmission)) + geom_point() + geom_smooth(method="lm") + geom_quantile(quantiles=0.5, col = 2)
 ggplot(imageSummary[hour %in% seq(7, 16, by = 1), ], aes(x = log(FS261), y = meanEdge, col = visibility)) + geom_point() + geom_quantile(aes(col=NULL), quantiles=0.5)
 ggplot(imageSummary[hour %in% seq(7, 16, by = 1), ], aes(x = log(medianMOR), y = meanEdge, col = visibility)) + geom_point() + geom_quantile(aes(col=NULL), quantiles=0.5)
 ggplot(imageSummary[hour %in% seq(7, 16, by = 1), ], aes(x = log(medianMOR), y = changePoint, col = visibility)) + geom_point() + geom_quantile(aes(col=NULL), quantiles=0.5)
 ```
 
-<!--
-#```{r, fig.height=4.5, fig.width=6}
-#tmp <- imageSummary[meanEdge > 0.15 & FS261 < 1000]
-#res <- foreach(name = tmp[, name]) %do% {
-#  im <- load.image(paste0("~/Dropbox/SWI_FogDetection/OctoberDay/", name))
-#  plot(im)
-#}
-#```
-
-#```{r}
-#im <- grayscale(subim(load.image("~/Dropbox/SWI_FogDetection/TrainingSet/Day/Meetterrein_20151009_0910.jpg"), y > 20))
-#im2 <- grayscale(subim(load.image("~/Dropbox/SWI_FogDetection/TrainingSet/Day/Meetterrein_20151010_1510.jpg"), y > 20))
-#rowIm <- imsplit(im, "y")
-#rowIm2 <- imsplit(im2, "y")
-#fn <- function(x) {
-#  return(abs(fft(as.numeric(x))))
-#}
-#fourierCoef <- foreach(i =1 : length(rowIm), .combine = "rbind") %do% {
-#  return(fn(rowIm[[i]]))
-#}
-#fourierCoefFog <- foreach(i =1 : length(rowIm), .combine = "rbind") %do% {
-#  return(fn(rowIm2[[i]]))
-#}
-#fourierCoefFog2 <- fourierCoefFog
-#fourierCoefFog2[fourierCoefFog > 1] <- 1
-#```
-
--->
 
 ```{r}
 stopImplicitCluster()
