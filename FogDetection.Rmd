@@ -23,10 +23,46 @@ library(data.table)
 library(visDec)
 library(ggplot2)
 library(doParallel)
-registerDoParallel(cores=2)
+registerDoParallel(cores=3)
 library(imager)
 library(changepoint) # functionality should be included in imager
+library(maptools)
+library(lubridate)
 ```
+
+
+##temp chunck
+```{r}
+GetSunTimes <- function(configDF, locationID, date){
+  
+  
+  lat <- configDF[configDF$locationID == locationID,]$lat
+  lon <- configDF[configDF$locationID == locationID,]$lon
+  position <- matrix(c(lon, lat),nrow = 1)
+  sunriseTime <- sunriset(position, date, direction = "sunrise", POSIXct.out = TRUE)
+  sunsetTime  <- sunriset(position, date, direction = "sunset", POSIXct.out = TRUE)
+  return(c(sunriseTime$time, sunsetTime$time))
+  
+}
+
+
+FilterNightTime<-function(darkOffsetHours,configDF, locationID){
+  imageSummary <- foreach(file = iter(filenames), .combine = rbind) %dopar% {
+  #for(file in filenames) {
+    filesToExamine<-list()
+    fileInformation <- FileNameParser(file, configDF[configDF$locationID == locationID,]$filePattern)
+    dateDay<-as.POSIXct(date(fileInformation$dateTime))
+    value <- GetSunTimes(configDF, locationID, dateDay)
+    if(!(fileInformation$dateTime < value[1] + hours(darkOffsetHours) | fileInformation$dateTime > value[2] - hours(darkOffsetHours))){
+      filesToExamine<-file
+    }
+    filesToExamine
+  }
+}
+
+```
+
+
 
 ### Computing basis image statistics
 ```{r}
@@ -36,33 +72,46 @@ library(changepoint) # functionality should be included in imager
 #  
 #  list.files("~/Dropbox/SWI_FogDetection/NovemberDay",
 #             pattern=glob2rx("Meetterrein_*.jpg"), full.names=TRUE))
-filenames <- list.files("../visDec/inst/extdata/Meetterrein/",
-                        pattern=glob2rx("Meetterrein_20151009*.jpg"),
-                        full.names=TRUE)
+filenames <- list.files("/net/bhw420/nobackup/users/haijde/DATA/AXIS214/Meetterrein/201512",
+                        pattern=glob2rx("*_2015*.jpg"),
+                        full.names=TRUE, recursive = TRUE)
 detect.edges <- function(im,sigma=1) {
   # adapted from http://dahtah.github.io/imager/foreground_background.html
   isoblur(im,sigma) %>% imgradient("xy") %>% llply(function(v) v^2) %>%
     add %>% imsplit("c") %>% add 
 }
 
-detect.edges(subim(load.image(filenames[75]), y > 16)) %>% sqrt %>% plot
+# detect.edges(subim(load.image(filenames[75]), y > 16)) %>% sqrt %>% plot
+# 
+# plot(subim(load.image(filenames[41]), y > 16))
+# hazeFactorExampleFog   <- GetHorizAvgTrans(subim(load.image(filenames[41]), y > 16)) %>%
+#   plot(, main = "Horizontal averaged transmission - Fog condition")
+# plot(subim(load.image(filenames[58]), y > 16))
+# hazeFactorExampleNoFog <- GetHorizAvgTrans(subim(load.image(filenames[58]), y > 16)) %>%
+#   plot(, main = "Horizontal averaged transmission - No fog condition")
 
-plot(subim(load.image(filenames[41]), y > 16))
-hazeFactorExampleFog   <- GetHorizAvgTrans(subim(load.image(filenames[41]), y > 16)) %>%
-  plot(, main = "Horizontal averaged transmission - Fog condition")
-plot(subim(load.image(filenames[58]), y > 16))
-hazeFactorExampleNoFog <- GetHorizAvgTrans(subim(load.image(filenames[58]), y > 16)) %>%
-  plot(, main = "Horizontal averaged transmission - No fog condition")
+configDF <- read.csv("properties.csv")
+
+location <- 1
+
+filenames <- FilterNightTime(0, configDF, locationID = location)
+
+filenames<-unlist(filenames)
+
+
+fileStringPattern <- configDF[configDF$locationID == location,]$filePattern
+
+print(length(filenames))
 
 
 imageSummary <- foreach(file = iter(filenames), .combine = rbind) %dopar% {
-  fileInformation <- FileNameParser(file, "na*me_yyyymmdd_hhmm.jpg")
+  fileInformation <- FileNameParser(file, fileStringPattern)
   im <- subim(load.image(file), y > 16) #[, -(1 :17), ,]
   #imGradient <- get_gradient(im, "xy", scheme = 2L)
   data.table(name = fileInformation$name,
              dateTime = fileInformation$dateTime,
              meanEdge = detect.edges(im, 3) %>% sqrt %>% mean,
-             changePoint = cpts(cpt.meanvar(GetHorizAvgTrans(im)))
+             changePoint = cpts(cpt.mean(GetHorizAvgTrans(im), penalty = "None"))
   )
   #hazeFactor <- GetHorizAvgTrans(im)
   #print(hazeFactor)
@@ -91,10 +140,10 @@ imageSummary[medianMOR < 1000, visibility := factor(1000)]
 imageSummary[medianMOR < 500, visibility := factor(500)]
 imageSummary[medianMOR < 200, visibility := factor(200)]
 #imageSummary[, transmission := read.csv("~/Dropbox/SWI_FogDetection/TrainingSet/Values.csv", sep=";")[, 3]]
-ggplot(imageSummary, aes(x = meanEdge, y = medianMOR, col = visibility)) + geom_point()
-ggplot(imageSummary[hour %in% seq(7, 16, by = 1), ], aes(x = log(medianMOR), y = meanEdge, col = visibility)) + geom_point()
-ggplot(imageSummary[hour %in% seq(7, 16, by = 1), ], aes(x = log(FS261), y = meanEdge, col = visibility)) + geom_point() + geom_quantile(aes(col=NULL), quantiles=0.5)
-ggplot(imageSummary[hour %in% seq(7, 16, by = 1), ], aes(x = log(medianMOR), y = meanEdge, col = visibility)) + geom_point() + geom_quantile(aes(col=NULL), quantiles=0.5)
+# ggplot(imageSummary, aes(x = meanEdge, y = medianMOR, col = visibility)) + geom_point()
+# ggplot(imageSummary[hour %in% seq(7, 16, by = 1), ], aes(x = log(medianMOR), y = meanEdge, col = visibility)) + geom_point()
+# ggplot(imageSummary[hour %in% seq(7, 16, by = 1), ], aes(x = log(FS261), y = meanEdge, col = visibility)) + geom_point() + geom_quantile(aes(col=NULL), quantiles=0.5)
+# ggplot(imageSummary[hour %in% seq(7, 16, by = 1), ], aes(x = log(medianMOR), y = meanEdge, col = visibility)) + geom_point() + geom_quantile(aes(col=NULL), quantiles=0.5)
 ggplot(imageSummary[hour %in% seq(7, 16, by = 1), ], aes(x = log(medianMOR), y = changePoint, col = visibility)) + geom_point() + geom_quantile(aes(col=NULL), quantiles=0.5)
 ```
 
