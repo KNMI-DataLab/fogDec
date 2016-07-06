@@ -46,7 +46,7 @@ GetSunTimes <- function(configDF, locationID, date){
 }
 
 
-FilterNightTime<-function(darkOffsetHours,configDF, locationID){
+FilterNightTime<-function(darkOffsetHours, configDF, locationID){
   imageSummary <- foreach(file = iter(filenames), .combine = rbind) %dopar% {
   #for(file in filenames) {
     filesToExamine<-list()
