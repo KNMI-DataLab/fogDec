@@ -1,4 +1,5 @@
 library(fogDec)
+library(data.table)
 
 context("Filename parsing")
 

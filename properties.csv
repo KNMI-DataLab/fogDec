@@ -1,3 +1,3 @@
-locationID,locationName,lon,lat,filePattern
-1,De Bilt,5.1810,52.1093,na*me_yyyymmdd_hhmm.jpg
-2,Twente,6.89,52.276944,na*me_yyyymmddhhmm.jpg
+locationID,stationID,locationName,lon,lat,filePattern,imagePrefix
+1,260_A_a,De Bilt,5.1810,52.1093,na*me_yyyymmdd_hhmm.jpg,Meetterrein
+2,290_A_a,Twente,6.89,52.276944,na*me_yyyymmddhhmm.jpg,EHTW

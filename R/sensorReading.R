@@ -1,6 +1,7 @@
 #' Read MOR data files
 #' @param filenames List of filenames
 #' @return data.table
+#' @import data.table
 #' @export
 ReadMORSensorData <- function(filenames) {
   FS261 <- TMM261 <- FS260 <- yyyymmdd <- hhmmss <- dateTime <- day <- NULL
