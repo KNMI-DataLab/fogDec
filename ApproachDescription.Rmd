@@ -1,0 +1,95 @@
+---
+title: "Description of Approach"
+author: "Martin Roth"
+date: "July 22, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, Libraries, include=FALSE}
+library(data.table)
+library(imager)
+library(visDec)
+```
+
+### Read example pictures
+```{r, ExamplePictures}
+path <- system.file("extdata/Meetterrein", package="visDec")
+filenames <- list.files(path,
+                        pattern=glob2rx("Meetterrein_201510*.jpg"),
+                        full.names=TRUE)
+```
+
+## Mean edges
+Under daylight conditions the mean number of edges in a picture can be viewed as
+a relative indication of the foginess. 
+
+```{r, EdgesPlotClear, echo=FALSE, fig.cap=paste("Edges in a clear situation:", round(DetectMeanEdges(im)*100,2), "%"), fig.height=4, fig.width=8.4}
+im <- subim(load.image(filenames[75]), y > 16)
+old_par <- par(mfrow=c(1,2))
+plot(im)
+DetectEdges(im) %>% plot
+par(old_par)
+```
+
+```{r, EdgesPlotFoggy, echo=FALSE, fig.cap=paste("Edges in a foggy situation:", round(DetectMeanEdges(im)*100,2), "%"), fig.height=4, fig.width=8.4}
+im <- subim(load.image(filenames[49]), y > 16)
+old_par <- par(mfrow=c(1,2))
+plot(im)
+DetectEdges(im) %>% plot
+par(old_par)
+```
+
+## Transmission estimate using the Dark Channel prior
+
+### Dark Channel prior
+He et al. (2008) present an approach for haze removal from (single) images based
+on the so-called dark channel prior. The dark channel prior is based on the
+observation, "that most patches (small subimages) in a haze-free outdoor image
+contain some pixels which have very low intensities in at least one color
+channel". The idea was to follow this approach but instead of focusing on the
+removal, we focus on the haze instead. Therefore, we estimate the transmission
+in the local patches with the technique developed by He et al. (2008).
+```{r, TransmissionPlotClear, echo=FALSE, fig.cap="Transmission in a clear situation", fig.height=4, fig.width=8.4}
+im <- subim(load.image(filenames[75]), y > 16)
+
+darkChannel       <- GetDarkChannel(im)
+atmosphere        <- GetAtmosphere(im, darkChannel)
+transmissionClear <- GetTransmissionEstimate(im, atmosphere)
+
+
+
+old_par <- par(mfrow=c(1,2))
+plot(im)
+as.cimg(transmissionClear) %>% plot
+par(old_par)
+```
+
+```{r, TransmissionPlotFoggy, echo=FALSE, fig.cap="Transmission in a foggy situation", fig.height=4, fig.width=8.4}
+im <- subim(load.image(filenames[49]), y > 16)
+
+darkChannel       <- GetDarkChannel(im)
+atmosphere        <- GetAtmosphere(im, darkChannel)
+transmissionFoggy <- GetTransmissionEstimate(im, atmosphere)
+
+old_par <- par(mfrow=c(1,2))
+plot(im)
+as.cimg(transmissionFoggy) %>% plot
+par(old_par)
+```
+
+```{r, ComparisonAveragedTransmission, echo=FALSE, fig.cap="Horizontally averaged transmission", fig.height=4, fig.width=8.4}
+old_par <- par(mfrow=c(1,2))
+im <- subim(load.image(filenames[75]), y > 16)
+plot(GetHorizAvgTrans(im))
+im <- subim(load.image(filenames[49]), y > 16)
+plot(GetHorizAvgTrans(im))
+par(old_par)
+```
+### Changepoint of the horizontally averaged transmission
+
+## Outlook
+
