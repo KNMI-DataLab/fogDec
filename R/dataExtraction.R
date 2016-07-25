@@ -56,5 +56,15 @@ imageSummary <- foreach(id = iter(daylightImages[, id]), .packages = c('data.tab
 }
 
 
+sensorFiles <- list.files("../inst/extdata/Sensor",
+                          pattern=glob2rx("Twente*.csv"),
+                          full.names=TRUE)
+sensorData <- ReadMORSensorDataTWE(sensorFiles)
+setkey(sensorData, dateTime)
+setkey(imageSummary, dateTime)
+imageSummary <- merge(imageSummary, sensorData)
+imageSummary[, MOR := TOA.MOR_10, by = dateTime]
+
+stopImplicitCluster()
 
 
