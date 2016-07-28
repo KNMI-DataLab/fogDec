@@ -2,11 +2,11 @@ library(data.table)
 library(visDec)
 library(ggplot2)
 library(doParallel)
-registerDoParallel(cores=3)
+registerDoParallel(cores=8)
 library(imager)
 library(changepoint) # functionality should be included in imager
 library(maptools)
-library(lubridate)
+#library(lubridate)
 
 
 
@@ -18,11 +18,13 @@ detect.edges <- function(im,sigma=1) {
 
 
 
+runScript <-function() {
+
 path <- "../inst/extdata/Meetterrein"
-path2 <- "/net/bhw420/nobackup/users/wauben/CAMERA/EHTW/201510"
-filenames <- list.files(path2,
+path2 <- "/mnt/disks/dataDisk/data/twente/"
+filenames <- list.files(path2, recursive = T,
                         #pattern=glob2rx("Meetterrein_201510*.jpg"),
-                        pattern=glob2rx("EHTW_2015102109*.jpg"),
+                        pattern=glob2rx("EHTW_201512*.jpg"),
                         full.names=TRUE)
 
 
@@ -67,4 +69,6 @@ imageSummary[, MOR := TOA.MOR_10, by = dateTime]
 
 stopImplicitCluster()
 
-
+save(imageSummary, file = "/mnt/disks/dataDisk/data/twenteResults2016.RData")
+return(imageSummary)
+}
