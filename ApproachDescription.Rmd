@@ -2,7 +2,7 @@
 title: "Description of Approach"
 author: "Martin Roth"
 date: "July 22, 2016"
-output: word_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -13,85 +13,297 @@ knitr::opts_chunk$set(echo = TRUE)
 library(data.table)
 library(imager)
 library(visDec)
+library(quantreg)
+library(ggplot2)
 ```
 
-### Read example pictures
-```{r, ExamplePictures}
+```{r, ExamplePictures, include=FALSE}
 path <- system.file("extdata/Meetterrein", package="visDec")
 filenames <- list.files(path,
                         pattern=glob2rx("Meetterrein_201510*.jpg"),
                         full.names=TRUE)
 ```
 
-## Mean edges
-Under daylight conditions the mean number of edges in a picture can be viewed as
-a relative indication of the foginess. 
+## Global feature approach
 
-```{r, EdgesPlotClear, echo=FALSE, fig.cap=paste("Edges in a clear situation"), fig.height=4, fig.width=8.4}
-im <- subim(load.image(filenames[75]), y > 16)
+One problem with the presented landmark discrimination and contrast reduction
+approaches is, that they require specific targets to be selected. An approach
+to overcome this by focusing on image features is presented in the
+following. First, we present the features we looked at so far and then we
+present two different ways to use these features.
+
+### Mean edges
+Edge detection was used already in the landmark  discrimination approach. 
+Instead of focusing on specific targets, we calculate now the mean number of 
+edges in a given picture. Under daylight conditions this number can be viewed as
+a relative indication of the fogginess. 
+
+```{r, Edges, echo=FALSE, fig.height=4, fig.width=8.4}
+imClear <-  subim(load.image(filenames[75]), y > 16)
+#```{r, EdgesPlotClear, echo=FALSE, fig.cap=paste("Edges in a clear situation"), fig.height=4, fig.width=8.4}
+#im <- subim(load.image(filenames[75]), y > 16)
+#old_par <- par(mfrow=c(1,2))
+#plot(im)
+#DetectEdges(im) %>% plot
+#par(old_par)
+#```
+#In a clear situation we observe `r round(DetectMeanEdges(im)*100,2)`% edges.
+#
+#```{r, EdgesPlotFoggy, echo=FALSE, fig.cap=paste("Edges in a foggy situation"), fig.height=4, fig.width=8.4}
+#im <- subim(load.image(filenames[49]), y > 16)
+#old_par <- par(mfrow=c(1,2))
+#plot(im)
+#DetectEdges(im) %>% plot
+#par(old_par)
+#```
+imFoggy <- subim(load.image(filenames[49]), y > 16)
 old_par <- par(mfrow=c(1,2))
-plot(im)
-DetectEdges(im) %>% plot
+plot(imClear)
+plot(imFoggy)
 par(old_par)
 ```
-In a clear situation we observe `r round(DetectMeanEdges(im)*100,2)`% edges.
+In the clear situation we have a fraction of 
+`r round(DetectMeanEdges(imClear)*100,2)`% edges and in in the foggy situation
+we observe `r round(DetectMeanEdges(imFoggy)*100,2)`% edges.
 
-```{r, EdgesPlotFoggy, echo=FALSE, fig.cap=paste("Edges in a foggy situation"), fig.height=4, fig.width=8.4}
-im <- subim(load.image(filenames[49]), y > 16)
-old_par <- par(mfrow=c(1,2))
-plot(im)
-DetectEdges(im) %>% plot
-par(old_par)
-```
-In a foggy situation we observe `r round(DetectMeanEdges(im)*100,2)`% edges.
+Note that in under night conditions fog actually results in relatively more
+edges, because of the scattering of light sources by the water particles.  
 
-## Transmission estimate using the Dark Channel prior
+### Transmission estimate using the Dark Channel prior
 
-### Dark Channel prior
 He et al. (2008) present an approach for haze removal from (single) images based
 on the so-called dark channel prior. The dark channel prior is based on the
 observation, "that most patches (small subimages) in a haze-free outdoor image
 contain some pixels which have very low intensities in at least one color
 channel". The idea was to follow this approach but instead of focusing on the
-removal, we focus on the haze instead. Therefore, we estimate the transmission
-in the local patches with the technique developed by He et al. (2008).
-```{r, TransmissionPlotClear, echo=FALSE, fig.cap="Transmission in a clear situation", fig.height=4, fig.width=8.4}
+haze removal, we focus on the haze instead. Therefore, we estimate the
+transmission in the local patches with the technique developed by 
+He et al. (2008). From the transmission we estimate horizontal averages to 
+infer the transition between sky and non-sky regions. In a clear situation this 
+transition is relatively sharp. However, in a foggy situation the transition 
+is less clear.
+```{r, TransmissionPlotClear, echo=FALSE, fig.cap="Transmission in a clear situation", fig.height=3, fig.width=8.4}
 im <- subim(load.image(filenames[75]), y > 16)
 
 darkChannel       <- GetDarkChannel(im)
 atmosphere        <- GetAtmosphere(im, darkChannel)
 transmissionClear <- GetTransmissionEstimate(im, atmosphere)
 
-
-
-old_par <- par(mfrow=c(1,2))
+old_par <- par(mfrow=c(1,3))
 plot(im)
 as.cimg(transmissionClear) %>% plot
+plot(GetHorizAvgTrans(im), xlab="", ylab="")
 par(old_par)
 ```
 
-```{r, TransmissionPlotFoggy, echo=FALSE, fig.cap="Transmission in a foggy situation", fig.height=4, fig.width=8.4}
+```{r, TransmissionPlotFoggy, echo=FALSE, fig.cap="Transmission in a foggy situation", fig.height=3, fig.width=8.4}
 im <- subim(load.image(filenames[49]), y > 16)
 
 darkChannel       <- GetDarkChannel(im)
 atmosphere        <- GetAtmosphere(im, darkChannel)
 transmissionFoggy <- GetTransmissionEstimate(im, atmosphere)
 
-old_par <- par(mfrow=c(1,2))
+old_par <- par(mfrow=c(1,3))
 plot(im)
-as.cimg(transmissionFoggy) %>% plot
+as.cimg(transmissionFoggy) %>% plot()
+plot(GetHorizAvgTrans(im), xlab="", ylab="")
 par(old_par)
 ```
 
-```{r, ComparisonAveragedTransmission, echo=FALSE, fig.cap="Horizontally averaged transmission", fig.height=4, fig.width=8.4}
-old_par <- par(mfrow=c(1,2))
-im <- subim(load.image(filenames[75]), y > 16)
-plot(GetHorizAvgTrans(im))
-im <- subim(load.image(filenames[49]), y > 16)
-plot(GetHorizAvgTrans(im))
-par(old_par)
+The idea is now to use the horizontal averages and compute the changepoint or a
+measure of the variation of the curve and use these as features of the image.
+
+It is clear that different features could be used as well. We looked for 
+instance also at different color spaces and in the following we use also the
+mean brightness of the image as a feature. 
+
+### Classification
+Using these (and possibly other) features we want to
+develop a classification (and finally a clustering) scheme, to predict whether a
+image is foggy or not. As training set we have data for the measurement site at
+De Bilt, from June 1 2015 until December 31 2015 (16001 images). 
+The training set are the images for the same fixed camera for the period January
+1 till June 30 2016 (13883 images).
+
+Based on the training set we obtain the following preliminary decision tree:
+```{r, Classification, include=FALSE}
+library(rpart)
+library(rattle)
+load("results/deBiltResults2015.RData")
+imageSummary[, dayIsEven := mday(dateOnly) %% 2]
+train <- imageSummary[, .(dateTime, MOR, meanEdge, changePoint, meanBrightness)]
+train[, foggy := MOR < 200]
+fogTree <- rpart(foggy ~ meanEdge + changePoint + meanBrightness, train , control = rpart.control(cp = 0.019))
 ```
-### Changepoint of the horizontally averaged transmission
+```{r, ClassificationTree, echo=FALSE}
+fancyRpartPlot(fogTree, sub="")
+```
 
-## Outlook
+The tree has to be read as follows for a image with `meanEdge = 0.0039` and 
+`changePoint = 320`. From the top node we go to the lower right node,
+with number 3, because `meanEdge >= 0.0041` is false. In the next step we go to
+the lower left node, with number 6, because `changePoint < 324` is true. 
+This node number 6, tells us that there were 25 instances in the training
+set and from these 0 were foggy, i.e. `MOR < 250`. Therefore, we get a
+prediction of 0\%.
 
+```{r, TestClassification, echo=FALSE}
+load("results/deBiltResults2016.RData")
+test <- imageSummary[, .(dateTime, MOR, meanEdge, changePoint, meanBrightness)]
+test[, foggy := MOR < 200]
+pred <- predict(fogTree, test, method="class")
+test[, pred := pred]
+```
+
+We use the obtained tree to predict the probability of fog from the features of
+the images in the test set. In 2016 we have `r test[foggy == TRUE, .N]` images
+in the test set, that are labeled as foggy, i.e. a MOR below 200 meters. The
+table below shows the days, where we either had a high probability of fog
+(`> 40%`) and a relatively high MOR (`> 500 meters`) or days with a low 
+probability of fog (`< 40%`) and a relatively low MOR (`< 250 meters`).
+In total we obtain five days for which this condition is true. 
+
+```{r, ClassificationErrors, echo=FALSE}
+knitr::kable(test[(pred > 0.4 & MOR > 500) | (pred < 0.4 & MOR < 250),.(dateTime, MOR, meanEdge, changePoint, foggy, pred = round(pred, 2))])
+```
+
+January 1 2016 is a foggy day. The MOR and the classification mostly give the 
+same results. However, at 9:30 and 13:10 the change point detection based on the
+transmission estimate leads to wrong a conclusion. On January 6 it is already
+dark (which should have been filtered out prior to the analysis (time zone
+issues)). Moreover, the MOR gives values around 750 meters so the roughly 43% 
+probability of fog do not seem too bad. 
+On January 23 one is not able to see the radar tower, which is certainly closer
+than the reported 1.5 km from the MOR, so here the camera based approach gives
+the better result. 
+
+The situation in Twente is different for two reasons, the wide angle of the
+camera makes the horizontal averaging of the transmission rate less appropriate.
+Moreover, even on a clear day there are only a few edges in the image (which are
+mostly very close to the camera, i.e. from the equipment of the automatic 
+weather station). Nevertheless, it was quite simple to detect failures of the 
+visibility sensor using the two described features, such as during the afternoon
+of August 23 2015, where the sensor consistently gave MOR < 250, although the 
+image is very clear.
+
+### Regression
+When we are interested not only in the distinction between foggy and not foggy,
+we can try to build a regression model. In a first exploratory approach we model 
+`log(MOR)` as a linear function of `meanEdge + changePoint + meanBrightness`.
+```{r, MultiLinearRegression, echo=FALSE}
+mlm <- lm(log(MOR) ~ meanEdge + changePoint + meanBrightness, train) 
+pred <- predict(mlm, train)
+train[, predMOR := pred]
+```
+
+We can plot the modeled response versus the observations, as seen below:
+
+```{r, UncleanPlot, warning=FALSE, echo=FALSE}
+ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point() + 
+  ylab("prediction")
+```
+
+There are some quite apparent features in this plot. For instance the points 
+with the very low MOR and a prediction of around 10 are mostly due to an 
+failure of the transmissometer. The values with the largest prediction on the
+other hand correspond to different sceneries in the picture (we believed the
+camera was fixed) or situations where it is already dark. The point on the lower
+right corner with a prediction below 7 corresponds again to a different scenery.
+```{r, CleanData, echo=FALSE}
+train[, id := 1:.N]
+#
+# ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point()
+#
+# train[predMOR > 12]
+# June 22 2015 11:10 different scenery
+# August 4 2015 11:00 different scenery
+# September 27 19:10 / 19:20 already dark 
+# October 20 18:00 already dark
+#
+train <- train[predMOR < 12]
+#
+# ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point()
+#
+# train[(log(MOR) < 6 & predMOR > 9)]
+# November 1 2015 clear view (afer foogy period / might be time issue)
+# November 2 2015 clear view (no fog)
+#
+train <- train[!(log(MOR) < 6 & predMOR > 9)]
+#
+# ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point()
+#
+# train[(log(MOR) > 8 & predMOR < 9)]
+# June 19 2015 9:20 different scenery
+# otherwise already dark
+#
+train <- train[!(log(MOR) > 8 & predMOR < 9)]
+#
+# ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point()
+#
+# train[(log(MOR) < 7 & predMOR > 9.5)]
+# June 5 2015 too late
+# September 23 too late
+# November 2 clear view
+# November 26 clear view
+#
+train <- train[!(log(MOR) < 7 & predMOR > 9.5)]
+#
+# ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point()
+#
+# train[(log(MOR) < 8 & predMOR > 10.2)]
+# June too late
+# July too late
+# November 1 until 16 clear view
+# November 1 17:10 already dark
+# November 2 29:10 clear view
+# November 26 8:40 clear view
+#
+train <- train[!(log(MOR) < 8 & predMOR > 10.2)]
+#
+# ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point()
+#
+# train[(log(MOR) < 10 & predMOR > 11)]
+# June 22 already too late
+# October 30 Car in the scenery
+#
+train <- train[!(log(MOR) < 10 & predMOR > 11)]
+#
+#
+#
+```
+
+Hence, we clean the data set of these and some other points that correspond
+mostly to already dark hours. After this cleaning, `r train[, .N]` images remain.
+In the plot below, we consider still the same predicted values but only for the
+cleaned data. In this way the plot becomes a lot clearer.
+
+```{r, plotRegression, echo=FALSE}
+ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point() +
+  geom_smooth(method="lm", formula = y ~ splines::bs(x, 3), se=FALSE) +
+  #geom_quantile(method="rqss", lambda = 1, quantiles=0.5)
+  ylab("prediction")
+```
+
+```{r, include=FALSE}
+# The sequence around June 16 2015 at 13:10 shows the auto adaptation of the
+# camera. 
+# Similar at September 4 2015 at 11:00. 
+# November 22 2015 at least since 14:00 the scenery is different.
+```
+
+Focusing on prominent regions in the plot, we could also identify several cases
+where there is clearly an adaptation of the camera taking place and that
+sometimes the different scenery is not only present for one picture but for an
+extended period of time.
+
+### Outlook
+
+From the previous section, it is clear that the underlying pictures have to be
+reviewed carefully. In the end we want to be able to allow for different views
+of the camera, but for this exploratory analysis we have to exclude these data
+from the analysis.
+
+Regarding cameras at sites, where no MOR sensor is available regression seems a
+big challenge. But the idea of clustering the data, maybe in a semi supervised
+way (as there are usually only a few foggy situations), and reporting if the 
+probability of fog exceeds a certain level seems relatively close.
