@@ -38,7 +38,12 @@ Instead of focusing on specific targets, we calculate now the mean number of
 edges in a given picture. Under daylight conditions this number can be viewed as
 a relative indication of the fogginess. 
 
-```{r, Edges, echo=FALSE, fig.height=4, fig.width=8.4}
+```{r, meanEdgeRegression, echo=FALSE, warning=FALSE, fig.height=4, fig.width=4}
+load("results/deBiltResults2015.RData")
+ggplot(imageSummary, aes(x = log(MOR), y = meanEdge)) + geom_point() 
+```
+
+```{r, Edges, include=FALSE, fig.height=4, fig.width=8.4}
 imClear <-  subim(load.image(filenames[75]), y > 16)
 #```{r, EdgesPlotClear, echo=FALSE, fig.cap=paste("Edges in a clear situation"), fig.height=4, fig.width=8.4}
 #im <- subim(load.image(filenames[75]), y > 16)
@@ -62,6 +67,7 @@ plot(imClear)
 plot(imFoggy)
 par(old_par)
 ```
+
 In the clear situation we have a fraction of 
 `r round(DetectMeanEdges(imClear)*100,2)`% edges and in in the foggy situation
 we observe `r round(DetectMeanEdges(imFoggy)*100,2)`% edges.
@@ -82,6 +88,7 @@ He et al. (2008). From the transmission we estimate horizontal averages to
 infer the transition between sky and non-sky regions. In a clear situation this 
 transition is relatively sharp. However, in a foggy situation the transition 
 is less clear.
+
 ```{r, TransmissionPlotClear, echo=FALSE, fig.cap="Transmission in a clear situation", fig.height=3, fig.width=8.4}
 im <- subim(load.image(filenames[75]), y > 16)
 
@@ -132,32 +139,33 @@ library(rattle)
 load("results/deBiltResults2015.RData")
 imageSummary[, dayIsEven := mday(dateOnly) %% 2]
 train <- imageSummary[, .(dateTime, MOR, meanEdge, changePoint, meanBrightness)]
-train[, foggy := MOR < 200]
+train[, foggy := MOR < 250]
 fogTree <- rpart(foggy ~ meanEdge + changePoint + meanBrightness, train , control = rpart.control(cp = 0.019))
 ```
 ```{r, ClassificationTree, echo=FALSE}
 fancyRpartPlot(fogTree, sub="")
 ```
 
-The tree has to be read as follows for a image with `meanEdge = 0.0039` and 
-`changePoint = 320`. From the top node we go to the lower right node,
-with number 3, because `meanEdge >= 0.0041` is false. In the next step we go to
-the lower left node, with number 6, because `changePoint < 324` is true. 
-This node number 6, tells us that there were 25 instances in the training
-set and from these 0 were foggy, i.e. `MOR < 250`. Therefore, we get a
-prediction of 0\%.
+The tree has to be read as follows for an image with `meanEdge = 0.0039` and 
+`changePoint = 295`. From the top node the lower right node,
+with number 3, is reached because `meanEdge >= 0.0041` is false. 
+In the next step the lower left node, with number 6, is reached 
+because `changePoint < 296` is true. 
+This node number 6, tells us that there were 24 instances in the training
+set and from these 0 were foggy, i.e. dense fog with `MOR < 250`.
+Therefore, the chance that an image in this class is foggy is set to zero.
 
 ```{r, TestClassification, echo=FALSE}
 load("results/deBiltResults2016.RData")
 test <- imageSummary[, .(dateTime, MOR, meanEdge, changePoint, meanBrightness)]
-test[, foggy := MOR < 200]
+test[, foggy := MOR < 250]
 pred <- predict(fogTree, test, method="class")
 test[, pred := pred]
 ```
 
 We use the obtained tree to predict the probability of fog from the features of
 the images in the test set. In 2016 we have `r test[foggy == TRUE, .N]` images
-in the test set, that are labeled as foggy, i.e. a MOR below 200 meters. The
+in the test set, that are labeled as foggy, i.e. a MOR below 250 meters. The
 table below shows the days, where we either had a high probability of fog
 (`> 40%`) and a relatively high MOR (`> 500 meters`) or days with a low 
 probability of fog (`< 40%`) and a relatively low MOR (`< 250 meters`).
@@ -167,11 +175,14 @@ In total we obtain five days for which this condition is true.
 knitr::kable(test[(pred > 0.4 & MOR > 500) | (pred < 0.4 & MOR < 250),.(dateTime, MOR, meanEdge, changePoint, foggy, pred = round(pred, 2))])
 ```
 
+<!--
 January 1 2016 is a foggy day. The MOR and the classification mostly give the 
 same results. However, at 9:30 and 13:10 the change point detection based on the
-transmission estimate leads to wrong a conclusion. On January 6 it is already
+transmission estimate leads to wrong a conclusion. 
+-->
+On January 6 it is already
 dark (which should have been filtered out prior to the analysis (time zone
-issues)). Moreover, the MOR gives values around 750 meters so the roughly 43% 
+issues)). Moreover, the MOR gives values around 750 meters so the roughly 57% 
 probability of fog do not seem too bad. 
 On January 23 one is not able to see the radar tower, which is certainly closer
 than the reported 1.5 km from the MOR, so here the camera based approach gives
@@ -192,15 +203,16 @@ we can try to build a regression model. In a first exploratory approach we model
 `log(MOR)` as a linear function of `meanEdge + changePoint + meanBrightness`.
 ```{r, MultiLinearRegression, echo=FALSE}
 mlm <- lm(log(MOR) ~ meanEdge + changePoint + meanBrightness, train) 
+round(mlm$coefficients, 3)
 pred <- predict(mlm, train)
 train[, predMOR := pred]
 ```
 
 We can plot the modeled response versus the observations, as seen below:
 
-```{r, UncleanPlot, warning=FALSE, echo=FALSE}
+```{r, UncleanPlot, warning=FALSE, echo=FALSE, fig.height=4, fig.width=4}
 ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point() + 
-  ylab("prediction")
+  ylab("modelled log(MOR)")
 ```
 
 There are some quite apparent features in this plot. For instance the points 
@@ -277,11 +289,11 @@ mostly to already dark hours. After this cleaning, `r train[, .N]` images remain
 In the plot below, we consider still the same predicted values but only for the
 cleaned data. In this way the plot becomes a lot clearer.
 
-```{r, plotRegression, echo=FALSE}
+```{r, plotRegression, echo=FALSE, fig.height=4, fig.width=4}
+
 ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point() +
   geom_smooth(method="lm", formula = y ~ splines::bs(x, 3), se=FALSE) +
-  #geom_quantile(method="rqss", lambda = 1, quantiles=0.5)
-  ylab("prediction")
+  ylab("modelled log(MOR)")
 ```
 
 ```{r, include=FALSE}
@@ -291,10 +303,40 @@ ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point() +
 # November 22 2015 at least since 14:00 the scenery is different.
 ```
 
+
 Focusing on prominent regions in the plot, we could also identify several cases
 where there is clearly an adaptation of the camera taking place and that
 sometimes the different scenery is not only present for one picture but for an
 extended period of time.
+
+The next plot shows the modelled log(MOR) for the validation set. The 
+
+```{r, plotRegressionValidation, echo=FALSE, warning=FALSE, fig.height=4, fig.width=4}
+predReg <- predict(mlm, test)
+test[, predMOR := predReg]
+
+testClean <- test[hour(dateTime) < 20]
+testClean <- testClean[!(predMOR < 8.5 & log(MOR) > 7.8)] ## too dark
+
+# testClean[predMOR > 12 & log(MOR) > 9]
+# April 4 12:30 different scenery
+# April 21 9:40 different scenery
+#
+testClean <- testClean[!(predMOR > 12 & log(MOR) > 9)]
+
+# testClean[predMOR > 11 & log(MOR) < 9]
+# January 16 heavy rain
+# February 14 heavy rain
+# April 8 already dark
+# April 26 heavy rain
+# June 23 heavy rain
+
+
+
+ggplot(testClean, aes(x = log(MOR), y = predMOR)) + geom_point() +
+    geom_smooth(method="lm", formula = y ~ splines::bs(x, 3), se=FALSE, data = train) + 
+    ylab("modelled log(MOR)")
+```
 
 ### Outlook
 
