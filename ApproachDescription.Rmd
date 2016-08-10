@@ -13,7 +13,6 @@ knitr::opts_chunk$set(echo = TRUE)
 library(data.table)
 library(imager)
 library(visDec)
-library(quantreg)
 library(ggplot2)
 ```
 
@@ -211,7 +210,8 @@ train[, predMOR := pred]
 We can plot the modeled response versus the observations, as seen below:
 
 ```{r, UncleanPlot, warning=FALSE, echo=FALSE, fig.height=4, fig.width=4}
-ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point() + 
+ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point() +
+  geom_vline(xintercept = c(log(250), log(1000), log(3000), log(5000)), lty = 3) + 
   ylab("modelled log(MOR)")
 ```
 
@@ -289,10 +289,31 @@ mostly to already dark hours. After this cleaning, `r train[, .N]` images remain
 In the plot below, we consider still the same predicted values but only for the
 cleaned data. In this way the plot becomes a lot clearer.
 
+```{r, PODandFAR, echo=TRUE}
+
+fit <- lm(log(MOR) ~ splines::bs(predMOR, 3), train)
+fitted <- predict(fit, train)
+train[, fitted := exp(fitted)]
+
+train[MOR < 250 & fitted < 250, .N] / train[MOR < 250, .N]
+train[fitted < 250 & MOR > 250, .N] / train[fitted < 250, .N]
+
+train[MOR < 1000 & fitted < 1000, .N] / train[MOR < 1000, .N]
+train[fitted < 1000 & MOR > 1000, .N] / train[fitted < 1000, .N]
+
+train[MOR > 3000 & fitted > 3000, .N] / train[MOR > 3000, .N]
+train[fitted > 3000 & MOR < 3000, .N] / train[fitted > 3000, .N]
+
+train[MOR > 5000 & fitted > 5000, .N] / train[MOR > 5000, .N]
+train[fitted > 5000 & MOR < 5000, .N] / train[fitted > 5000, .N]
+
+```
+
 ```{r, plotRegression, echo=FALSE, fig.height=4, fig.width=4}
 
 ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point() +
   geom_smooth(method="lm", formula = y ~ splines::bs(x, 3), se=FALSE) +
+  geom_vline(xintercept = c(log(250), log(1000), log(8000)), lty = 3) + 
   ylab("modelled log(MOR)")
 ```
 
@@ -335,7 +356,27 @@ testClean <- testClean[!(predMOR > 12 & log(MOR) > 9)]
 
 ggplot(testClean, aes(x = log(MOR), y = predMOR)) + geom_point() +
     geom_smooth(method="lm", formula = y ~ splines::bs(x, 3), se=FALSE, data = train) + 
+    geom_vline(xintercept = c(log(250), log(1000), log(8000)), lty = 3) + 
     ylab("modelled log(MOR)")
+```
+
+```{r, PODandFARTest}
+
+fitted <- predict(fit, testClean)
+testClean[, fitted := exp(fitted)]
+
+testClean[MOR < 250 & fitted < 250, .N] / testClean[MOR < 250, .N]
+testClean[fitted < 250 & MOR > 250, .N] / testClean[fitted < 250, .N]
+
+testClean[MOR < 1000 & fitted < 1000, .N] / testClean[MOR < 1000, .N]
+testClean[fitted < 1000 & MOR > 1000, .N] / testClean[fitted < 1000, .N]
+
+testClean[MOR > 3000 & fitted > 3000, .N] / testClean[MOR > 3000, .N]
+testClean[fitted > 3000 & MOR < 3000, .N] / testClean[fitted > 3000, .N]
+
+testClean[MOR > 5000 & fitted > 5000, .N] / testClean[MOR > 5000, .N]
+testClean[fitted > 5000 & MOR < 5000, .N] / testClean[fitted > 5000, .N]
+```
 ```
 
 ### Outlook
