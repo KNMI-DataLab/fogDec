@@ -293,27 +293,46 @@ cleaned data. In this way the plot becomes a lot clearer.
 
 fit <- lm(log(MOR) ~ splines::bs(predMOR, 3), train)
 fitted <- predict(fit, train)
-train[, fitted := exp(fitted)]
 
-train[MOR < 250 & fitted < 250, .N] / train[MOR < 250, .N]
-train[fitted < 250 & MOR > 250, .N] / train[fitted < 250, .N]
+plottingPredMOR <- c(8.3, 9.05, 9.49, 9.65)
+plottingFrame <- data.table(predMOR = plottingPredMOR)
 
-train[MOR < 1000 & fitted < 1000, .N] / train[MOR < 1000, .N]
-train[fitted < 1000 & MOR > 1000, .N] / train[fitted < 1000, .N]
 
-train[MOR > 3000 & fitted > 3000, .N] / train[MOR > 3000, .N]
-train[fitted > 3000 & MOR < 3000, .N] / train[fitted > 3000, .N]
+train[MOR < 250 & predMOR < 8.3, .N]
+train[MOR < 250 & predMOR < 8.3, .N] / train[MOR < 250, .N]
+train[MOR > 250 & predMOR < 8.3, .N] / train[predMOR < 8.3, .N]
 
-train[MOR > 5000 & fitted > 5000, .N] / train[MOR > 5000, .N]
-train[fitted > 5000 & MOR < 5000, .N] / train[fitted > 5000, .N]
+train[MOR < 1000 & predMOR < 9.05, .N]
+train[MOR < 1000 & predMOR < 9.05, .N] / train[MOR < 1000, .N]
+train[MOR > 1000 & predMOR < 9.05, .N] / train[predMOR < 9.05, .N]
+
+train[MOR > 3000 & predMOR > 9.49, .N]
+train[MOR > 3000 & predMOR > 9.49, .N] / train[MOR > 3000, .N]
+train[MOR < 3000 & predMOR > 9.49, .N] / train[predMOR > 9.49, .N]
+
+train[MOR > 5000 & predMOR > 9.65, .N]
+train[MOR > 5000 & predMOR > 9.65, .N] / train[MOR > 5000, .N]
+train[MOR < 5000 & predMOR > 9.65, .N] / train[predMOR > 9.65, .N]
 
 ```
 
 ```{r, plotRegression, echo=FALSE, fig.height=4, fig.width=4}
 
+segments <- rbind(data.frame(x1 = 0, x2 = log(250), y1 = 8.3, y2 = 8.3, id = 1),
+                  data.frame(x1 = log(250), x2 = log(250), y1 = 0, y2 = 8.3, id = 2),
+                  data.frame(x1 = 0, x2 = log(1000), y1 = 9.05, y2 = 9.05, id = 3),
+                  data.frame(x1 = log(1000), x2 = log(1000), y1 = 0, y2 = 9.05, id = 4),
+                  data.frame(x1 = 20, x2 = log(3000), y1 = 9.49, y2 = 9.49, id = 5),
+                  data.frame(x1 = log(3000), x2 = log(3000), y1 = 20, y2 = 9.49, id = 6),
+                  data.frame(x1 = 20, x2 = log(5000), y1 = 9.65, y2 = 9.65, id = 7),
+                  data.frame(x1 = log(5000), x2 = log(5000), y1 = 20, y2 = 9.65, id = 8)
+                  )
+
 ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point() +
   geom_smooth(method="lm", formula = y ~ splines::bs(x, 3), se=FALSE) +
-  geom_vline(xintercept = c(log(250), log(1000), log(8000)), lty = 3) + 
+  #geom_smooth(aes(x = MOR, y = predMOR), data = linePlotting, stat="identity", col = 2)
+  geom_segment(aes(x = x1, xend = x2, y = y1, yend = y2), data = segments, col = 2) +
+  coord_cartesian(xlim=c(4, 11), ylim = c(7,11.5)) +
   ylab("modelled log(MOR)")
 ```
 
@@ -356,27 +375,31 @@ testClean <- testClean[!(predMOR > 12 & log(MOR) > 9)]
 
 ggplot(testClean, aes(x = log(MOR), y = predMOR)) + geom_point() +
     geom_smooth(method="lm", formula = y ~ splines::bs(x, 3), se=FALSE, data = train) + 
-    geom_vline(xintercept = c(log(250), log(1000), log(8000)), lty = 3) + 
+    geom_segment(aes(x = x1, xend = x2, y = y1, yend = y2), data = segments, col = 2) +
+    #geom_vline(xintercept = c(log(250), log(1000), log(3000), log(5000)), lty = 3) + 
+    #geom_hline(yintercept = plottingPredMOR, lty = 3, col = 2) +
+    coord_cartesian(xlim=c(4, 11), ylim = c(7,13.5)) +
     ylab("modelled log(MOR)")
 ```
 
 ```{r, PODandFARTest}
 
-fitted <- predict(fit, testClean)
-testClean[, fitted := exp(fitted)]
+testClean[MOR < 250 & predMOR < 8.3, .N]
+testClean[MOR < 250 & predMOR < 8.3, .N] / testClean[MOR < 250, .N]
+testClean[MOR > 250 & predMOR < 8.3, .N] / testClean[predMOR < 8.3, .N]
 
-testClean[MOR < 250 & fitted < 250, .N] / testClean[MOR < 250, .N]
-testClean[fitted < 250 & MOR > 250, .N] / testClean[fitted < 250, .N]
+testClean[MOR < 1000 & predMOR < 9.05, .N]
+testClean[MOR < 1000 & predMOR < 9.05, .N] / testClean[MOR < 1000, .N]
+testClean[MOR > 1000 & predMOR < 9.05, .N] / testClean[predMOR < 9.05, .N]
 
-testClean[MOR < 1000 & fitted < 1000, .N] / testClean[MOR < 1000, .N]
-testClean[fitted < 1000 & MOR > 1000, .N] / testClean[fitted < 1000, .N]
+testClean[MOR > 3000 & predMOR > 9.49, .N]
+testClean[MOR > 3000 & predMOR > 9.49, .N] / testClean[MOR > 3000, .N]
+testClean[MOR < 3000 & predMOR > 9.49, .N] / testClean[predMOR > 9.49, .N]
 
-testClean[MOR > 3000 & fitted > 3000, .N] / testClean[MOR > 3000, .N]
-testClean[fitted > 3000 & MOR < 3000, .N] / testClean[fitted > 3000, .N]
+testClean[MOR > 5000 & predMOR > 9.65, .N]
+testClean[MOR > 5000 & predMOR > 9.65, .N] / testClean[MOR > 5000, .N]
+testClean[MOR < 5000 & predMOR > 9.65, .N] / testClean[predMOR > 9.65, .N]
 
-testClean[MOR > 5000 & fitted > 5000, .N] / testClean[MOR > 5000, .N]
-testClean[fitted > 5000 & MOR < 5000, .N] / testClean[fitted > 5000, .N]
-```
 ```
 
 ### Outlook
