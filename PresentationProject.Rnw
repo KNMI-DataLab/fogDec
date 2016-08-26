@@ -1,0 +1,50 @@
+\documentclass[10pt,fleqn]{beamer}
+
+\usepackage{lmodern}
+\usepackage{knmiBeamer}
+\Engelstrue     % For English slides 
+
+\title{DataLab Introduction}
+\author{Wiel, Andrea and Martin}
+
+\begin{document}
+
+\begin{frame}
+ \titlepage
+\end{frame}
+
+\begin{frame}{Outline}
+
+\end{frame}
+
+<< Libraries, include=FALSE>>=
+library(data.table)
+library(imager)
+library(visDec)
+library(ggplot2)
+@
+
+<< ExamplePictures, include=FALSE, cache=TRUE>>=
+path <- system.file("extdata/Meetterrein", package="visDec")
+filenames <- list.files(path,
+                        pattern=glob2rx("Meetterrein_201510*.jpg"),
+                        full.names=TRUE)
+@
+
+\begin{frame}{Global feature approach}
+
+One problem with the presented landmark discrimination and contrast reduction
+approaches is, that they require specific targets to be selected. An approach
+to overcome this by focusing on image features is presented in the
+following. First, we present the features we looked at so far and then we
+present two different ways to use these features.
+\end{frame}
+
+\begin{frame}{Mean edges}
+Edge detection was used already in the landmark  discrimination approach. 
+Instead of focusing on specific targets, we calculate now the mean number of 
+edges in a given picture. Under daylight conditions this number can be viewed as
+a relative indication of the fogginess. 
+\end{frame}
+
+\end{document}
