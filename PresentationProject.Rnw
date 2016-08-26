@@ -1,0 +1,420 @@
+\documentclass[10pt,fleqn]{beamer}
+
+\usepackage{lmodern}
+\usepackage{knmiBeamer}
+\Engelstrue     % For English slides 
+
+\title{DataLab Introduction}
+\author{Wiel, Andrea and Martin}
+%\author[M. Roth (\MYhref{mailto:roth@knmi.nl}{roth@knmi.nl})]{Martin Roth\texorpdfstring{\\[2mm] \scriptsize \href{mailto:roth@knmi.nl}{roth@knmi.nl}\\[4mm] {\scriptsize Joint work with A. Buishand and G. Jongbloed}}{}}
+\date{}
+
+\begin{document}
+
+\begin{frame}
+ \titlepage
+\end{frame}
+
+\begin{frame}{Outline}
+
+\end{frame}
+
+<< Libraries, include=FALSE>>=
+library(data.table)
+library(imager)
+library(visDec)
+library(ggplot2)
+@
+
+<< ExamplePictures, include=FALSE, cache=TRUE>>=
+path <- system.file("extdata/Meetterrein", package="visDec")
+filenames <- list.files(path,
+                        pattern=glob2rx("Meetterrein_201510*.jpg"),
+                        full.names=TRUE)
+@
+
+\begin{frame}{Global feature approach}
+
+One problem with the presented landmark discrimination and contrast reduction
+approaches is, that they require specific targets to be selected. An approach
+to overcome this by focusing on image features is presented in the
+following. First, we present the features we looked at so far and then we
+present two different ways to use these features.
+\end{frame}
+
+\begin{frame}{Mean edges}
+Edge detection was used already in the landmark  discrimination approach. 
+Instead of focusing on specific targets, we calculate now the mean number of 
+edges in a given picture. Under daylight conditions this number can be viewed as
+a relative indication of the fogginess. 
+\end{frame}
+
+\begin{frame}{Edge regression}
+<<meanEdgeRegression, echo=FALSE, warning=FALSE, fig.height=4, fig.width=4>>=
+load("results/deBiltResults2015.RData")
+ggplot(imageSummary, aes(x = log(MOR), y = meanEdge)) + geom_point() 
+@
+\end{frame}
+
+\begin{frame}{dafa}
+<<Edges, include=FALSE, fig.height=4, fig.width=8.4>>=
+imClear <-  subim(load.image(filenames[75]), y > 16)
+#```{r, EdgesPlotClear, echo=FALSE, fig.cap=paste("Edges in a clear situation"), fig.height=4, fig.width=8.4}
+#im <- subim(load.image(filenames[75]), y > 16)
+#old_par <- par(mfrow=c(1,2))
+#plot(im)
+#DetectEdges(im) %>% plot
+#par(old_par)
+#```
+#In a clear situation we observe `r round(DetectMeanEdges(im)*100,2)`% edges.
+#
+#```{r, EdgesPlotFoggy, echo=FALSE, fig.cap=paste("Edges in a foggy situation"), fig.height=4, fig.width=8.4}
+#im <- subim(load.image(filenames[49]), y > 16)
+#old_par <- par(mfrow=c(1,2))
+#plot(im)
+#DetectEdges(im) %>% plot
+#par(old_par)
+#```
+imFoggy <- subim(load.image(filenames[49]), y > 16)
+old_par <- par(mfrow=c(1,2))
+plot(imClear)
+plot(imFoggy)
+par(old_par)
+@
+\end{frame}
+
+\begin{frame}{Bla}
+\vspace*{-5mm}
+<<TransmissionPlotClear, echo=FALSE, fig.height=3, fig.width=8.4>>=
+im <- subim(load.image(filenames[75]), y > 16)
+
+darkChannel       <- GetDarkChannel(im)
+atmosphere        <- GetAtmosphere(im, darkChannel)
+transmissionClear <- GetTransmissionEstimate(im, atmosphere)
+
+old_par <- par(mfrow=c(1,3))
+plot(im)
+as.cimg(transmissionClear) %>% plot
+plot(GetHorizAvgTrans(im), xlab="", ylab="")
+par(old_par)
+@
+
+\vspace*{-5mm}
+<<TransmissionPlotFoggy, echo=FALSE, fig.height=3, fig.width=8.4>>=
+im <- subim(load.image(filenames[49]), y > 16)
+
+darkChannel       <- GetDarkChannel(im)
+atmosphere        <- GetAtmosphere(im, darkChannel)
+transmissionFoggy <- GetTransmissionEstimate(im, atmosphere)
+
+old_par <- par(mfrow=c(1,3))
+plot(im)
+as.cimg(transmissionFoggy) %>% plot()
+plot(GetHorizAvgTrans(im), xlab="", ylab="")
+par(old_par)
+@
+\end{frame}
+
+The idea is now to use the horizontal averages and compute the changepoint or a
+measure of the variation of the curve and use these as features of the image.
+
+It is clear that different features could be used as well. We looked for 
+instance also at different color spaces and in the following we use also the
+mean brightness of the image as a feature. 
+
+Using these (and possibly other) features we want to
+develop a classification (and finally a clustering) scheme, to predict whether a
+image is foggy or not. As training set we have data for the measurement site at
+De Bilt, from June 1 2015 until December 31 2015 (16001 images). 
+The training set are the images for the same fixed camera for the period January
+1 till June 30 2016 (13883 images).
+
+Based on the training set we obtain the following preliminary decision tree:
+\begin{frame}{Classification tree}
+<<Classification, include=FALSE>>=
+library(rpart)
+library(rattle)
+load("results/deBiltResults2015.RData")
+imageSummary[, dayIsEven := mday(dateOnly) %% 2]
+train <- imageSummary[, .(dateTime, MOR, meanEdge, changePoint, meanBrightness)]
+train[, foggy := MOR < 250]
+fogTree <- rpart(foggy ~ meanEdge + changePoint + meanBrightness, train , control = rpart.control(cp = 0.019))
+@
+<<ClassificationTree, echo=FALSE, fig.height=4>>=
+fancyRpartPlot(fogTree, sub="")
+@
+\end{frame}
+
+The tree has to be read as follows for an image with `meanEdge = 0.0039` and 
+`changePoint = 295`. From the top node the lower right node,
+with number 3, is reached because `meanEdge >= 0.0041` is false. 
+In the next step the lower left node, with number 6, is reached 
+because `changePoint < 296` is true. 
+This node number 6, tells us that there were 24 instances in the training
+set and from these 0 were foggy, i.e. dense fog with `MOR < 250`.
+Therefore, the chance that an image in this class is foggy is set to zero.
+
+<< TestClassification, echo=FALSE>>=
+load("results/deBiltResults2016.RData")
+test <- imageSummary[, .(dateTime, MOR, meanEdge, changePoint, meanBrightness)]
+test[, foggy := MOR < 250]
+pred <- predict(fogTree, test, method="class")
+test[, pred := pred]
+@
+
+\begin{frame}{Classification prediction}
+We use the obtained tree to predict the probability of fog from the features of
+the images in the test set. In 2016 we have \Sexpr{test[foggy == TRUE, .N]} images
+in the test set, that are labeled as foggy, i.e. a MOR below 250 meters. The
+table below shows the days, where we either had a high probability of fog
+($> 40\%$) and a relatively high MOR ($> 500 meters$) or days with a low 
+probability of fog ($< 40\%$) and a relatively low MOR ($< 250 meters$).
+In total we obtain five days for which this condition is true. 
+
+<<ClassificationErrors, echo=FALSE>>=
+knitr::kable(test[(pred > 0.4 & MOR > 500) | (pred < 0.4 & MOR < 250),.(dateTime, MOR, meanEdge, changePoint, foggy, pred = round(pred, 2))])
+@
+
+On January 6 it is already
+dark (which should have been filtered out prior to the analysis (time zone
+issues)). Moreover, the MOR gives values around 750 meters so the roughly 57% 
+probability of fog do not seem too bad. 
+On January 23 one is not able to see the radar tower, which is certainly closer
+than the reported 1.5 km from the MOR, so here the camera based approach gives
+the better result. 
+\end{frame}
+
+\begin{frame}{Twente}
+The situation in Twente is different for two reasons, the wide angle of the
+camera makes the horizontal averaging of the transmission rate less appropriate.
+Moreover, even on a clear day there are only a few edges in the image (which are
+mostly very close to the camera, i.e. from the equipment of the automatic 
+weather station). Nevertheless, it was quite simple to detect failures of the 
+visibility sensor using the two described features, such as during the afternoon
+of August 23 2015, where the sensor consistently gave MOR < 250, although the 
+image is very clear.
+\end{frame}
+
+<<MultiLinearRegression, include=FALSE>>=
+mlm <- lm(log(MOR) ~ meanEdge + changePoint + meanBrightness, train) 
+round(mlm$coefficients, 3)
+pred <- predict(mlm, train)
+train[, predMOR := pred]
+@
+
+\begin{frame}{Regression}
+When we are interested not only in the distinction between foggy and not foggy,
+we can try to build a regression model. In a first exploratory approach we model 
+$log(MOR)$ as a linear function of $meanEdge + changePoint + meanBrightness$.
+
+
+<<UncleanPlot, warning=FALSE, echo=FALSE, fig.height=3, fig.width=3>>=
+ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point() +
+  geom_vline(xintercept = c(log(250), log(1000), log(3000), log(5000)), lty = 3) + 
+  ylab("modelled log(MOR)")
+@
+
+There are some quite apparent features in this plot. For instance the points 
+with the very low MOR and a prediction of around 10 are mostly due to an 
+failure of the transmissometer. The values with the largest prediction on the
+other hand correspond to different sceneries in the picture (we believed the
+camera was fixed) or situations where it is already dark. The point on the lower
+right corner with a prediction below 7 corresponds again to a different scenery.
+\end{frame}
+
+\begin{frame}{Clean Data}
+<<CleanData, echo=FALSE>>=
+train[, id := 1:.N]
+#
+# ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point()
+#
+# train[predMOR > 12]
+# June 22 2015 11:10 different scenery
+# August 4 2015 11:00 different scenery
+# September 27 19:10 / 19:20 already dark 
+# October 20 18:00 already dark
+#
+train <- train[predMOR < 12]
+#
+# ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point()
+#
+# train[(log(MOR) < 6 & predMOR > 9)]
+# November 1 2015 clear view (afer foogy period / might be time issue)
+# November 2 2015 clear view (no fog)
+#
+train <- train[!(log(MOR) < 6 & predMOR > 9)]
+#
+# ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point()
+#
+# train[(log(MOR) > 8 & predMOR < 9)]
+# June 19 2015 9:20 different scenery
+# otherwise already dark
+#
+train <- train[!(log(MOR) > 8 & predMOR < 9)]
+#
+# ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point()
+#
+# train[(log(MOR) < 7 & predMOR > 9.5)]
+# June 5 2015 too late
+# September 23 too late
+# November 2 clear view
+# November 26 clear view
+#
+train <- train[!(log(MOR) < 7 & predMOR > 9.5)]
+#
+# ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point()
+#
+# train[(log(MOR) < 8 & predMOR > 10.2)]
+# June too late
+# July too late
+# November 1 until 16 clear view
+# November 1 17:10 already dark
+# November 2 29:10 clear view
+# November 26 8:40 clear view
+#
+train <- train[!(log(MOR) < 8 & predMOR > 10.2)]
+#
+# ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point()
+#
+# train[(log(MOR) < 10 & predMOR > 11)]
+# June 22 already too late
+# October 30 Car in the scenery
+#
+train <- train[!(log(MOR) < 10 & predMOR > 11)]
+#
+#
+#
+@
+\end{frame}
+
+
+<<PODandFAR, include=FALSE>>=
+
+fit <- lm(log(MOR) ~ splines::bs(predMOR, 3), train)
+fitted <- predict(fit, train)
+
+plottingPredMOR <- c(8.3, 9.05, 9.49, 9.65)
+plottingFrame <- data.table(predMOR = plottingPredMOR)
+@
+
+<<PODandFAR2, echo=FALSE>>=
+train[MOR < 250 & predMOR < 8.3, .N]
+train[MOR < 250 & predMOR < 8.3, .N] / train[MOR < 250, .N]
+train[MOR > 250 & predMOR < 8.3, .N] / train[predMOR < 8.3, .N]
+
+train[MOR < 1000 & predMOR < 9.05, .N]
+train[MOR < 1000 & predMOR < 9.05, .N] / train[MOR < 1000, .N]
+train[MOR > 1000 & predMOR < 9.05, .N] / train[predMOR < 9.05, .N]
+
+train[MOR > 3000 & predMOR > 9.49, .N]
+train[MOR > 3000 & predMOR > 9.49, .N] / train[MOR > 3000, .N]
+train[MOR < 3000 & predMOR > 9.49, .N] / train[predMOR > 9.49, .N]
+
+train[MOR > 5000 & predMOR > 9.65, .N]
+train[MOR > 5000 & predMOR > 9.65, .N] / train[MOR > 5000, .N]
+train[MOR < 5000 & predMOR > 9.65, .N] / train[predMOR > 9.65, .N]
+@
+
+\begin{frame}{POD and FAR}
+Hence, we clean the data set of these and some other points that correspond
+mostly to already dark hours. After this cleaning, \Sexpr{ train[, .N]} images remain.
+In the plot below, we consider still the same predicted values but only for the
+cleaned data. In this way the plot becomes a lot clearer.
+\end{frame}
+
+
+\begin{frame}{afdaf}
+<<plotRegression, echo=FALSE, fig.height=3, fig.width=4>>=
+
+segments <- rbind(data.frame(x1 = 0, x2 = log(250), y1 = 8.3, y2 = 8.3, id = 1),
+                  data.frame(x1 = log(250), x2 = log(250), y1 = 0, y2 = 8.3, id = 2),
+                  data.frame(x1 = 0, x2 = log(1000), y1 = 9.05, y2 = 9.05, id = 3),
+                  data.frame(x1 = log(1000), x2 = log(1000), y1 = 0, y2 = 9.05, id = 4),
+                  data.frame(x1 = 20, x2 = log(3000), y1 = 9.49, y2 = 9.49, id = 5),
+                  data.frame(x1 = log(3000), x2 = log(3000), y1 = 20, y2 = 9.49, id = 6),
+                  data.frame(x1 = 20, x2 = log(5000), y1 = 9.65, y2 = 9.65, id = 7),
+                  data.frame(x1 = log(5000), x2 = log(5000), y1 = 20, y2 = 9.65, id = 8)
+                  )
+
+ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point() +
+  geom_smooth(method="lm", formula = y ~ splines::bs(x, 3), se=FALSE) +
+  #geom_smooth(aes(x = MOR, y = predMOR), data = linePlotting, stat="identity", col = 2)
+  geom_segment(aes(x = x1, xend = x2, y = y1, yend = y2), data = segments, col = 2) +
+  coord_cartesian(xlim=c(4, 11), ylim = c(7,11.5)) +
+  ylab("modelled log(MOR)")
+@
+\end{frame}
+
+\begin{frame}{Validation plot}
+Focusing on prominent regions in the plot, we could also identify several cases
+where there is clearly an adaptation of the camera taking place and that
+sometimes the different scenery is not only present for one picture but for an
+extended period of time.
+
+The next plot shows the modelled log(MOR) for the validation set. The 
+
+<<plotRegressionValidation, echo=FALSE, warning=FALSE, fig.height=4, fig.width=4>>=
+predReg <- predict(mlm, test)
+test[, predMOR := predReg]
+
+testClean <- test[hour(dateTime) < 20]
+testClean <- testClean[!(predMOR < 8.5 & log(MOR) > 7.8)] ## too dark
+
+# testClean[predMOR > 12 & log(MOR) > 9]
+# April 4 12:30 different scenery
+# April 21 9:40 different scenery
+#
+testClean <- testClean[!(predMOR > 12 & log(MOR) > 9)]
+
+# testClean[predMOR > 11 & log(MOR) < 9]
+# January 16 heavy rain
+# February 14 heavy rain
+# April 8 already dark
+# April 26 heavy rain
+# June 23 heavy rain
+
+
+
+ggplot(testClean, aes(x = log(MOR), y = predMOR)) + geom_point() +
+    geom_smooth(method="lm", formula = y ~ splines::bs(x, 3), se=FALSE, data = train) + 
+    geom_segment(aes(x = x1, xend = x2, y = y1, yend = y2), data = segments, col = 2) +
+    #geom_vline(xintercept = c(log(250), log(1000), log(3000), log(5000)), lty = 3) + 
+    #geom_hline(yintercept = plottingPredMOR, lty = 3, col = 2) +
+    coord_cartesian(xlim=c(4, 11), ylim = c(7,13.5)) +
+    ylab("modelled log(MOR)")
+@
+\end{frame}
+
+<<PODandFARTest, echo=FALSE>>=
+
+testClean[MOR < 250 & predMOR < 8.3, .N]
+testClean[MOR < 250 & predMOR < 8.3, .N] / testClean[MOR < 250, .N]
+testClean[MOR > 250 & predMOR < 8.3, .N] / testClean[predMOR < 8.3, .N]
+
+testClean[MOR < 1000 & predMOR < 9.05, .N]
+testClean[MOR < 1000 & predMOR < 9.05, .N] / testClean[MOR < 1000, .N]
+testClean[MOR > 1000 & predMOR < 9.05, .N] / testClean[predMOR < 9.05, .N]
+
+testClean[MOR > 3000 & predMOR > 9.49, .N]
+testClean[MOR > 3000 & predMOR > 9.49, .N] / testClean[MOR > 3000, .N]
+testClean[MOR < 3000 & predMOR > 9.49, .N] / testClean[predMOR > 9.49, .N]
+
+testClean[MOR > 5000 & predMOR > 9.65, .N]
+testClean[MOR > 5000 & predMOR > 9.65, .N] / testClean[MOR > 5000, .N]
+testClean[MOR < 5000 & predMOR > 9.65, .N] / testClean[predMOR > 9.65, .N]
+@
+
+\begin{frame}{Outlook}
+
+From the previous section, it is clear that the underlying pictures have to be
+reviewed carefully. In the end we want to be able to allow for different views
+of the camera, but for this exploratory analysis we have to exclude these data
+from the analysis.
+
+Regarding cameras at sites, where no MOR sensor is available regression seems a
+big challenge. But the idea of clustering the data, maybe in a semi supervised
+way (as there are usually only a few foggy situations), and reporting if the 
+probability of fog exceeds a certain level seems relatively close.
+\end{frame}
+
+\end{document}

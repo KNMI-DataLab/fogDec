@@ -1,0 +1,14 @@
+base
+methods
+datasets
+utils
+grDevices
+graphics
+stats
+knitr
+data.table
+plyr
+magrittr
+imager
+visDec
+ggplot2
