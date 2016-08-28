@@ -353,7 +353,7 @@ extended period of time.
 
 The next plot shows the modelled log(MOR) for the validation set. The 
 
-<<plotRegressionValidation, echo=FALSE, warning=FALSE, fig.height=4, fig.width=4>>=
+<<plotRegressionValidation, echo=FALSE, warning=FALSE, fig.height=2, fig.width=4>>=
 predReg <- predict(mlm, test)
 test[, predMOR := predReg]
 
