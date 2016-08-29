@@ -2,7 +2,7 @@
 title: "Description of Approach"
 author: "Martin Roth"
 date: "July 22, 2016"
-output: pdf_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
