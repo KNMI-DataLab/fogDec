@@ -2,7 +2,7 @@ library(data.table)
 library(visDec)
 library(ggplot2)
 library(doParallel)
-#registerDoParallel(cores=2)
+registerDoParallel(cores=2)
 library(imager)
 library(changepoint) # functionality should be included in imager
 library(maptools)
@@ -20,17 +20,17 @@ detect.edges <- function(im,sigma=1) {
 
 runScript <-function() {
   
-createParallelCluster()
+#createParallelCluster()
 
-path1 <- "../inst/extdata/Meetterrein"
+path1 <- "~/efs/data"
 path2 <- "/mnt/disks/dataDisk/data/twente/"
 filenames <- list.files(path1, recursive = T,
-                        pattern=glob2rx("Meetterrein_201510*.jpg"),
+                        pattern=glob2rx("Meetterrein_2015*.jpg"),
                         #pattern=glob2rx("EHTW_201512*.jpg"),
                         full.names=TRUE)
 
 
-imageSummary <- foreach(file = iter(filenames), .combine = rbind) %dopar% {
+imageSummary <- foreach(file = iter(filenames), .combine = rbind, .packages = "visDec") %dopar% {
   FileNameParser(file, "na*me_yyyymmdd_hhmm.jpg")#DeBilt pattern
 }
 
@@ -56,7 +56,7 @@ featureNames <- c("meanEdge", "changePoint", "smoothness",
 daylightImages[, id := 1:.N]
 setkey(daylightImages, id)
 
-imageSummary <- foreach(id = iter(daylightImages[, id]), .packages = c('data.table'), .combine = rbind) %dopar% {
+imageSummary <- foreach(id = iter(daylightImages[, id]), .packages = c('data.table', 'imager','visDec'), .combine = rbind) %dopar% {
   tmp <- daylightImages[id, ]
   tmp[, eval(featureNames) := ReturnFeatures(filePath), by = dateTime]
 }
