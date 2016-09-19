@@ -2,7 +2,7 @@ library(data.table)
 library(visDec)
 library(ggplot2)
 library(doParallel)
-registerDoParallel(cores=8)
+registerDoParallel(cores=2)
 library(imager)
 library(changepoint) # functionality should be included in imager
 library(maptools)
@@ -22,9 +22,9 @@ runScript <-function() {
 
 path <- "../inst/extdata/Meetterrein"
 path2 <- "/mnt/disks/dataDisk/data/twente/"
-filenames <- list.files(path2, recursive = T,
-                        #pattern=glob2rx("Meetterrein_201510*.jpg"),
-                        pattern=glob2rx("EHTW_201512*.jpg"),
+filenames <- list.files(path, recursive = T,
+                        pattern=glob2rx("Meetterrein_201510*.jpg"),
+                        #pattern=glob2rx("EHTW_201512*.jpg"),
                         full.names=TRUE)
 
 
