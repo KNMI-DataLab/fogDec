@@ -56,7 +56,7 @@ featureNames <- c("meanEdge", "changePoint", "smoothness",
 daylightImages[, id := 1:.N]
 setkey(daylightImages, id)
 
-imageSummary <- foreach(id = iter(daylightImages[, id]), .packages = c('data.table', 'imager','visDec'), .combine = rbind) %dopar% {
+imageSummary <- foreach(id = iter(daylightImages[, id]), .packages = c('data.table','visDec'), .combine = rbind) %dopar% {
   tmp <- daylightImages[id, ]
   tmp[, eval(featureNames) := ReturnFeatures(filePath), by = dateTime]
 }
@@ -104,6 +104,8 @@ parallelCluster <- parallel::makeCluster(type='PSOCK',
                                          spec=spec,
                                          port=11000)
 print(parallelCluster)
+
+clusterEvalQ(parallelCluster, library(imager))
 registerDoParallel(parallelCluster)
 }
 
