@@ -137,7 +137,8 @@ library(rpart)
 library(rattle)
 load("results/deBiltResults2015.RData")
 imageSummary[, dayIsEven := mday(dateOnly) %% 2]
-train <- imageSummary[, .(dateTime, MOR, meanEdge, changePoint, meanBrightness)]
+daylightImagesTrain <- FilterDayLightHours(imageSummary, properties, -120, -120)
+train <- daylightImagesTrain[, .(dateTime, MOR, meanEdge, changePoint, meanBrightness)]
 train[, foggy := MOR < 250]
 fogTree <- rpart(foggy ~ meanEdge + changePoint + meanBrightness, train , control = rpart.control(cp = 0.019))
 ```
@@ -156,7 +157,9 @@ Therefore, the chance that an image in this class is foggy is set to zero.
 
 ```{r, TestClassification, echo=FALSE}
 load("results/deBiltResults2016.RData")
-test <- imageSummary[, .(dateTime, MOR, meanEdge, changePoint, meanBrightness)]
+
+daylightImagesTest  <- FilterDayLightHours(test, properties, 60, 60)
+test <- daylightImagesTest[, .(dateTime, MOR, meanEdge, changePoint, meanBrightness)]
 test[, foggy := MOR < 250]
 pred <- predict(fogTree, test, method="class")
 test[, pred := pred]

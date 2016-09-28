@@ -34,7 +34,7 @@ imageSummary <- foreach(file = iter(filenames), .combine = rbind, .packages = "v
   FileNameParser(file, "na*me_yyyymmdd_hhmm.jpg")#DeBilt pattern
 }
 
-daylightImages <- FilterDayLightHours(imageSummary, properties, 0, 0)
+daylightImages <- FilterDayLightHours(imageSummary, properties, 180, 180)
 
 ReturnFeatures <- function(filePath) {
   im <- subim(load.image(filePath), y > 16) 
@@ -75,7 +75,7 @@ imageSummary[, MOR := TOA.MOR_10, by = dateTime]
 
 stopImplicitCluster()
 
-save(imageSummary, file = "~/code/output/ResultsParallelTestDeBilt2015.RData")
+save(imageSummary, file = "~/code/output/ResultsDeBilt2015_3hSun.RData")
 return(imageSummary)
 }
 
@@ -83,15 +83,39 @@ return(imageSummary)
 
 createParallelCluster <- function()
 {
-
+  i<-0
+machines<-list()
 user    <- 'ubuntu'
 primary <- '172.31.45.30'
+IPs<-c("172.31.45.193",
+       "172.31.45.192",
+       "172.31.45.180",
+       "172.31.45.179",
+       "172.31.45.182",
+       "172.31.45.181",
+       "172.31.45.195",
+       "172.31.45.194",
+       "172.31.45.178",
+       "172.31.45.196",
+       "172.31.45.188",
+       "172.31.45.187",
+       "172.31.45.190",
+       "172.31.45.189",
+       "172.31.45.184",
+       "172.31.45.183",
+       "172.31.45.186",
+       "172.31.45.185",
+       "172.31.38.73")
+for (ip in IPs){
+  i<-i+1
+  machines[[i]]<-list(host=ip, user = user, ncore=1)
+}
+
 machineAddresses <- list(
   list(host=primary,user=user,
-       ncore=1),
-  list(host='172.31.38.73',user=user,
        ncore=1)
 )
+machineAddresses<-c(machineAddresses,machines)
 spec <- lapply(machineAddresses,
                function(machine) {
                  rep(list(list(host=machine$host,
