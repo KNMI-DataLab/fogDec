@@ -1,7 +1,7 @@
 ---
 title: "Description of Approach"
-author: "Martin Roth"
-date: "July 22, 2016"
+author: "Martin Roth and Andrea Pagani"
+date: "September 29, 2016"
 output: pdf_document
 ---
 
@@ -135,9 +135,14 @@ Based on the training set we obtain the following preliminary decision tree:
 ```{r, Classification, include=FALSE}
 library(rpart)
 library(rattle)
-load("results/deBiltResults2015.RData")
+library(ROCR)
+load("./results/ResultsDeBilt2015_3hSun.RData")
 imageSummary[, dayIsEven := mday(dateOnly) %% 2]
-daylightImagesTrain <- FilterDayLightHours(imageSummary, properties, -120, -120)
+offsetBeforeSunrise <- 0
+offsetAfterSunset <- 0
+daylightImagesTrain <- imageSummary[, isDay := dateTime > sunriseDateTime - offsetBeforeSunrise * 60 & dateTime < sunsetDateTime + offsetAfterSunset * 60]
+daylightImagesTrain <- daylightImagesTrain[isDay == TRUE]
+daylightImagesTrain[,isDay := NULL]
 train <- daylightImagesTrain[, .(dateTime, MOR, meanEdge, changePoint, meanBrightness)]
 train[, foggy := MOR < 250]
 fogTree <- rpart(foggy ~ meanEdge + changePoint + meanBrightness, train , control = rpart.control(cp = 0.019))
@@ -156,25 +161,67 @@ set and from these 0 were foggy, i.e. dense fog with `MOR < 250`.
 Therefore, the chance that an image in this class is foggy is set to zero.
 
 ```{r, TestClassification, echo=FALSE}
-load("results/deBiltResults2016.RData")
+load("./results/ResultsDeBilt2016_3hSun.RData")
 
-daylightImagesTest  <- FilterDayLightHours(test, properties, 60, 60)
+
+daylightImagesTest <- imageSummary[, isDay := dateTime > sunriseDateTime - offsetBeforeSunrise * 60 & dateTime < sunsetDateTime + offsetAfterSunset * 60]
+daylightImagesTest <- daylightImagesTest[isDay == TRUE]
+daylightImagesTest[,isDay := NULL]
+
+
 test <- daylightImagesTest[, .(dateTime, MOR, meanEdge, changePoint, meanBrightness)]
 test[, foggy := MOR < 250]
 pred <- predict(fogTree, test, method="class")
 test[, pred := pred]
+
+
+
+
+```
+
+```{r, echo=T}
+cleanedTest<-test[complete.cases(test)] #there are sitations where the MOR is not verified and is given an NA for the measure, thus remove, actually we should remove from the train set and test set before giving to the classifier
+
+predBin <- round(cleanedTest$pred,0)
+
+labels <- cleanedTest$foggy
+tp <- sum(predBin == 1 & labels == T)
+tp
+tn <- sum(predBin == 0 & labels == F)
+tn
+falsePos <- sum(predBin == 1 & labels ==F)
+falsePos
+falseNeg <- sum(predBin == 0 & labels ==T)
+falseNeg
+precision <- tp / (tp + falsePos)
+recall <- tp / (tp + falseNeg)
+print("precision:")
+print(precision)
+print("recall:")
+print(recall)
+
+print("F1 score:")
+print(2*precision*recall/(precision+recall))
+
+# predComp<-prediction(cleanedTest$pred, labels)
+# PR.perf <- performance(predComp, "acc")
+# plot(PR.perf)
+
+
+
+
 ```
 
 We use the obtained tree to predict the probability of fog from the features of
 the images in the test set. In 2016 we have `r test[foggy == TRUE, .N]` images
 in the test set, that are labeled as foggy, i.e. a MOR below 250 meters. The
 table below shows the days, where we either had a high probability of fog
-(`> 40%`) and a relatively high MOR (`> 500 meters`) or days with a low 
-probability of fog (`< 40%`) and a relatively low MOR (`< 250 meters`).
+(`> 50%`) and a relatively high MOR (`> 250 meters`) or days with a low 
+probability of fog (`< 50%`) and a relatively low MOR (`< 250 meters`).
 In total we obtain five days for which this condition is true. 
 
 ```{r, ClassificationErrors, echo=FALSE}
-knitr::kable(test[(pred > 0.4 & MOR > 500) | (pred < 0.4 & MOR < 250),.(dateTime, MOR, meanEdge, changePoint, foggy, pred = round(pred, 2))])
+knitr::kable(cleanedTest[(pred > 0.5 & MOR > 250) | (pred < 0.5 & MOR < 250),.(dateTime, MOR, meanEdge, changePoint, foggy, pred = round(pred, 2))])
 ```
 
 <!--
