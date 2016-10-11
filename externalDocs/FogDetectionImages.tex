@@ -20,35 +20,37 @@
 	\IEEEauthorblockA{De Bilt, Netherlands\\ Email: andrea.pagani@knmi.nl}}
 \title{
 	%\leavevmode\smash{\includegraphics[width=0.2\textwidth]{knmi}}\\
-	Fog detection conditions from camera images using supervised and unsupervised learning.
+	Fog detection conditions from camera images using supervised and semi-supervised learning.
 }
 
 \begin{document}
 \maketitle
-
+\vspace{-0.2cm}
 \section{Introduction}
-Fog and mist are natural phenomena that are particularly dangerous for traffic and public safety due to the reduction of visibility. Fog is responsible for extreme accidents conditions involving tens to hundreds vehicles in a single accident location~\cite{hamilton2014hidden}. Compared to other meteorological phenomena (e.g., precipitation, cloud coverage), 
-fog is quite difficult to forecast due to the several conditions in which fog can arise. For example, fog 
-formation is influenced by the amount of precipitation and humidity in the ground, by the temperature 
-difference between ground and  lower layers of the atmosphere touching the ground, by the absence of wind, by the 
-presence of water basins in the surroundings their temperature of the water compared to the air. In particular, 
-temperature difference between ground and air is usually more evident in specific moments in the day such as sunrise and sunset.
+Fog and mist are natural phenomena that are particularly dangerous for traffic and public safety due to the reduction of visibility. Fog is responsible for extreme accidents conditions involving tens to hundreds vehicles in a single accident location~\cite{hamilton2014hidden}.
+ 
+Fog 
+formation is influenced by several factor such as the amount of precipitation and humidity in the ground, by the absence of wind, by the 
+presence of water basins in the surroundings and the difference in temperature compared to the air. In particular, 
+fog tends to appear in specific moments in the day such as around sunrise and sunset.
 Given the particular conditions in which mist can arise, it can be a highly local phenomenon taking 
-place in one small region and suddenly disappear in a region few kilometers away.
+place in one small region and suddenly disappear in a region few kilometers away~\cite{gultepe2007fog}.
+For all these reasons, fog is quite difficult to observe compared to other meteorological phenomena (e.g., precipitation, temperature), 
+thus making it difficult to validate models and which leads to forecast attempts that are quite poor. 
 
-Therefore, given the complexity and the locality of this phenomenon, in this project the idea is to detect mist and fog conditions coming mainly from camera images rather than forecasting the 
-presence of fog. In the Netherlands there is a high concentration of cameras to monitor the traffic along 
-many of the highways in the country, this could be a good data source to use.
-
+Therefore, given the complexity and the locality of this phenomenon, in this project the idea is to detect mist and fog conditions coming from camera images rather than forecasting the 
+presence of fog. The aim is to automatically build a high quality (poor) visibility observation set that can be used further in the attempts to improving fog modeling. For this purpose a good source could be cameras monitoring traffic that have a high concentration along the Dutch highways.
+\vspace{-0.2cm}
 \section{Problem definition}
 The goal is to recognize conditions of fog and mist from images. The identification of mist conditions 
 is primarily based on the the picture; other features representing the meteorological conditions can also be used where available. Pictures can be taken in different locations, thus it cannot be 
 implied the presence of any additional reference objects or recurrent patterns in the image in clear conditions. 
-Furthermore, the main objective is to have a probability indicator for the chance that the image is foggy. 
+Furthermore, the main objective is to have a classifier with high precision and recall.
+%probability indicator for the chance that the image is foggy. 
 
 		\begin{figure}[ht]
 			\centering
-			\includegraphics[width=0.22\textwidth]{Meetterrein_20151009_1110.jpg}	
+			\includegraphics[width=0.18\textwidth]{Meetterrein_20151009_1110.jpg}	
 			\caption{Measurement field at KNMI-De Bilt: clear conditions.}
 			\label{fig:clear}
 		\end{figure}
@@ -56,19 +58,19 @@ Furthermore, the main objective is to have a probability indicator for the chanc
 		
 				\begin{figure}[ht]
 			\centering
-			\includegraphics[width=0.22\textwidth]{Meetterrein_20151009_0800.jpg}	
+			\includegraphics[width=0.18\textwidth]{Meetterrein_20151009_0800.jpg}	
 			\caption{Measurement field at KNMI-De Bilt: fog conditions.}
 			\label{fig:fog}
 		\end{figure}
-
+\vspace{-0.2cm}
 \section{Methodology}
-The research starts with a literature survey to gain more insights in fog formation and pattern recognition in images to grasp the main points in the domain of application.
+The research starts with a literature research to gain more insights in fog formation and pattern recognition in images to grasp the main points in the domain of application.
 The main method to be used relies on the principles of pattern recognition and machine learning. 
-First the work will focus to extract features indicating fog and mist in images. Such features are to be used to train a classifier. 
+First, the work will focus to extract features indicating fog and mist in images. Such features are to be used to train a classifier. 
 In few situations the problem can be considered supervised given the visibility information from a 
 meteorological transmissiometer sensor (i.e., device able to measure the optical visibility) that acts as ground truth. However, the 
-unsupervised definition of the problem should be considered as the standard condition. In general the features should primarily come from the image inspection, but it might be useful to also take into account meteorological parameters 
-(temperature, wind speed, humidity, etc.) to be used as further features where
+semi-supervised definition of the problem should be considered as the standard condition. In general the features should primarily come from the image inspection, but it might be useful to also take into account meteorological parameters 
+(temperature, wind speed, humidity, etc.) as further features where
 the information is available.
 
 %\begin{figure}[ht]
@@ -77,14 +79,15 @@ the information is available.
 %	\caption{Concept of a neural network with a single hidden layer. Several predictors are linearly combined into hidden units, which are transformed by a sinusoidal function. The hidden units are then combined linearly into a output \cite{Kuhn2013a}. }
 %	\label{fig:NN}
 %\end{figure}
-
+\vspace{-0.2cm}
 \section{Expected Results}
 
 A machine learning system that is able to classify the fog/mist conditions with high precision and recall
-for the subset of samples that have a supervised approach and that is able to detect fog conditions in the unsupervised case. The approach found should be easily extensible to new camera images with 
+for the subset of samples that have a supervised approach and that is able to detect fog conditions in the un/semi-supervised case. The approach found should be easily extensible to new camera images with 
 minimal intervention in terms of parameters to be fed by the user.
 Besides a report describing the research, we also aim at documented and reproducible code (likely available via Github).  
 
+\vspace{-0.2cm}
 \bibliographystyle{IEEEtran}
 
 

@@ -20,18 +20,19 @@ detect.edges <- function(im,sigma=1) {
 
 runScript <-function() {
   
-#createParallelCluster()
+createParallelCluster()
 
-path1 <- "~/efs/data"
+path1 <- "~/efs/data/twente"
 path2 <- "/mnt/disks/dataDisk/data/twente/"
 filenames <- list.files(path1, recursive = T,
-                        pattern=glob2rx("Meetterrein_2015*.jpg"),
-                        #pattern=glob2rx("EHTW_201512*.jpg"),
+                        #pattern=glob2rx("Meetterrein_2015*.jpg"),
+                        pattern=glob2rx("EHTW_2015*.jpg"),
                         full.names=TRUE)
 
 
 imageSummary <- foreach(file = iter(filenames), .combine = rbind, .packages = "visDec") %dopar% {
-  FileNameParser(file, "na*me_yyyymmdd_hhmm.jpg")#DeBilt pattern
+  #FileNameParser(file, "na*me_yyyymmdd_hhmm.jpg")#DeBilt pattern
+  FileNameParser(file, "na*me_yyyymmddhhmm.jpg")#Twente pattern
 }
 
 daylightImages <- FilterDayLightHours(imageSummary, properties, 180, 180)
@@ -65,7 +66,7 @@ imageSummary <- foreach(id = iter(daylightImages[, id]), .packages = c('data.tab
 
 path <- system.file("extdata/Sensor", package="visDec")
 sensorFiles <- list.files(path,
-                          pattern=glob2rx("DeBilt*.csv"),
+                          pattern=glob2rx("Twente*.csv"),
                           full.names=TRUE)
 sensorData <- ReadMORSensorData(sensorFiles)
 setkey(sensorData, dateTime)
@@ -75,7 +76,7 @@ imageSummary[, MOR := TOA.MOR_10, by = dateTime]
 
 stopImplicitCluster()
 
-save(imageSummary, file = "~/code/output/ResultsDeBilt2015_3hSun.RData")
+save(imageSummary, file = "~/code/output/ResultsTwente2015_3hSun.RData")
 return(imageSummary)
 }
 
@@ -87,25 +88,9 @@ createParallelCluster <- function()
 machines<-list()
 user    <- 'ubuntu'
 primary <- '172.31.45.30'
-IPs<-c("172.31.45.193",
-       "172.31.45.192",
-       "172.31.45.180",
-       "172.31.45.179",
-       "172.31.45.182",
-       "172.31.45.181",
-       "172.31.45.195",
-       "172.31.45.194",
-       "172.31.45.178",
-       "172.31.45.196",
-       "172.31.45.188",
-       "172.31.45.187",
-       "172.31.45.190",
-       "172.31.45.189",
-       "172.31.45.184",
-       "172.31.45.183",
-       "172.31.45.186",
-       "172.31.45.185",
-       "172.31.38.73")
+
+IPs<-paste0("172.31.46.", seq(from = 157, to = 174))
+IPs<-c(IPs, "172.31.38.73")
 for (ip in IPs){
   i<-i+1
   machines[[i]]<-list(host=ip, user = user, ncore=1)
