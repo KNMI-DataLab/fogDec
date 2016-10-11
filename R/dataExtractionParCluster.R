@@ -115,7 +115,7 @@ parallelCluster <- parallel::makeCluster(type='PSOCK',
                                          port=11000)
 print(parallelCluster)
 
-clusterEvalQ(parallelCluster, library(imager))
+clusterEvalQ(parallelCluster, library(imager), FileNameParser())
 registerDoParallel(parallelCluster)
 }
 
