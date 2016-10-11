@@ -38,7 +38,8 @@ imageSummary <- foreach(file = iter(filenames), .combine = rbind, .packages = "v
 daylightImages <- FilterDayLightHours(imageSummary, properties, 180, 180)
 
 ReturnFeatures <- function(filePath) {
-  im <- subim(load.image(filePath), y > 16) 
+  #im <- subim(load.image(filePath), y > 16) 
+  im <- load.image(filePath)
   imT <- RGBtoHSV(im)
   transmission <- GetHorizAvgTrans(im)
   list(meanEdge = DetectMeanEdges(im, 3),
