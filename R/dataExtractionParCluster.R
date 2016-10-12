@@ -23,11 +23,10 @@ runScript <-function() {
 #createParallelCluster()
 
 path1 <- "~/efs/data/twente"
-path11 <- "~/Dropbox/KNMIWork/twenteTest/"
 path2 <- "/mnt/disks/dataDisk/data/twente/"
-filenames <- list.files(path11, recursive = T,
+filenames <- list.files(path1, recursive = T,
                         #pattern=glob2rx("Meetterrein_2015*.jpg"),
-                        pattern=glob2rx("EHTW_20150319*.jpg"),
+                        pattern=glob2rx("EHTW_2015*.jpg"),
                         full.names=TRUE)
 
 
