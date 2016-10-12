@@ -2,7 +2,7 @@ library(data.table)
 library(visDec)
 library(ggplot2)
 library(doParallel)
-registerDoParallel(cores=2)
+registerDoParallel(cores=3)
 library(imager)
 library(changepoint) # functionality should be included in imager
 library(maptools)
@@ -20,13 +20,14 @@ detect.edges <- function(im,sigma=1) {
 
 runScript <-function() {
   
-createParallelCluster()
+#createParallelCluster()
 
 path1 <- "~/efs/data/twente"
+path11 <- "~/Dropbox/KNMIWork/twenteTest/"
 path2 <- "/mnt/disks/dataDisk/data/twente/"
-filenames <- list.files(path1, recursive = T,
+filenames <- list.files(path11, recursive = T,
                         #pattern=glob2rx("Meetterrein_2015*.jpg"),
-                        pattern=glob2rx("EHTW_2015*.jpg"),
+                        pattern=glob2rx("EHTW_20150319*.jpg"),
                         full.names=TRUE)
 
 
@@ -40,6 +41,10 @@ daylightImages <- FilterDayLightHours(imageSummary, properties, 180, 180)
 ReturnFeatures <- function(filePath) {
   #im <- subim(load.image(filePath), y > 16) 
   im <- load.image(filePath)
+  #check if the image is a RGB or grayscale (converted to grayscale when dark by GIMP rectification)
+  if(dim(im)[4] == 1){
+    im<-add.colour(im, TRUE)
+  }
   imT <- RGBtoHSV(im)
   transmission <- GetHorizAvgTrans(im)
   list(meanEdge = DetectMeanEdges(im, 3),
@@ -72,12 +77,13 @@ sensorFiles <- list.files(path,
 sensorData <- ReadMORSensorData(sensorFiles)
 setkey(sensorData, dateTime)
 setkey(imageSummary, dateTime)
-imageSummary <- merge(imageSummary, sensorData)
+imageSummary <- SynchronizeSensorPicture(sensorData, imageSummary)
+#imageSummary <- merge(imageSummary, sensorData)
 imageSummary[, MOR := TOA.MOR_10, by = dateTime]
 
 stopImplicitCluster()
 
-save(imageSummary, file = "~/code/output/ResultsTwente2015_3hSun.RData")
+save(imageSummary, file = "ResultsTwente2015_3hSun.RData")
 return(imageSummary)
 }
 
