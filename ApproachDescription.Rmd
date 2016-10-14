@@ -14,6 +14,9 @@ library(data.table)
 library(imager)
 library(visDec)
 library(ggplot2)
+library(rpart)
+library(rattle)
+library(ROCR)
 ```
 
 ```{r, ExamplePictures, include=FALSE}
@@ -37,12 +40,12 @@ Instead of focusing on specific targets, we calculate now the mean number of
 edges in a given picture. Under daylight conditions this number can be viewed as
 a relative indication of the fogginess. 
 
-```{r, meanEdgeRegression, echo=FALSE, warning=FALSE, fig.height=4, fig.width=4}
+```{r, meanEdgeRegression, cache=TRUE, echo=FALSE, warning=FALSE, fig.height=4, fig.width=4}
 load("results/deBiltResults2015.RData")
 ggplot(imageSummary, aes(x = log(MOR), y = meanEdge)) + geom_point() 
 ```
 
-```{r, Edges, include=FALSE, fig.height=4, fig.width=8.4}
+```{r, Edges, cache=FALSE, include=FALSE, fig.height=4, fig.width=8.4}
 imClear <-  subim(load.image(filenames[75]), y > 16)
 #```{r, EdgesPlotClear, echo=FALSE, fig.cap=paste("Edges in a clear situation"), fig.height=4, fig.width=8.4}
 #im <- subim(load.image(filenames[75]), y > 16)
@@ -88,7 +91,7 @@ infer the transition between sky and non-sky regions. In a clear situation this
 transition is relatively sharp. However, in a foggy situation the transition 
 is less clear.
 
-```{r, TransmissionPlotClear, echo=FALSE, fig.cap="Transmission in a clear situation", fig.height=3, fig.width=8.4}
+```{r, TransmissionPlotClear, cache = TRUE, echo=FALSE, fig.cap="Transmission in a clear situation", fig.height=3, fig.width=8.4}
 im <- subim(load.image(filenames[75]), y > 16)
 
 darkChannel       <- GetDarkChannel(im)
@@ -131,22 +134,36 @@ De Bilt, from June 1 2015 until December 31 2015 (16001 images).
 The training set are the images for the same fixed camera for the period January
 1 till June 30 2016 (13883 images).
 
-Based on the training set we obtain the following preliminary decision tree:
-```{r, Classification, include=FALSE}
-library(rpart)
-library(rattle)
-library(ROCR)
+```{r, WindData}
+source("R/ReadMeteoData.R")
+windDeBilt <- ReadWindData("inst/extdata/Sensor/DeBiltWind1-1-2015-31-08-2016.csv")
+#windTwente <- ReadWindData()
+setkey(windDeBilt, dateTime)
+windData <- windDeBilt
+```
+
+```{r, TrainingData}
 load("./results/ResultsDeBilt2015_3hSun.RData")
-imageSummary[, dayIsEven := mday(dateOnly) %% 2]
 offsetBeforeSunrise <- 0 #time in minutes
 offsetAfterSunset <- 0
-daylightImagesTrain <- imageSummary[, isDay := dateTime > sunriseDateTime - offsetBeforeSunrise * 60 & dateTime < sunsetDateTime + offsetAfterSunset * 60]
-daylightImagesTrain <- daylightImagesTrain[isDay == TRUE]
-daylightImagesTrain[,isDay := NULL]
-train <- daylightImagesTrain[, .(dateTime, MOR, meanEdge, changePoint, meanBrightness)]
-train[, foggy := MOR < 250]
-fogTree <- rpart(foggy ~ meanEdge + changePoint + meanBrightness, train , control = rpart.control(cp = 0.019))
+#trainDeBilt <- imageSummary[dateTime > sunriseDateTime - offsetBeforeSunrise * 60 & dateTime < sunsetDateTime + offsetAfterSunset * 60, ]
+trainDeBilt <- imageSummary[dateTime > sunriseDateTime & dateTime < sunsetDateTime, ]
+trainDeBilt[, foggy := MOR < 250]
+setkey(trainDeBilt, dateTime)
+trainDeBilt <- trainDeBilt[windDeBilt, nomatch = 0]
+
+train <- trainDeBilt
+#trainDeBilt
+#trainTwente
 ```
+
+Based on the training set we obtain the following preliminary decision tree:
+```{r, Classification, include=FALSE}
+
+
+fogTree <- rpart(foggy ~ meanEdge + changePoint + meanBrightness, trainDeBilt , control = rpart.control(cp = 0.019))
+```
+
 ```{r, ClassificationTree, echo=FALSE}
 fancyRpartPlot(fogTree, sub="")
 ```
@@ -221,17 +238,8 @@ evaluatePrediction(test)
 
 Other meteorological parameters are added to the set of features analyzed for the machine learning problem.
 ```{r, WindFeatureAddition}
-source("R/ReadMeteoData.R")
-windData <- ReadWindData("inst/extdata/Sensor/DeBiltWind1-1-2015-31-08-2016.csv")
-windData[, TOW.Q_FF_10M_10:= NULL]
-windData[, DS_CODE := NULL]
-windData[ ,`:=`(year = NULL, month = NULL, day = NULL, hour = NULL)]
-setnames(windData, "TOW.FF_10M_10","windSpeed")
-setkey(windData, dateTime)
-setkey(train, dateTime)
-trainWithWind <- train[windData, nomatch = 0]
 
-fogWindTree <- rpart(foggy ~ meanEdge + changePoint + meanBrightness + windSpeed, trainWithWind , control = rpart.control(cp = 0.019))
+fogWindTree <- rpart(foggy ~ meanEdge + changePoint + meanBrightness + windSpeed, trainDeBilt , control = rpart.control(cp = 0.019))
 ```
 
 ```{r, ClassificationTreeWithWind, echo=FALSE}
@@ -296,16 +304,16 @@ When we are interested not only in the distinction between foggy and not foggy,
 we can try to build a regression model. In a first exploratory approach we model 
 `log(MOR)` as a linear function of `meanEdge + changePoint + meanBrightness`.
 ```{r, MultiLinearRegression, echo=FALSE}
-mlm <- lm(log(MOR) ~ meanEdge + changePoint + meanBrightness, train) 
+mlm <- lm(log(MOR) ~ meanEdge + changePoint + meanBrightness, trainDeBilt) 
 round(mlm$coefficients, 3)
 pred <- predict(mlm, train)
-train[, predMOR := pred]
+trainDeBilt[, predMOR := pred]
 ```
 
 We can plot the modeled response versus the observations, as seen below:
 
 ```{r, UncleanPlot, warning=FALSE, echo=FALSE, fig.height=4, fig.width=4}
-ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point() +
+ggplot(trainDeBilt, aes(x = log(MOR), y = predMOR)) + geom_point() +
   geom_vline(xintercept = c(log(250), log(1000), log(3000), log(5000)), lty = 3) + 
   ylab("modelled log(MOR)")
 ```
@@ -317,7 +325,7 @@ other hand correspond to different sceneries in the picture (we believed the
 camera was fixed) or situations where it is already dark. The point on the lower
 right corner with a prediction below 7 corresponds again to a different scenery.
 ```{r, CleanData, echo=FALSE}
-train[, id := 1:.N]
+trainDeBilt[, id := 1:.N]
 #
 # ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point()
 #
@@ -327,7 +335,7 @@ train[, id := 1:.N]
 # September 27 19:10 / 19:20 already dark 
 # October 20 18:00 already dark
 #
-train <- train[predMOR < 12]
+trainDeBilt <- trainDeBilt[predMOR < 12]
 #
 # ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point()
 #
@@ -335,7 +343,7 @@ train <- train[predMOR < 12]
 # November 1 2015 clear view (afer foogy period / might be time issue)
 # November 2 2015 clear view (no fog)
 #
-train <- train[!(log(MOR) < 6 & predMOR > 9)]
+trainDeBilt <- trainDeBilt[!(log(MOR) < 6 & predMOR > 9)]
 #
 # ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point()
 #
@@ -343,7 +351,7 @@ train <- train[!(log(MOR) < 6 & predMOR > 9)]
 # June 19 2015 9:20 different scenery
 # otherwise already dark
 #
-train <- train[!(log(MOR) > 8 & predMOR < 9)]
+trainDeBilt <- trainDeBilt[!(log(MOR) > 8 & predMOR < 9)]
 #
 # ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point()
 #
@@ -353,7 +361,7 @@ train <- train[!(log(MOR) > 8 & predMOR < 9)]
 # November 2 clear view
 # November 26 clear view
 #
-train <- train[!(log(MOR) < 7 & predMOR > 9.5)]
+trainDeBilt <- trainDeBilt[!(log(MOR) < 7 & predMOR > 9.5)]
 #
 # ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point()
 #
@@ -365,7 +373,7 @@ train <- train[!(log(MOR) < 7 & predMOR > 9.5)]
 # November 2 29:10 clear view
 # November 26 8:40 clear view
 #
-train <- train[!(log(MOR) < 8 & predMOR > 10.2)]
+trainDeBilt <- trainDeBilt[!(log(MOR) < 8 & predMOR > 10.2)]
 #
 # ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point()
 #
@@ -373,7 +381,7 @@ train <- train[!(log(MOR) < 8 & predMOR > 10.2)]
 # June 22 already too late
 # October 30 Car in the scenery
 #
-train <- train[!(log(MOR) < 10 & predMOR > 11)]
+trainDeBilt <- trainDeBilt[!(log(MOR) < 10 & predMOR > 11)]
 #
 #
 #

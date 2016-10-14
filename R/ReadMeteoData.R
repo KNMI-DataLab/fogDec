@@ -16,6 +16,10 @@ ReadWindData <- function(filenames) {
   sensorData[, day    := mday(dateTime)]
   sensorData[, hour   := hour(dateTime)]
   setcolorder(sensorData, c(2, 1, 5, 6, 7, 8, 3, 4))
+  sensorData[, TOW.Q_FF_10M_10:= NULL]
+  sensorData[, DS_CODE := NULL]
+  sensorData[ ,`:=`(year = NULL, month = NULL, day = NULL, hour = NULL)]
+  setnames(sensorData, "TOW.FF_10M_10","windSpeed")
   return(sensorData)
 }
 
