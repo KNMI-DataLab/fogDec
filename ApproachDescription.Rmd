@@ -138,7 +138,7 @@ library(rattle)
 library(ROCR)
 load("./results/ResultsDeBilt2015_3hSun.RData")
 imageSummary[, dayIsEven := mday(dateOnly) %% 2]
-offsetBeforeSunrise <- 0
+offsetBeforeSunrise <- 0 #time in minutes
 offsetAfterSunset <- 0
 daylightImagesTrain <- imageSummary[, isDay := dateTime > sunriseDateTime - offsetBeforeSunrise * 60 & dateTime < sunsetDateTime + offsetAfterSunset * 60]
 daylightImagesTrain <- daylightImagesTrain[isDay == TRUE]
@@ -179,8 +179,9 @@ test[, pred := pred]
 
 ```
 
-```{r, echo=T}
-cleanedTest<-test[complete.cases(test)] #there are sitations where the MOR is not verified and is given an NA for the measure, thus remove, actually we should remove from the train set and test set before giving to the classifier
+```{r, echo=F}
+evaluatePrediction <- function(t){
+cleanedTest<-t[complete.cases(t)] #there are sitations where the MOR is not verified and is given an NA for the measure, thus remove, actually we should remove from the train set and test set before giving to the classifier
 
 predBin <- round(cleanedTest$pred,0)
 
@@ -206,11 +207,55 @@ print(2*precision*recall/(precision+recall))
 # predComp<-prediction(cleanedTest$pred, labels)
 # PR.perf <- performance(predComp, "acc")
 # plot(PR.perf)
-
-
-
+}
 
 ```
+
+```{r,EvaluatePrediction}
+evaluatePrediction(test)
+
+```
+
+
+
+
+Other meteorological parameters are added to the set of features analyzed for the machine learning problem.
+```{r, WindFeatureAddition}
+source("R/ReadMeteoData.R")
+windData <- ReadWindData("inst/extdata/Sensor/DeBiltWind1-1-2015-31-08-2016.csv")
+windData[, TOW.Q_FF_10M_10:= NULL]
+windData[, DS_CODE := NULL]
+windData[ ,`:=`(year = NULL, month = NULL, day = NULL, hour = NULL)]
+setnames(windData, "TOW.FF_10M_10","windSpeed")
+setkey(windData, dateTime)
+setkey(train, dateTime)
+trainWithWind <- train[windData, nomatch = 0]
+
+fogWindTree <- rpart(foggy ~ meanEdge + changePoint + meanBrightness + windSpeed, trainWithWind , control = rpart.control(cp = 0.019))
+```
+
+```{r, ClassificationTreeWithWind, echo=FALSE}
+fancyRpartPlot(fogWindTree, sub="")
+```
+
+
+```{r, TestWithWind}
+test <- daylightImagesTest[, .(dateTime, MOR, meanEdge, changePoint, meanBrightness)]
+test[, foggy := MOR < 250]
+setkey(test, dateTime)
+testWithWind <- test[windData, nomatch = 0]
+pred <- predict(fogWindTree, testWithWind, method="class")
+testWithWind[, pred := pred]
+```
+
+```{r,EvaluatePredictionWithWind}
+evaluatePrediction(testWithWind)
+
+```
+
+
+
+
 
 We use the obtained tree to predict the probability of fog from the features of
 the images in the test set. In 2016 we have `r test[foggy == TRUE, .N]` images
@@ -220,9 +265,9 @@ table below shows the days, where we either had a high probability of fog
 probability of fog (`< 50%`) and a relatively low MOR (`< 250 meters`).
 In total we obtain five days for which this condition is true. 
 
-```{r, ClassificationErrors, echo=FALSE}
+<!--```{r, ClassificationErrors, echo=FALSE}
 knitr::kable(cleanedTest[(pred > 0.5 & MOR > 250) | (pred < 0.5 & MOR < 250),.(dateTime, MOR, meanEdge, changePoint, foggy, pred = round(pred, 2))])
-```
+-->
 
 <!--
 January 1 2016 is a foggy day. The MOR and the classification mostly give the 
@@ -334,124 +379,6 @@ train <- train[!(log(MOR) < 10 & predMOR > 11)]
 #
 ```
 
-Hence, we clean the data set of these and some other points that correspond
-mostly to already dark hours. After this cleaning, `r train[, .N]` images remain.
-In the plot below, we consider still the same predicted values but only for the
-cleaned data. In this way the plot becomes a lot clearer.
-
-```{r, PODandFAR, echo=TRUE}
-
-fit <- lm(log(MOR) ~ splines::bs(predMOR, 3), train)
-fitted <- predict(fit, train)
-
-plottingPredMOR <- c(8.3, 9.05, 9.49, 9.65)
-plottingFrame <- data.table(predMOR = plottingPredMOR)
-
-
-train[MOR < 250 & predMOR < 8.3, .N]
-train[MOR < 250 & predMOR < 8.3, .N] / train[MOR < 250, .N]
-train[MOR > 250 & predMOR < 8.3, .N] / train[predMOR < 8.3, .N]
-
-train[MOR < 1000 & predMOR < 9.05, .N]
-train[MOR < 1000 & predMOR < 9.05, .N] / train[MOR < 1000, .N]
-train[MOR > 1000 & predMOR < 9.05, .N] / train[predMOR < 9.05, .N]
-
-train[MOR > 3000 & predMOR > 9.49, .N]
-train[MOR > 3000 & predMOR > 9.49, .N] / train[MOR > 3000, .N]
-train[MOR < 3000 & predMOR > 9.49, .N] / train[predMOR > 9.49, .N]
-
-train[MOR > 5000 & predMOR > 9.65, .N]
-train[MOR > 5000 & predMOR > 9.65, .N] / train[MOR > 5000, .N]
-train[MOR < 5000 & predMOR > 9.65, .N] / train[predMOR > 9.65, .N]
-
-```
-
-```{r, plotRegression, echo=FALSE, fig.height=4, fig.width=4}
-
-segments <- rbind(data.frame(x1 = 0, x2 = log(250), y1 = 8.3, y2 = 8.3, id = 1),
-                  data.frame(x1 = log(250), x2 = log(250), y1 = 0, y2 = 8.3, id = 2),
-                  data.frame(x1 = 0, x2 = log(1000), y1 = 9.05, y2 = 9.05, id = 3),
-                  data.frame(x1 = log(1000), x2 = log(1000), y1 = 0, y2 = 9.05, id = 4),
-                  data.frame(x1 = 20, x2 = log(3000), y1 = 9.49, y2 = 9.49, id = 5),
-                  data.frame(x1 = log(3000), x2 = log(3000), y1 = 20, y2 = 9.49, id = 6),
-                  data.frame(x1 = 20, x2 = log(5000), y1 = 9.65, y2 = 9.65, id = 7),
-                  data.frame(x1 = log(5000), x2 = log(5000), y1 = 20, y2 = 9.65, id = 8)
-                  )
-
-ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point() +
-  geom_smooth(method="lm", formula = y ~ splines::bs(x, 3), se=FALSE) +
-  #geom_smooth(aes(x = MOR, y = predMOR), data = linePlotting, stat="identity", col = 2)
-  geom_segment(aes(x = x1, xend = x2, y = y1, yend = y2), data = segments, col = 2) +
-  coord_cartesian(xlim=c(4, 11), ylim = c(7,11.5)) +
-  ylab("modelled log(MOR)")
-```
-
-```{r, include=FALSE}
-# The sequence around June 16 2015 at 13:10 shows the auto adaptation of the
-# camera. 
-# Similar at September 4 2015 at 11:00. 
-# November 22 2015 at least since 14:00 the scenery is different.
-```
-
-
-Focusing on prominent regions in the plot, we could also identify several cases
-where there is clearly an adaptation of the camera taking place and that
-sometimes the different scenery is not only present for one picture but for an
-extended period of time.
-
-The next plot shows the modelled log(MOR) for the validation set. The 
-
-```{r, plotRegressionValidation, echo=FALSE, warning=FALSE, fig.height=4, fig.width=4}
-predReg <- predict(mlm, test)
-test[, predMOR := predReg]
-
-testClean <- test[hour(dateTime) < 20]
-testClean <- testClean[!(predMOR < 8.5 & log(MOR) > 7.8)] ## too dark
-
-# testClean[predMOR > 12 & log(MOR) > 9]
-# April 4 12:30 different scenery
-# April 21 9:40 different scenery
-#
-testClean <- testClean[!(predMOR > 12 & log(MOR) > 9)]
-
-# testClean[predMOR > 11 & log(MOR) < 9]
-# January 16 heavy rain
-# February 14 heavy rain
-# April 8 already dark
-# April 26 heavy rain
-# June 23 heavy rain
-
-
-
-ggplot(testClean, aes(x = log(MOR), y = predMOR)) + geom_point() +
-    geom_smooth(method="lm", formula = y ~ splines::bs(x, 3), se=FALSE, data = train) + 
-    geom_segment(aes(x = x1, xend = x2, y = y1, yend = y2), data = segments, col = 2) +
-    #geom_vline(xintercept = c(log(250), log(1000), log(3000), log(5000)), lty = 3) + 
-    #geom_hline(yintercept = plottingPredMOR, lty = 3, col = 2) +
-    coord_cartesian(xlim=c(4, 11), ylim = c(7,13.5)) +
-    ylab("modelled log(MOR)")
-```
-
-```{r, PODandFARTest}
-
-testClean[MOR < 250 & predMOR < 8.3, .N]
-testClean[MOR < 250 & predMOR < 8.3, .N] / testClean[MOR < 250, .N]
-testClean[MOR > 250 & predMOR < 8.3, .N] / testClean[predMOR < 8.3, .N]
-
-testClean[MOR < 1000 & predMOR < 9.05, .N]
-testClean[MOR < 1000 & predMOR < 9.05, .N] / testClean[MOR < 1000, .N]
-testClean[MOR > 1000 & predMOR < 9.05, .N] / testClean[predMOR < 9.05, .N]
-
-testClean[MOR > 3000 & predMOR > 9.49, .N]
-testClean[MOR > 3000 & predMOR > 9.49, .N] / testClean[MOR > 3000, .N]
-testClean[MOR < 3000 & predMOR > 9.49, .N] / testClean[predMOR > 9.49, .N]
-
-testClean[MOR > 5000 & predMOR > 9.65, .N]
-testClean[MOR > 5000 & predMOR > 9.65, .N] / testClean[MOR > 5000, .N]
-testClean[MOR < 5000 & predMOR > 9.65, .N] / testClean[predMOR > 9.65, .N]
-
-```
-
 ### Outlook
 
 From the previous section, it is clear that the underlying pictures have to be
@@ -463,3 +390,17 @@ Regarding cameras at sites, where no MOR sensor is available regression seems a
 big challenge. But the idea of clustering the data, maybe in a semi supervised
 way (as there are usually only a few foggy situations), and reporting if the 
 probability of fog exceeds a certain level seems relatively close.
+
+
+
+### Twente test field
+
+```{r, LoadTwente}
+trainPartTwente<-load("./results/ResultsTwente2015_3hSun.RData")
+
+
+testPartTwente<-load("./results/ResultsTwente2016_3hSun.RData")
+
+
+
+```
