@@ -1,0 +1,8 @@
+base
+knitr
+data.table
+plyr
+magrittr
+imager
+visDec
+ggplot2
