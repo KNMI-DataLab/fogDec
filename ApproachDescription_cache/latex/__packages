@@ -1,0 +1,7 @@
+base
+data.table
+plyr
+magrittr
+imager
+visDec
+ggplot2
