@@ -152,7 +152,7 @@ trainDeBilt[, foggy := MOR < 250]
 setkey(trainDeBilt, dateTime)
 trainDeBilt <- trainDeBilt[windDeBilt, nomatch = 0]
 
-train <- trainDeBilt
+# train <- trainDeBilt
 #trainDeBilt
 #trainTwente
 ```
@@ -181,18 +181,12 @@ Therefore, the chance that an image in this class is foggy is set to zero.
 load("./results/ResultsDeBilt2016_3hSun.RData")
 
 
-daylightImagesTest <- imageSummary[, isDay := dateTime > sunriseDateTime - offsetBeforeSunrise * 60 & dateTime < sunsetDateTime + offsetAfterSunset * 60]
-daylightImagesTest <- daylightImagesTest[isDay == TRUE]
-daylightImagesTest[,isDay := NULL]
+testDeBilt <- imageSummary[dateTime > sunriseDateTime & dateTime < sunsetDateTime]
 
-
-test <- daylightImagesTest[, .(dateTime, MOR, meanEdge, changePoint, meanBrightness)]
-test[, foggy := MOR < 250]
-pred <- predict(fogTree, test, method="class")
-test[, pred := pred]
-
-
-
+# test <- daylightImagesTest[, .(dateTime, MOR, meanEdge, changePoint, meanBrightness)]
+testDeBilt[, foggy := MOR < 250]
+pred <- predict(fogTree, testDeBilt, method="class")
+testDeBilt[, pred := pred]
 
 ```
 
@@ -229,7 +223,7 @@ print(2*precision*recall/(precision+recall))
 ```
 
 ```{r,EvaluatePrediction}
-evaluatePrediction(test)
+evaluatePrediction(testDeBilt)
 
 ```
 
@@ -248,16 +242,16 @@ fancyRpartPlot(fogWindTree, sub="")
 
 
 ```{r, TestWithWind}
-test <- daylightImagesTest[, .(dateTime, MOR, meanEdge, changePoint, meanBrightness)]
-test[, foggy := MOR < 250]
-setkey(test, dateTime)
-testWithWind <- test[windData, nomatch = 0]
-pred <- predict(fogWindTree, testWithWind, method="class")
-testWithWind[, pred := pred]
+# test <- daylightImagesTest[, .(dateTime, MOR, meanEdge, changePoint, meanBrightness)]
+# test[, foggy := MOR < 250]
+setkey(testDeBilt, dateTime)
+testDeBilt <- testDeBilt[windData, nomatch = 0]
+pred <- predict(fogWindTree, testDeBilt, method="class")
+testDeBilt[, pred := pred]
 ```
 
 ```{r,EvaluatePredictionWithWind}
-evaluatePrediction(testWithWind)
+evaluatePrediction(testDeBilt)
 
 ```
 
@@ -266,7 +260,7 @@ evaluatePrediction(testWithWind)
 
 
 We use the obtained tree to predict the probability of fog from the features of
-the images in the test set. In 2016 we have `r test[foggy == TRUE, .N]` images
+the images in the test set. In 2016 we have `r testDeBilt[foggy == TRUE, .N]` images
 in the test set, that are labeled as foggy, i.e. a MOR below 250 meters. The
 table below shows the days, where we either had a high probability of fog
 (`> 50%`) and a relatively high MOR (`> 250 meters`) or days with a low 
@@ -306,13 +300,28 @@ we can try to build a regression model. In a first exploratory approach we model
 ```{r, MultiLinearRegression, echo=FALSE}
 mlm <- lm(log(MOR) ~ meanEdge + changePoint + meanBrightness, trainDeBilt) 
 round(mlm$coefficients, 3)
-pred <- predict(mlm, train)
+pred <- predict(mlm, trainDeBilt)
 trainDeBilt[, predMOR := pred]
 ```
 
 We can plot the modeled response versus the observations, as seen below:
 
 ```{r, UncleanPlot, warning=FALSE, echo=FALSE, fig.height=4, fig.width=4}
+ggplot(trainDeBilt, aes(x = log(MOR), y = predMOR)) + geom_point() +
+  geom_vline(xintercept = c(log(250), log(1000), log(3000), log(5000)), lty = 3) + 
+  ylab("modelled log(MOR)")
+```
+
+```{r, MultiLinearRegressionWind, echo=FALSE}
+mlm <- lm(log(MOR) ~ meanEdge + changePoint + meanBrightness + windSpeed, trainDeBilt) 
+round(mlm$coefficients, 3)
+pred <- predict(mlm, trainDeBilt)
+trainDeBilt[, predMOR := pred]
+```
+
+We can plot the modeled response versus the observations, as seen below:
+
+```{r, UncleanPlotWind, warning=FALSE, echo=FALSE, fig.height=4, fig.width=4}
 ggplot(trainDeBilt, aes(x = log(MOR), y = predMOR)) + geom_point() +
   geom_vline(xintercept = c(log(250), log(1000), log(3000), log(5000)), lty = 3) + 
   ylab("modelled log(MOR)")
