@@ -23,6 +23,22 @@ ReadWindData <- function(filenames) {
   return(sensorData)
 }
 
+#' Read relative humidity data files
+#' @param filenames List of filenames
+#' @return data.table
+#' @export
+ReadHumidityData <- function(filename) {
+  dateTime <- day <- IT_DATETIME <- TOW.FF_10M <- NULL
+  sensorData <- fread(filename)
+  setnames(sensorData, "TOT.U_10", "relHumidity")
+  sensorData[, TOT.Q_U_10 := NULL]
+  sensorData[relHumidity == '', relHumidity := NA]
+  sensorData[, relHumidity := as.integer(relHumidity)]
+  sensorData[, IT_DATETIME := as.POSIXct(sensorData[, IT_DATETIME], format = "%Y%m%d_%H%M%S", tz = "UTC")]
+  setnames(sensorData, "IT_DATETIME", "dateTime")
+  return(sensorData)
+}
+
 
 ##THIS HAS TO BE TESTED##
 SynchronizeSensorReadingsNoMORPicture <- function(sensorDataDT, imageInfoDT){

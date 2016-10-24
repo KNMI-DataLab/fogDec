@@ -17,6 +17,7 @@ library(ggplot2)
 library(rpart)
 library(rattle)
 library(ROCR)
+library(caret)
 ```
 
 ```{r, ExamplePictures, include=FALSE}
@@ -142,6 +143,12 @@ setkey(windDeBilt, dateTime)
 windData <- windDeBilt
 ```
 
+```{r, HumidityData}
+humidityDeBilt <- ReadHumidityData("inst/extdata/Sensor/DeBilt_RelativeHumidity.csv")
+setkey(humidityDeBilt, dateTime)
+```
+
+
 ```{r, TrainingData}
 load("./results/ResultsDeBilt2015_3hSun.RData")
 offsetBeforeSunrise <- 0 #time in minutes
@@ -151,17 +158,42 @@ trainDeBilt <- imageSummary[dateTime > sunriseDateTime & dateTime < sunsetDateTi
 trainDeBilt[, foggy := MOR < 250]
 setkey(trainDeBilt, dateTime)
 trainDeBilt <- trainDeBilt[windDeBilt, nomatch = 0]
+trainDeBilt <- trainDeBilt[humidityDeBilt, nomatch = 0]
+trainDeBilt <- trainDeBilt[, .(dateTime, meanEdge, changePoint, smoothness, meanHue,
+                meanSaturation, meanBrightness, MOR, foggy, windSpeed, relHumidity) ]
+trainDeBilt <- na.omit(trainDeBilt) #[complete.cases(trainDeBilt)]
 
-# train <- trainDeBilt
-#trainDeBilt
-#trainTwente
+# features <- c("meanEdge", "changePoint", "smoothness", "meanHue", "meanSaturation", "meanBrightness", "windSpeed")
+# 
+# 
+# StandardizeFeatures <- function(dataSet, features) {
+#   dataSet[, (features) := lapply(.SD, function(x) {(x - mean(x))/sd(x) }), .SDcols = features]
+#   return(dataSet)
+# }
+# 
+# trainDeBilt <- StandardizeFeatures(trainDeBilt, features)
+
+
+```
+
+```{r, TestData, echo=FALSE}
+load("./results/ResultsDeBilt2016_3hSun.RData")
+
+testDeBilt <- imageSummary[dateTime > sunriseDateTime & dateTime < sunsetDateTime]
+testDeBilt[, foggy := MOR < 250]
+setkey(testDeBilt, dateTime)
+testDeBilt <- testDeBilt[windData, nomatch = 0]
+testDeBilt <- testDeBilt[humidityDeBilt, nomatch = 0]
+testDeBilt <- na.omit(testDeBilt)
+
 ```
 
 Based on the training set we obtain the following preliminary decision tree:
 ```{r, Classification, include=FALSE}
-
-
-fogTree <- rpart(foggy ~ meanEdge + changePoint + meanBrightness, trainDeBilt , control = rpart.control(cp = 0.019))
+fogTree <- rpart(foggy ~ meanEdge + changePoint + meanBrightness + smoothness +
+                   meanHue + meanSaturation,
+                 trainDeBilt,
+                 control = rpart.control(cp = 0.015))
 ```
 
 ```{r, ClassificationTree, echo=FALSE}
@@ -177,24 +209,13 @@ This node number 6, tells us that there were 24 instances in the training
 set and from these 0 were foggy, i.e. dense fog with `MOR < 250`.
 Therefore, the chance that an image in this class is foggy is set to zero.
 
-```{r, TestClassification, echo=FALSE}
-load("./results/ResultsDeBilt2016_3hSun.RData")
 
-
-testDeBilt <- imageSummary[dateTime > sunriseDateTime & dateTime < sunsetDateTime]
-
-# test <- daylightImagesTest[, .(dateTime, MOR, meanEdge, changePoint, meanBrightness)]
-testDeBilt[, foggy := MOR < 250]
-pred <- predict(fogTree, testDeBilt, method="class")
-testDeBilt[, pred := pred]
-
-```
 
 ```{r, echo=F}
 evaluatePrediction <- function(t){
-cleanedTest<-t[complete.cases(t)] #there are sitations where the MOR is not verified and is given an NA for the measure, thus remove, actually we should remove from the train set and test set before giving to the classifier
+cleanedTest <- t[complete.cases(t)] #there are sitations where the MOR is not verified and is given an NA for the measure, thus remove, actually we should remove from the train set and test set before giving to the classifier
 
-predBin <- round(cleanedTest$pred,0)
+predBin <- ifelse(cleanedTest$pred > 0.01, 1, 0) #round(cleanedTest$pred,0)
 
 labels <- cleanedTest$foggy
 tp <- sum(predBin == 1 & labels == T)
@@ -223,7 +244,13 @@ print(2*precision*recall/(precision+recall))
 ```
 
 ```{r,EvaluatePrediction}
-evaluatePrediction(testDeBilt)
+hindVals <- predict(fogTree, trainDeBilt, method = "class")
+trainDeBilt[, pred := hindVals]
+predVals <- predict(fogTree, testDeBilt, method="class")
+testDeBilt[, pred := predVals]
+
+confusionMatrix(ifelse(trainDeBilt$pred > 0.3, TRUE, FALSE), trainDeBilt$foggy)
+confusionMatrix(ifelse(testDeBilt$pred > 0.3, TRUE, FALSE), testDeBilt$foggy)
 
 ```
 
@@ -231,33 +258,31 @@ evaluatePrediction(testDeBilt)
 
 
 Other meteorological parameters are added to the set of features analyzed for the machine learning problem.
-```{r, WindFeatureAddition}
+```{r, MeteoFeatureAddition}
 
-fogWindTree <- rpart(foggy ~ meanEdge + changePoint + meanBrightness + windSpeed, trainDeBilt , control = rpart.control(cp = 0.019))
+fogTreeMeteo <- rpart(foggy ~ meanEdge + changePoint + meanBrightness +
+                       windSpeed + relHumidity, 
+                     trainDeBilt , control = rpart.control(cp = 0.015))
 ```
 
 ```{r, ClassificationTreeWithWind, echo=FALSE}
-fancyRpartPlot(fogWindTree, sub="")
+fancyRpartPlot(fogTreeMeteo, sub="")
 ```
 
 
 ```{r, TestWithWind}
-# test <- daylightImagesTest[, .(dateTime, MOR, meanEdge, changePoint, meanBrightness)]
-# test[, foggy := MOR < 250]
-setkey(testDeBilt, dateTime)
-testDeBilt <- testDeBilt[windData, nomatch = 0]
-pred <- predict(fogWindTree, testDeBilt, method="class")
-testDeBilt[, pred := pred]
-```
+hindVals <- predict(fogTreeMeteo, trainDeBilt, method = "class")
+trainDeBilt[, pred := hindVals]
+predVals <- predict(fogTreeMeteo, testDeBilt, method="class")
+testDeBilt[, pred := predVals]
 
-```{r,EvaluatePredictionWithWind}
-evaluatePrediction(testDeBilt)
+confusionMatrix(ifelse(trainDeBilt$pred > 0.3, TRUE, FALSE), trainDeBilt$foggy)
+confusionMatrix(ifelse(testDeBilt$pred > 0.3, TRUE, FALSE), testDeBilt$foggy)
 
 ```
 
-
-
-
+In 2015 we have `r trainDeBilt[foggy == TRUE, .N]` images
+in the test set, that are labeled as foggy, i.e. a MOR below 250 meters.
 
 We use the obtained tree to predict the probability of fog from the features of
 the images in the test set. In 2016 we have `r testDeBilt[foggy == TRUE, .N]` images
@@ -300,8 +325,8 @@ we can try to build a regression model. In a first exploratory approach we model
 ```{r, MultiLinearRegression, echo=FALSE}
 mlm <- lm(log(MOR) ~ meanEdge + changePoint + meanBrightness, trainDeBilt) 
 round(mlm$coefficients, 3)
-pred <- predict(mlm, trainDeBilt)
-trainDeBilt[, predMOR := pred]
+predVals <- predict(mlm, trainDeBilt)
+trainDeBilt[, predMOR := predVals]
 ```
 
 We can plot the modeled response versus the observations, as seen below:
@@ -315,8 +340,8 @@ ggplot(trainDeBilt, aes(x = log(MOR), y = predMOR)) + geom_point() +
 ```{r, MultiLinearRegressionWind, echo=FALSE}
 mlm <- lm(log(MOR) ~ meanEdge + changePoint + meanBrightness + windSpeed, trainDeBilt) 
 round(mlm$coefficients, 3)
-pred <- predict(mlm, trainDeBilt)
-trainDeBilt[, predMOR := pred]
+predVals <- predict(mlm, trainDeBilt)
+trainDeBilt[, predMOR := predVals]
 ```
 
 We can plot the modeled response versus the observations, as seen below:
@@ -413,11 +438,54 @@ probability of fog exceeds a certain level seems relatively close.
 ### Twente test field
 
 ```{r, LoadTwente}
-trainPartTwente<-load("./results/ResultsTwente2015_3hSun.RData")
+load("./results/ResultsTwente2015_3hSun.RData")
+trainTwente <- imageSummary[dateTime > sunriseDateTime & dateTime < sunsetDateTime, ]
+trainTwente[, foggy := MOR < 250]
+trainTwente <- na.omit(trainTwente)
+
+load("./results/ResultsTwente2016_3hSun.RData")
+testTwente <- imageSummary[dateTime > sunriseDateTime & dateTime < sunsetDateTime, ]
+testTwente[, foggy := MOR < 250]
+testTwente <- na.omit(testTwente)
+
+```
+
+In 2015 we have `r trainTwente[foggy == TRUE, .N]` images
+in the test set, that are labeled as foggy, i.e. a MOR below 250 meters.
+
+Based on the training set we obtain the following preliminary decision tree:
+```{r, ClassificationTwente, include=FALSE}
 
 
-testPartTwente<-load("./results/ResultsTwente2016_3hSun.RData")
+fogTree <- rpart(foggy ~ meanEdge + changePoint + meanBrightness, trainTwente , control = rpart.control(cp = 0.019))
+```
+
+```{r, ClassificationTreeTwente, echo=FALSE}
+fancyRpartPlot(fogTree, sub="")
+```
+
+```{r,EvaluatePredictionTwente}
+hindVals <- predict(fogTree, trainTwente, method = "class")
+trainTwente[, pred := hindVals]
+
+predVals <- predict(fogTree, testTwente, method="class")
+testTwente[, pred := predVals]
+
+confusionMatrix(ifelse(trainTwente$pred > 0.3, TRUE, FALSE), trainTwente$foggy)
+confusionMatrix(ifelse(testTwente$pred  > 0.3, TRUE, FALSE), testTwente$foggy)
+
+```
 
 
+```{r, MultiLinearRegressionTwente, echo=FALSE}
+mlm <- lm(log(MOR) ~ meanEdge + changePoint + meanBrightness, trainTwente) 
+round(mlm$coefficients, 3)
+predVals <- predict(mlm, trainTwente)
+trainTwente[, predMOR := predVals]
+```
 
+```{r, UncleanPlotTwente, warning=FALSE, echo=FALSE, fig.height=4, fig.width=4}
+ggplot(trainTwente, aes(x = log(MOR), y = predMOR)) + geom_point() +
+  geom_vline(xintercept = c(log(250), log(1000), log(3000), log(5000)), lty = 3) + 
+  ylab("modelled log(MOR)")
 ```
