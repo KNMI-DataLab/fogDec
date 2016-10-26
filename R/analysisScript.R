@@ -1,7 +1,10 @@
+#' Evaluate the prediction computing prediction and recall
+#' @param t predicted data table
+#' @export
 evaluatePrediction <- function(t){
   cleanedTest <- t[complete.cases(t)] #there are sitations where the MOR is not verified and is given an NA for the measure, thus remove, actually we should remove from the train set and test set before giving to the classifier
   
-  predBin <- ifelse(cleanedTest$pred > 0.01, 1, 0) #round(cleanedTest$pred,0)
+  predBin <- ifelse(cleanedTest$pred > 0.01, 1, 0) #round(cleanedTest$pred,0) #decision to a positive is taken when prediction probability higher than 0.01 (can be changed)
   
   labels <- cleanedTest$foggy
   tp <- sum(predBin == 1 & labels == T)
@@ -28,7 +31,11 @@ evaluatePrediction <- function(t){
 }
 
 
-
+#' Perform the decision tree analysis based on the image and meteo (wind) feature
+#' @param imageFeaturesFile RDS file with image features
+#' @param windFile csv file containing wind speed
+#' @return test test set with probability of positive label
+#' @export
 analyzeData <- function(imageFeaturesFile, windFile){
 
   library(data.table)
@@ -51,13 +58,11 @@ analyzeData <- function(imageFeaturesFile, windFile){
   daylightImages[,isDay := NULL]
   
   windData <- ReadWindData(windFile)
-  #windData[, TOW.Q_FF_10M_10:= NULL]
-  #windData[, DS_CODE := NULL]
-  #windData[ ,`:=`(year = NULL, month = NULL, day = NULL, hour = NULL)]
-  #setnames(windData, "TOW.FF_10M_10","windSpeed")
-  setkey(windData, dateTime)
-  setkey(daylightImages, dateTime)
-  daylightImages<-daylightImages[windData, nomatch = 0]
+  #setkey(windData, dateTime)
+  #setkey(daylightImages, dateTime)
+  
+  daylightImages<-SynchronizeSensorReadingsNoMORPicture(windData, daylightImages)
+  #daylightImages<-daylightImages[windData, nomatch = 0]
   
   set.seed(128)
   trainIndex <- createDataPartition(daylightImages$stationID, p = .7, list = FALSE, times = 1)

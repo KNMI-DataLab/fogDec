@@ -44,6 +44,6 @@ ReadHumidityData <- function(filename) {
 SynchronizeSensorReadingsNoMORPicture <- function(sensorDataDT, imageInfoDT){
 setkey(sensorDataDT, dateTime)
 setkey(imageInfoDT, dateTime)
-sensorReadingsNoMOR <- sensorData[imageInfoDT, roll = "nearest"]
+sensorReadingsNoMOR <- sensorDataDT[imageInfoDT, roll = "nearest", nomatch = 0]
 sensorReadingsNoMOR
 }
