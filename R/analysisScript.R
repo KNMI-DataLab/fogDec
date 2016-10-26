@@ -59,7 +59,7 @@ analyzeData <- function(imageFeaturesFile, windFile){
   setkey(daylightImages, dateTime)
   daylightImages<-daylightImages[windData, nomatch = 0]
   
-  set.seed(123)
+  set.seed(128)
   trainIndex <- createDataPartition(daylightImages$stationID, p = .7, list = FALSE, times = 1)
   trainingSet <- daylightImages[trainIndex,]
   testSet <- daylightImages[-trainIndex,]
@@ -93,5 +93,7 @@ analyzeData <- function(imageFeaturesFile, windFile){
   test[, predWind := predWind]
   
   evaluatePrediction(test)
+  
+  return(test)
 }
   

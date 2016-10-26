@@ -30,22 +30,21 @@
 Fog and mist are natural phenomena that are particularly dangerous for traffic and public safety due to the reduction of visibility. Fog is responsible for extreme accidents conditions involving tens to hundreds vehicles in a single accident location~\cite{hamilton2014hidden}.
  
 Fog 
-formation is influenced by several factor such as the amount of precipitation and humidity in the ground, by the absence of wind, by the 
-presence of water basins in the surroundings and the difference in temperature compared to the air. In particular, 
+formation is influenced by several factors such as the amount of precipitation and humidity in the ground, by the absence of wind, by the 
+presence of water basins in the surroundings and the difference in temperature of the ground compared to the air. In particular, 
 fog tends to appear in specific moments in the day such as around sunrise and sunset.
 Given the particular conditions in which mist can arise, it can be a highly local phenomenon taking 
 place in one small region and suddenly disappear in a region few kilometers away~\cite{gultepe2007fog}.
 For all these reasons, fog is quite difficult to observe compared to other meteorological phenomena (e.g., precipitation, temperature), 
-thus making it difficult to validate models and which leads to forecast attempts that are quite poor. 
+thus making it difficult to validate models which leads to forecast attempts that are quite poor. 
 
 Therefore, given the complexity and the locality of this phenomenon, in this project the idea is to detect mist and fog conditions coming from camera images rather than forecasting the 
-presence of fog. The aim is to automatically build a high quality (poor) visibility observation set that can be used further in the attempts to improving fog modeling. For this purpose a good source could be cameras monitoring traffic that have a high concentration along the Dutch highways.
+presence of fog. The aim is to automatically build a high quality (poor) visibility observation set that can be used further in the attempts to improve fog modeling. For this purpose a good source could be cameras monitoring traffic that have a high concentration along the Dutch highways.
 \vspace{-0.2cm}
 \section{Problem definition}
 The goal is to recognize conditions of fog and mist from images. The identification of mist conditions 
-is primarily based on the the picture; other features representing the meteorological conditions can also be used where available. Pictures can be taken in different locations, thus it cannot be 
-implied the presence of any additional reference objects or recurrent patterns in the image in clear conditions. 
-Furthermore, the main objective is to have a classifier with high precision and recall.
+is primarily based on the the picture; other features representing the meteorological conditions can also be used where available. Pictures can be taken in different locations, thus the presence of any additional reference objects or recurrent patterns in the image in clear conditions cannot be taken for granted. 
+The main objective is to have a classifier with high precision and recall.
 %probability indicator for the chance that the image is foggy. 
 
 		\begin{figure}[ht]
