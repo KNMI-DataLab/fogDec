@@ -46,7 +46,7 @@ load("results/deBiltResults2015.RData")
 ggplot(imageSummary, aes(x = log(MOR), y = meanEdge)) + geom_point() 
 ```
 
-```{r, Edges, cache=FALSE, include=FALSE, fig.height=4, fig.width=8.4}
+```{r, Edges, cache=TRUE, include=FALSE, fig.height=4, fig.width=8.4}
 imClear <-  subim(load.image(filenames[75]), y > 16)
 #```{r, EdgesPlotClear, echo=FALSE, fig.cap=paste("Edges in a clear situation"), fig.height=4, fig.width=8.4}
 #im <- subim(load.image(filenames[75]), y > 16)
@@ -92,7 +92,7 @@ infer the transition between sky and non-sky regions. In a clear situation this
 transition is relatively sharp. However, in a foggy situation the transition 
 is less clear.
 
-```{r, TransmissionPlotClear, cache = TRUE, echo=FALSE, fig.cap="Transmission in a clear situation", fig.height=3, fig.width=8.4}
+```{r, TransmissionPlotClear, cache = TRUE, echo=FALSE, fig.cap="Transmission in a clear situation", fig.height=3, fig.width=8.4, dependson='ExamplePictures'}
 im <- subim(load.image(filenames[75]), y > 16)
 
 darkChannel       <- GetDarkChannel(im)
@@ -106,7 +106,7 @@ plot(GetHorizAvgTrans(im), xlab="", ylab="")
 par(old_par)
 ```
 
-```{r, TransmissionPlotFoggy, echo=FALSE, fig.cap="Transmission in a foggy situation", fig.height=3, fig.width=8.4}
+```{r, TransmissionPlotFoggy, cache=TRUE, echo=FALSE, fig.cap="Transmission in a foggy situation", fig.height=3, fig.width=8.4, dependson='ExamplePictures'}
 im <- subim(load.image(filenames[49]), y > 16)
 
 darkChannel       <- GetDarkChannel(im)
@@ -135,7 +135,7 @@ De Bilt, from June 1 2015 until December 31 2015 (16001 images).
 The training set are the images for the same fixed camera for the period January
 1 till June 30 2016 (13883 images).
 
-```{r, WindData}
+```{r, WindData, cache=TRUE}
 source("R/ReadMeteoData.R")
 windDeBilt <- ReadWindData("inst/extdata/Sensor/DeBiltWind1-1-2015-31-08-2016.csv")
 #windTwente <- ReadWindData()
@@ -143,25 +143,29 @@ setkey(windDeBilt, dateTime)
 windData <- windDeBilt
 ```
 
-```{r, HumidityData}
+```{r, HumidityData, cache=TRUE}
 humidityDeBilt <- ReadHumidityData("inst/extdata/Sensor/DeBilt_RelativeHumidity.csv")
 setkey(humidityDeBilt, dateTime)
 ```
 
 
-```{r, TrainingData}
-load("./results/ResultsDeBilt2015_3hSun.RData")
+```{r, dataDeBilt, cache=TRUE, dependson=c('WindData','HumidityData')}
+dataDeBilt <- readRDS("results/ResultsDeBilt2015-2016_3hSun.rds")
 offsetBeforeSunrise <- 0 #time in minutes
 offsetAfterSunset <- 0
 #trainDeBilt <- imageSummary[dateTime > sunriseDateTime - offsetBeforeSunrise * 60 & dateTime < sunsetDateTime + offsetAfterSunset * 60, ]
-trainDeBilt <- imageSummary[dateTime > sunriseDateTime & dateTime < sunsetDateTime, ]
-trainDeBilt[, foggy := MOR < 250]
-setkey(trainDeBilt, dateTime)
-trainDeBilt <- trainDeBilt[windDeBilt, nomatch = 0]
-trainDeBilt <- trainDeBilt[humidityDeBilt, nomatch = 0]
-trainDeBilt <- trainDeBilt[, .(dateTime, meanEdge, changePoint, smoothness, meanHue,
+dataDeBilt <- dataDeBilt[dateTime > sunriseDateTime & dateTime < sunsetDateTime, ]
+dataDeBilt[, foggy := MOR < 250]
+setkey(dataDeBilt, dateTime)
+dataDeBilt <- dataDeBilt[windDeBilt, nomatch = 0]
+dataDeBilt <- dataDeBilt[humidityDeBilt, nomatch = 0]
+dataDeBilt <- na.omit(dataDeBilt)
+
+trainDeBilt <- dataDeBilt[year==2015, .(dateTime, meanEdge, changePoint, smoothness, meanHue,
                 meanSaturation, meanBrightness, MOR, foggy, windSpeed, relHumidity) ]
-trainDeBilt <- na.omit(trainDeBilt) #[complete.cases(trainDeBilt)]
+
+testDeBilt <- dataDeBilt[year==2016, .(dateTime, meanEdge, changePoint, smoothness, meanHue,
+                meanSaturation, meanBrightness, MOR, foggy, windSpeed, relHumidity) ]
 
 # features <- c("meanEdge", "changePoint", "smoothness", "meanHue", "meanSaturation", "meanBrightness", "windSpeed")
 # 
@@ -176,27 +180,15 @@ trainDeBilt <- na.omit(trainDeBilt) #[complete.cases(trainDeBilt)]
 
 ```
 
-```{r, TestData, echo=FALSE}
-load("./results/ResultsDeBilt2016_3hSun.RData")
-
-testDeBilt <- imageSummary[dateTime > sunriseDateTime & dateTime < sunsetDateTime]
-testDeBilt[, foggy := MOR < 250]
-setkey(testDeBilt, dateTime)
-testDeBilt <- testDeBilt[windData, nomatch = 0]
-testDeBilt <- testDeBilt[humidityDeBilt, nomatch = 0]
-testDeBilt <- na.omit(testDeBilt)
-
-```
-
 Based on the training set we obtain the following preliminary decision tree:
-```{r, Classification, include=FALSE}
+```{r, Classification, cache = TRUE, include=FALSE, dependson='dataDeBilt'}
 fogTree <- rpart(foggy ~ meanEdge + changePoint + meanBrightness + smoothness +
                    meanHue + meanSaturation,
                  trainDeBilt,
                  control = rpart.control(cp = 0.015))
 ```
 
-```{r, ClassificationTree, echo=FALSE}
+```{r, ClassificationTree, echo=FALSE, cache=TRUE, dependson='Classification'}
 fancyRpartPlot(fogTree, sub="")
 ```
 
@@ -243,7 +235,7 @@ print(2*precision*recall/(precision+recall))
 
 ```
 
-```{r,EvaluatePrediction}
+```{r, EvaluatePrediction, cache=TRUE, dependson=c('dataDeBilt', 'Classification')}
 hindVals <- predict(fogTree, trainDeBilt, method = "class")
 trainDeBilt[, pred := hindVals]
 predVals <- predict(fogTree, testDeBilt, method="class")
@@ -258,19 +250,19 @@ confusionMatrix(ifelse(testDeBilt$pred > 0.3, TRUE, FALSE), testDeBilt$foggy)
 
 
 Other meteorological parameters are added to the set of features analyzed for the machine learning problem.
-```{r, MeteoFeatureAddition}
+```{r, MeteoFeatureAddition, cache=TRUE, dependson='dataDeBilt'}
 
 fogTreeMeteo <- rpart(foggy ~ meanEdge + changePoint + meanBrightness +
                        windSpeed + relHumidity, 
                      trainDeBilt , control = rpart.control(cp = 0.015))
 ```
 
-```{r, ClassificationTreeWithWind, echo=FALSE}
+```{r, ClassificationTreeWithWind, echo=FALSE, cache=TRUE, dependson='MeteoFeatureAddition'}
 fancyRpartPlot(fogTreeMeteo, sub="")
 ```
 
 
-```{r, TestWithWind}
+```{r, TestWithWind, cache=TRUE, dependson=c('dataDeBilt', 'MeteoFeatureAddition')}
 hindVals <- predict(fogTreeMeteo, trainDeBilt, method = "class")
 trainDeBilt[, pred := hindVals]
 predVals <- predict(fogTreeMeteo, testDeBilt, method="class")
@@ -322,7 +314,7 @@ image is very clear.
 When we are interested not only in the distinction between foggy and not foggy,
 we can try to build a regression model. In a first exploratory approach we model 
 `log(MOR)` as a linear function of `meanEdge + changePoint + meanBrightness`.
-```{r, MultiLinearRegression, echo=FALSE}
+```{r, MultiLinearRegression, echo=FALSE, cache=TRUE, dependson='dataDeBilt'}
 mlm <- lm(log(MOR) ~ meanEdge + changePoint + meanBrightness, trainDeBilt) 
 round(mlm$coefficients, 3)
 predVals <- predict(mlm, trainDeBilt)
@@ -331,13 +323,13 @@ trainDeBilt[, predMOR := predVals]
 
 We can plot the modeled response versus the observations, as seen below:
 
-```{r, UncleanPlot, warning=FALSE, echo=FALSE, fig.height=4, fig.width=4}
+```{r, UncleanPlot, warning=FALSE, echo=FALSE, fig.height=4, fig.width=4, cache=TRUE, dependson='MultiLinearRegression'}
 ggplot(trainDeBilt, aes(x = log(MOR), y = predMOR)) + geom_point() +
   geom_vline(xintercept = c(log(250), log(1000), log(3000), log(5000)), lty = 3) + 
   ylab("modelled log(MOR)")
 ```
 
-```{r, MultiLinearRegressionWind, echo=FALSE}
+```{r, MultiLinearRegressionWind, echo=FALSE, cache=TRUE, dependson='dataDeBilt'}
 mlm <- lm(log(MOR) ~ meanEdge + changePoint + meanBrightness + windSpeed, trainDeBilt) 
 round(mlm$coefficients, 3)
 predVals <- predict(mlm, trainDeBilt)
@@ -346,7 +338,7 @@ trainDeBilt[, predMOR := predVals]
 
 We can plot the modeled response versus the observations, as seen below:
 
-```{r, UncleanPlotWind, warning=FALSE, echo=FALSE, fig.height=4, fig.width=4}
+```{r, UncleanPlotWind, warning=FALSE, echo=FALSE, fig.height=4, fig.width=4, cache=TRUE, dependson='MultiLinearRegressionWind'}
 ggplot(trainDeBilt, aes(x = log(MOR), y = predMOR)) + geom_point() +
   geom_vline(xintercept = c(log(250), log(1000), log(3000), log(5000)), lty = 3) + 
   ylab("modelled log(MOR)")
@@ -358,7 +350,7 @@ failure of the transmissometer. The values with the largest prediction on the
 other hand correspond to different sceneries in the picture (we believed the
 camera was fixed) or situations where it is already dark. The point on the lower
 right corner with a prediction below 7 corresponds again to a different scenery.
-```{r, CleanData, echo=FALSE}
+```{r, CleanData, echo=FALSE, cache = TRUE, dependson='MultiLinearRegression'}
 trainDeBilt[, id := 1:.N]
 #
 # ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point()
@@ -438,15 +430,22 @@ probability of fog exceeds a certain level seems relatively close.
 ### Twente test field
 
 ```{r, LoadTwente}
-load("./results/ResultsTwente2015_3hSun.RData")
-trainTwente <- imageSummary[dateTime > sunriseDateTime & dateTime < sunsetDateTime, ]
-trainTwente[, foggy := MOR < 250]
-trainTwente <- na.omit(trainTwente)
+dataTwente <- readRDS("results/ResultsTwente2015-2016_3hSun.rds")
+offsetBeforeSunrise <- 0 #time in minutes
+offsetAfterSunset <- 0
+#trainDeBilt <- imageSummary[dateTime > sunriseDateTime - offsetBeforeSunrise * 60 & dateTime < sunsetDateTime + offsetAfterSunset * 60, ]
+dataTwente <- dataTwente[dateTime > sunriseDateTime & dateTime < sunsetDateTime, ]
+dataTwente[, foggy := MOR < 250]
+setkey(dataTwente, dateTime)
+#dataTwente <- dataTwente[windDeBilt, nomatch = 0]
+#dataTwente <- dataTwente[humidityDeBilt, nomatch = 0]
+dataTwente <- na.omit(dataTwente)
 
-load("./results/ResultsTwente2016_3hSun.RData")
-testTwente <- imageSummary[dateTime > sunriseDateTime & dateTime < sunsetDateTime, ]
-testTwente[, foggy := MOR < 250]
-testTwente <- na.omit(testTwente)
+trainTwente <- dataTwente[year==2015, .(dateTime, meanEdge, changePoint, smoothness, meanHue,
+                meanSaturation, meanBrightness, MOR, foggy)] #, windSpeed, relHumidity) ]
+
+testTwente <- dataTwente[year==2016, .(dateTime, meanEdge, changePoint, smoothness, meanHue,
+                meanSaturation, meanBrightness, MOR, foggy)] #, windSpeed, relHumidity) ]
 
 ```
 

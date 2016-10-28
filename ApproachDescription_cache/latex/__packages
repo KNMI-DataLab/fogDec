@@ -5,3 +5,9 @@ magrittr
 imager
 visDec
 ggplot2
+rpart
+rattle
+gplots
+ROCR
+lattice
+caret
