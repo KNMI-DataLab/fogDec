@@ -429,7 +429,7 @@ probability of fog exceeds a certain level seems relatively close.
 
 ### Twente test field
 
-```{r, LoadTwente}
+```{r, dataTwente, cache=TRUE}
 dataTwente <- readRDS("results/ResultsTwente2015-2016_3hSun.rds")
 offsetBeforeSunrise <- 0 #time in minutes
 offsetAfterSunset <- 0
@@ -453,17 +453,17 @@ In 2015 we have `r trainTwente[foggy == TRUE, .N]` images
 in the test set, that are labeled as foggy, i.e. a MOR below 250 meters.
 
 Based on the training set we obtain the following preliminary decision tree:
-```{r, ClassificationTwente, include=FALSE}
+```{r, ClassificationTwente, include=FALSE, cache=TRUE, dependson='dataTwente'}
 
 
 fogTree <- rpart(foggy ~ meanEdge + changePoint + meanBrightness, trainTwente , control = rpart.control(cp = 0.019))
 ```
 
-```{r, ClassificationTreeTwente, echo=FALSE}
+```{r, ClassificationTreeTwente, echo=FALSE, cache=TRUE, dependson='ClassificationTwente'}
 fancyRpartPlot(fogTree, sub="")
 ```
 
-```{r,EvaluatePredictionTwente}
+```{r,EvaluatePredictionTwente, cache=TRUE, dependson='ClassificationTwente'}
 hindVals <- predict(fogTree, trainTwente, method = "class")
 trainTwente[, pred := hindVals]
 
@@ -476,14 +476,14 @@ confusionMatrix(ifelse(testTwente$pred  > 0.3, TRUE, FALSE), testTwente$foggy)
 ```
 
 
-```{r, MultiLinearRegressionTwente, echo=FALSE}
+```{r, MultiLinearRegressionTwente, echo=FALSE, cache=TRUE, dependson='dataTwente'}
 mlm <- lm(log(MOR) ~ meanEdge + changePoint + meanBrightness, trainTwente) 
 round(mlm$coefficients, 3)
 predVals <- predict(mlm, trainTwente)
 trainTwente[, predMOR := predVals]
 ```
 
-```{r, UncleanPlotTwente, warning=FALSE, echo=FALSE, fig.height=4, fig.width=4}
+```{r, UncleanPlotTwente, warning=FALSE, echo=FALSE, fig.height=4, fig.width=4, cache=TRUE, depenson='MultiLinearRegressionTwente'}
 ggplot(trainTwente, aes(x = log(MOR), y = predMOR)) + geom_point() +
   geom_vline(xintercept = c(log(250), log(1000), log(3000), log(5000)), lty = 3) + 
   ylab("modelled log(MOR)")
