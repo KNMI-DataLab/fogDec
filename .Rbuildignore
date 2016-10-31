@@ -2,3 +2,4 @@
 ^\.Rproj\.user$
 ^ApproachDescription\.Rmd$
 ^ApproachDescription\.html$
+^\.travis\.yml$
