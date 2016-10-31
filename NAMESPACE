@@ -3,6 +3,4 @@
 export(FileNameParser)
 export(ReadHumidityData)
 export(ReadWindData)
-export(analyzeData)
 export(assignTrainAndTestSet)
-export(evaluatePrediction)

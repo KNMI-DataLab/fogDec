@@ -1,4 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^\.travis\.yml$
 ^ApproachDescription\.Rmd$
 ^ApproachDescription\.html$
+^ApproachDescription_cache/$
