@@ -28,7 +28,7 @@ ReadWindData <- function(filenames) {
 #' @return data.table
 #' @export
 ReadHumidityData <- function(filename) {
-  dateTime <- day <- IT_DATETIME <- TOW.FF_10M <- NULL
+  dateTime <- day <- IT_DATETIME <- relHumidity <- NULL
   sensorData <- fread(filename)
   setnames(sensorData, "TOT.U_10", "relHumidity")
   sensorData[, TOT.Q_U_10 := NULL]
@@ -40,7 +40,28 @@ ReadHumidityData <- function(filename) {
 }
 
 
-##THIS HAS TO BE TESTED##
+#' Read temperature and dew point data files
+#' @param filenames List of filenames
+#' @return data.table
+#' @export
+ReadTempDewPointData <- function(filename) {
+  dateTime <- day <- IT_DATETIME <- airTemperature <- dewPoint<- NULL
+  sensorData <- fread(filename)
+  setnames(sensorData, "TOT.T_DRYB_10", "airTemperature")
+  setnames(sensorData, "TOT.T_DEWP_10", "dewPoint")
+  sensorData[, TOT.Q_T_DRYB_10 := NULL]
+  sensorData[, TOT.Q_T_DEWP_10 := NULL]
+  sensorData[airTemperature == '', airTemperature := NA]
+  sensorData[dewPoint == '', dewPoint := NA]
+  sensorData[, airTemperature := as.numeric(airTemperature)]
+  sensorData[, dewPoint := as.numeric(dewPoint)]
+  sensorData[, IT_DATETIME := as.POSIXct(sensorData[, IT_DATETIME], format = "%Y%m%d_%H%M%S", tz = "UTC")]
+  setnames(sensorData, "IT_DATETIME", "dateTime")
+  return(sensorData)
+}
+
+
+##Works, maybe a formal test would be best##
 SynchronizeSensorReadingsNoMORPicture <- function(sensorDataDT, imageInfoDT){
 setkey(sensorDataDT, dateTime)
 setkey(imageInfoDT, dateTime)

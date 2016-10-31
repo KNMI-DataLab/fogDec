@@ -447,21 +447,30 @@ setkey(windTwente, dateTime)
 ```
 
 ```{r, HumidityData, cache=TRUE}
-humidityTwente <- ReadHumidityData("inst/extdata/Sensor/DeBilt_RelativeHumidity.csv")
+humidityTwente <- ReadHumidityData("inst/extdata/Sensor/TwenteHumidity1-1-2015-31-08-2016.csv")
 setkey(humidityTwente, dateTime)
 ```
+
+```{r, Temperature, cache=TRUE}
+tempDewPointTwente <- ReadHumidityData("inst/extdata/Sensor/TwenteTemp_DewPoint1-1-2015-31-08-2016.csv")
+setkey(tempDewPointTwente, dateTime)
+```
+
+
 
 ```{r}
 dataTwente <- dataTwente[windTwente, nomatch = 0]
 dataTwente <- dataTwente[humidityTwente, nomatch = 0]
+dataTwente <- dataTwente[tempDewPointTwente, nomatch = 0]
+
 
 dataTwente <- na.omit(dataTwente)
 
 trainTwente <- dataTwente[year==2015, .(dateTime, meanEdge, changePoint, smoothness, meanHue,
-                meanSaturation, meanBrightness, MOR, foggy, day, month, hour)] #, windSpeed, relHumidity) ]
+                meanSaturation, meanBrightness, MOR, foggy, day, month, hour)] #, windSpeed, relHumidity, airTemperature, dewPoint) ]
 
 testTwente <- dataTwente[year==2016, .(dateTime, meanEdge, changePoint, smoothness, meanHue,
-                meanSaturation, meanBrightness, MOR, foggy, day, month, hour)] #, windSpeed, relHumidity) ]
+                meanSaturation, meanBrightness, MOR, foggy, day, month, hour)] #, windSpeed, relHumidity, airTemperature, dewPoint) ]
 
 ```
 
@@ -570,4 +579,32 @@ predwrong7 <- trainTwente[predMOR <9 & log(MOR)>9]
 #September 16 2015 06:30 07:10 07:40 08:30 drops of water on the objective image is fully blurred FALSE POSITIVE (07:40)
 #September 22 2015 13:30-13:40 drops of water on the objective image is fully blurred
 ```
+
+
+Other meteorological parameters are added to the set of features analyzed for the machine learning problem for Twente.
+```{r, MeteoFeatureAdditionTwente, cache=TRUE, dependson='dataTwente'}
+
+fogTreeMeteoTwente <- rpart(foggy ~ meanEdge + changePoint + meanBrightness +
+                       windSpeed + relHumidity, + airTemperature + dewPoint, 
+                     trainTwente , control = rpart.control(cp = 0.015))
+```
+
+```{r, ClassificationTreeWithWind, echo=FALSE, cache=TRUE, dependson='MeteoFeatureAddition'}
+fancyRpartPlot(fogTreeMeteoTwente, sub="")
+```
+
+
+```{r, TestWithWind, cache=TRUE, dependson=c('dataDeBilt', 'MeteoFeatureAddition')}
+hindVals <- predict(fogTreeMeteoTwente, trainTwente, method = "class")
+trainTwente[, pred := hindVals]
+predVals <- predict(fogTreeMeteoTwente, testTwente, method="class")
+testTwente[, pred := predVals]
+
+confusionMatrix(ifelse(trainTwente$pred > 0.3, TRUE, FALSE), trainTwente$foggy)
+confusionMatrix(ifelse(testTwente$pred > 0.3, TRUE, FALSE), testTwente$foggy)
+
+```
+
+
+
 
