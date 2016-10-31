@@ -513,5 +513,57 @@ predwrong <- trainTwente[predMOR >9 & log(MOR)<6]
 # September 9 05:10 attenuation of fog (horizon visible) in a denser foggy period before and after
 #September 26 05:30 direct ray of light in the objective for a few shots might modify image properties
 #November 02 10:50 fog starts to dissolve (delay  in taking picture and read of MOR in KIS?)
+
+predwrong2 <- trainTwente[predMOR >11 & log(MOR)<9.5]
+#March 31 2015 16:35-45 dark light and colors (jammed colors?) in the image very different from other images previous next
+#April 28 2015 05:15-35 overexposed images light into objective
+
+
+predwrong3 <- trainTwente[predMOR >10 & log(MOR)<8.5 & log(MOR)>8]
+#March 24 2015 08:05-09:05 light direct to the objective horizon too bright to be recognized
+#March 28 2015 05:25-05:55 some light into the objective (colors not sharp)
+#April 07 2015 05:55-06:05 some light into the objective (colors not sharp) as above
+#April 09 2015 05:55-06:15 light direct to the objective horizon to bright to be recognized left part of image
+#April 19 2015 05:15 OK, colors not so sharp
+#April 20 2015 05:25-05:45 light direct to the objective horizon to bright to be recognized left part of image
+#April 21 2015 06:25 light direct to the objective horizon to bright to be recognized left part of image
+#April 24 2015 04:45-06:05 light direct to the objective horizon to bright to be recognized left part of image
+#October 27 2015 10:50-14:30 some water drops paths seems to be present on the camera
+
+predwrong4 <- trainTwente[predMOR <10 & log(MOR)>10.75]
+#March 21 2015 16:25-17:45 quite dark colors and light
+#March 22 2015 05:25-05:55 quite dark colors and light
+#March 26 2015 06:25-06:55 Ok, but might be quite dark colors and light
+#April 12 2015 17:25-18:15 Ok, scene change compared to normal appearance of a light brown piece of land after the woods (cut of bushes/grass?). In certain light conditions it is more evident
+#April 16 2015 16:35-18:25 Ok, scene change compared to normal appearance of a light brown piece of land after the woods (cut of bushes/grass?). In certain light conditions it is more evident
+#June 20 2015 12:00-19:50 Ok
+#July 21 2015 19:20 long shadows from sun in the back
+#August 24 2015 14:10-17:10 Ok
+#September 17 2015 05:10-07:20 some objects are appearing in the back in the scenes (vehicles working on the land)
+#December 22 2015 13:23-15:03 Ok, wooden poles around the measurement field are present in the scene, but were already present since october
+
+predwrong5 <- trainTwente[predMOR >10 & log(MOR)>6 & log(MOR)<7]
+#October 26 2015 13:40-15:10 some shadows on the objective (due to previous drops?)
+#August 23 2015 13:00-13:50 clear day (will follow a sensor failure)
+
+predwrong6 <- trainTwente[predMOR >8  & predMOR <9 & log(MOR)<9]
+#March 20 2015 05:45-06:55 mist
+#June 28 2015 03:20-04:10 FALSE POSITIVE condition due to humidity in the objective image is fully blurred
+#July 20 2015 03:40-04:10 FALSE POSITIVE condition due to humidity in the objective image is fully blurred
+#August 05 2015 04:00-04:40 FALSE POSITIVE and one detection condition due to humidity in the objective image is fully blurred
+#August 29 2015 04:40-05:10 FALSE POSITIVE condition due to humidity in the objective image is fully blurred
+#September 09 2015 05:30-06:40 mist
+#September 13 2015 15:00 water drops on the objective
+#September 16 2015 08:20 FALSE POSITIVE drops of water on the objective image is fully blurred
+#September 23 2015 06:20-06:40 mist 1 FALSE POSITIVE, but it is actually misty (260m visib)
+#October 4 2015 05:40-06:30 mist conditions 2 FALSE POSITIVE due also to humidity in the camera objective
+#October 6 2015 05:50-08:10 water on the objective 3 FALSE POSITIVE
+#October 19 2015 08:30-08:50 mist
+#October 20 2015 06:10-07:00 mist
+#November 02 2015 15:30 mist FALSE POSITIVE it's misty (MOR reports ~300m)
+#November 10 2015 09:40 water on the camera
+#November 15 2015 13:10 water on the camera
+#December 16 2015 water on the camera almost whole day
+#December 22 2015 water on the camera almost whole day
 ```
 
