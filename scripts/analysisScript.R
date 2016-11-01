@@ -102,3 +102,114 @@ analyzeData <- function(imageFeaturesFile, windFile){
   return(test)
 }
   
+
+
+
+
+
+
+
+
+analysisTwente<-function(){
+  library(data.table)
+  library(imager)
+  library(visDec)
+  library(ggplot2)
+  library(rpart)
+  library(rattle)
+  library(ROCR)
+  library(caret)
+  
+  dataTwente <- readRDS("results/ResultsTwente2015-2016_3hSun.rds")
+  offsetBeforeSunrise <- 0 #time in minutes
+  offsetAfterSunset <- 0
+  #trainDeBilt <- imageSummary[dateTime > sunriseDateTime - offsetBeforeSunrise * 60 & dateTime < sunsetDateTime + offsetAfterSunset * 60, ]
+  dataTwente <- dataTwente[dateTime > sunriseDateTime & dateTime < sunsetDateTime, ]
+  dataTwente[, foggy := MOR < 250]
+  setkey(dataTwente, dateTime)
+
+  source("scripts/ReadMeteoData.R")
+  windTwente <- ReadWindData("inst/extdata/Sensor/TwenteWind1-1-2015-31-08-2016.csv")
+  #windTwente <- ReadWindData()
+  setkey(windTwente, dateTime)
+
+  humidityTwente <- ReadHumidityData("inst/extdata/Sensor/TwenteHumidity1-1-2015-31-08-2016.csv")
+  setkey(humidityTwente, dateTime)
+
+  tempDewPointTwente <- ReadTempDewPointData("inst/extdata/Sensor/TwenteTemp_DewPoint1-1-2015-31-08-2016.csv")
+  setkey(tempDewPointTwente, dateTime)
+  
+  precipitationTwente <- ReadPrecipitationData("inst/extdata/Sensor/TwentePrecipitation1-1-2015-31-10-2016.csv")
+  setkey(precipitationTwente, dateTime)
+  
+  
+  
+  dataTwente <- SynchronizeSensorReadingsNoMORPicture(windTwente, dataTwente)
+  dataTwente <- SynchronizeSensorReadingsNoMORPicture(humidityTwente, dataTwente)
+  dataTwente <- SynchronizeSensorReadingsNoMORPicture(tempDewPointTwente, dataTwente)
+  dataTwente <- SynchronizeSensorReadingsNoMORPicture(precipitationTwente, dataTwente)
+  
+  
+  
+  dataTwente <- na.omit(dataTwente)
+  
+  trainTwente <- dataTwente[year==2015, .(dateTime, meanEdge, changePoint, smoothness, meanHue,
+                                          meanSaturation, meanBrightness, MOR, foggy, day, month, hour, windSpeed, relHumidity, airTemperature, dewPoint, precipitation) ]
+  
+  testTwente <- dataTwente[year==2016, .(dateTime, meanEdge, changePoint, smoothness, meanHue,
+                                         meanSaturation, meanBrightness, MOR, foggy, day, month, hour, windSpeed, relHumidity, airTemperature, dewPoint, precipitation) ]
+  
+  
+  
+  
+  fogTree <- rpart(foggy ~ meanEdge + changePoint + meanBrightness, trainTwente , control = rpart.control(cp = 0.02))
+
+  fancyRpartPlot(fogTree, sub="")
+
+  
+  hindVals <- predict(fogTree, trainTwente, method = "class")
+  trainTwente[, pred := hindVals]
+  
+  predVals <- predict(fogTree, testTwente, method="class")
+  testTwente[, pred := predVals]
+  
+  #usually it is not a good practice to show the results of the classification on the training set itself.
+  confmatImageFeaturesTrain <- confusionMatrix(ifelse(trainTwente$pred > 0.3, TRUE, FALSE), trainTwente$foggy, positive = "TRUE")
+  confmatImageFeaturesTest <- confusionMatrix(ifelse(testTwente$pred  > 0.3, TRUE, FALSE), testTwente$foggy, positive = "TRUE")
+  
+  print(confmatImageFeaturesTest)
+
+  
+  
+  mlm <- lm(log(MOR) ~ meanEdge + changePoint + meanBrightness, trainTwente) 
+  round(mlm$coefficients, 3)
+  predVals <- predict(mlm, trainTwente)
+  trainTwente[, predMOR := predVals]
+
+  
+  ggplot(trainTwente, aes(x = log(MOR), y = predMOR)) + geom_point() +
+    geom_vline(xintercept = c(log(250), log(1000), log(3000), log(5000)), lty = 3) + 
+    ylab("modelled log(MOR)")
+  
+  
+  fogTreeMeteoTwente <- rpart(foggy ~ meanEdge + changePoint + meanBrightness +
+                                 relHumidity + windSpeed + airTemperature + precipitation, 
+                              trainTwente , control = rpart.control(cp = 0.02))
+
+  
+  fancyRpartPlot(fogTreeMeteoTwente, sub="")
+
+  
+  
+  hindVals <- predict(fogTreeMeteoTwente, trainTwente, method = "class")
+  trainTwente[, pred := hindVals]
+  predVals <- predict(fogTreeMeteoTwente, testTwente, method="class")
+  testTwente[, pred := predVals]
+  
+  confusionMatrix(ifelse(trainTwente$pred > 0.3, TRUE, FALSE), trainTwente$foggy, positive = "TRUE")
+  confmatAllMeteoFeaturesTest<-confusionMatrix(ifelse(testTwente$pred > 0.3, TRUE, FALSE), testTwente$foggy, positive = "TRUE")
+  print(confmatAllMeteoFeaturesTest)
+  
+  
+  
+}

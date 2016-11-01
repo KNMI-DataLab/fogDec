@@ -61,6 +61,25 @@ ReadTempDewPointData <- function(filename) {
 }
 
 
+
+#' Read precipitation data files
+#' @param filenames List of filenames
+#' @return data.table
+#' @export
+ReadPrecipitationData <- function(filename) {
+  dateTime <- day <- IT_DATETIME <- precipitation <- NULL
+  sensorData <- fread(filename)
+  setnames(sensorData, "TOR.RI_REGENM_10", "precipitation")
+  sensorData[, TOR.Q_RI_REGENM_10 := NULL]
+  sensorData[precipitation == '', precipitation := NA]
+  sensorData[, precipitation := as.numeric(precipitation)]
+  sensorData[, IT_DATETIME := as.POSIXct(sensorData[, IT_DATETIME], format = "%Y%m%d_%H%M%S", tz = "UTC")]
+  setnames(sensorData, "IT_DATETIME", "dateTime")
+  return(sensorData)
+}
+
+
+
 ##Works, maybe a formal test would be best##
 SynchronizeSensorReadingsNoMORPicture <- function(sensorDataDT, imageInfoDT){
 setkey(sensorDataDT, dateTime)
