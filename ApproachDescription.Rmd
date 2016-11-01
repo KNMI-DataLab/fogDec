@@ -136,7 +136,7 @@ The training set are the images for the same fixed camera for the period January
 1 till June 30 2016 (13883 images).
 
 ```{r, WindData, cache=TRUE}
-source("R/ReadMeteoData.R")
+source("scripts/ReadMeteoData.R")
 windDeBilt <- ReadWindData("inst/extdata/Sensor/DeBiltWind1-1-2015-31-08-2016.csv")
 #windTwente <- ReadWindData()
 setkey(windDeBilt, dateTime)
