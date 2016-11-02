@@ -20,7 +20,7 @@ library(ROCR)
 library(caret)
 ```
 
-```{r, ExamplePictures, include=FALSE}
+```{r, ExamplePictures, include=FALSE ,cache=TRUE}
 path <- system.file("extdata/Meetterrein", package="visDec")
 filenames <- list.files(path,
                         pattern=glob2rx("Meetterrein_201510*.jpg"),
@@ -446,7 +446,7 @@ windTwente <- ReadWindData("inst/extdata/Sensor/TwenteWind1-1-2015-31-08-2016.cs
 setkey(windTwente, dateTime)
 ```
 
-```{r, HumidityData, cache=TRUE}
+```{r, HumidityDataTw, cache=TRUE}
 humidityTwente <- ReadHumidityData("inst/extdata/Sensor/TwenteHumidity1-1-2015-31-08-2016.csv")
 setkey(humidityTwente, dateTime)
 ```
@@ -458,7 +458,7 @@ setkey(tempDewPointTwente, dateTime)
 
 
 
-```{r}
+```{r, cache=TRUE}
 dataTwente <- SynchronizeSensorReadingsNoMORPicture(windTwente, dataTwente)
 dataTwente <- SynchronizeSensorReadingsNoMORPicture(humidityTwente, dataTwente)
 dataTwente <- SynchronizeSensorReadingsNoMORPicture(tempDewPointTwente, dataTwente)
@@ -503,7 +503,7 @@ confusionMatrix(ifelse(testTwente$pred  > 0.3, TRUE, FALSE), testTwente$foggy)
 ```
 
 
-```{r, MultiLinearRegressionTwente, echo=FALSE, cache=TRUE, dependson='dataTwente'}
+```{r, MultiLinearRegressionTwente, echo=FALSE, cache=TRUE, dependson='EvaluatePredictionTwente'}
 mlm <- lm(log(MOR) ~ meanEdge + changePoint + meanBrightness, trainTwente) 
 round(mlm$coefficients, 3)
 predVals <- predict(mlm, trainTwente)
@@ -516,7 +516,7 @@ ggplot(trainTwente, aes(x = log(MOR), y = predMOR)) + geom_point() +
   ylab("modelled log(MOR)")
 ```
 
-```{r, Look into clusters}
+```{r, LookIntoClusters, cache=TRUE, dependson='MultiLinearRegressionTwente'}
 predwrong <- trainTwente[predMOR >9 & log(MOR)<6]
 # May 24 2015 04:20 surface fog in an previous time, picture looks clear
 # April 6 2015 03:50 slightly surface fog
@@ -591,12 +591,12 @@ fogTreeMeteoTwente <- rpart(foggy ~ meanEdge + changePoint + meanBrightness +
                      trainTwente , control = rpart.control(cp = 0.015))
 ```
 
-```{r, ClassificationTreeWithWind, echo=FALSE, cache=TRUE, dependson='MeteoFeatureAddition'}
+```{r, ClassificationTreeWithWindTw, echo=FALSE, cache=TRUE, dependson='MeteoFeatureAdditionTwente'}
 fancyRpartPlot(fogTreeMeteoTwente, sub="")
 ```
 
 
-```{r, TestWithWind, cache=TRUE, dependson=c('dataDeBilt', 'MeteoFeatureAddition')}
+```{r, TestWithWindTw, cache=TRUE, dependson=c('dataTwente', 'MeteoFeatureAdditionTwente')}
 hindVals <- predict(fogTreeMeteoTwente, trainTwente, method = "class")
 trainTwente[, pred := hindVals]
 predVals <- predict(fogTreeMeteoTwente, testTwente, method="class")
@@ -608,7 +608,7 @@ confusionMatrix(ifelse(testTwente$pred > 0.3, TRUE, FALSE), testTwente$foggy)
 ```
 
 The results of the test set for Twente show poor values of precision and recall
-```{r}
+```{r, cache=TRUE, dependson='TestWithWindTw'}
 FP<-testTwente[pred>0.3 & foggy==FALSE]
 
 datesFP <- unique(format(FP$dateTime,"%Y-%m-%d"))
@@ -619,7 +619,7 @@ FN<-testTwente[pred<0.3 & foggy==TRUE]
 datesFN <- unique(format(FN$dateTime,"%Y-%m-%d"))
 
 ```
-False positive conditions occur in the following dates `print(datesFP)`
+False positive conditions occur in the following dates `r nrow(datesFP)`
 
 2016-01-04: drops of rain are in the objective of the camera, pictures are blurred. Affected pictures 28
 2016-01-05: there is humidity inside the objective. Likely from the previous day rain. Affected images 28
@@ -637,7 +637,7 @@ False positive conditions occur in the following dates `print(datesFP)`
 2016-04-12: conditions are fine, no mist. Images affected 6.
 2016-04-14: conditions are fine, no mist. Images affected 1.
 
-False negative conditions occur in the following dates  `print(datesFN)`
+False negative conditions occur in the following dates  `r nrow(datesFN)`
 2016-02-26: conditions are foggy and snow/ice on the ground. Images affected 6.
 2016-03-05: mist. Images affected 1.
 2016-03-15: mist. Images affected 5.
