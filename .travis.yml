@@ -8,3 +8,6 @@ r_packages:
   - covr
 after_success:
   - Rscript -e 'covr::codecov()'
+#added Andrea
+install:
+- Rscript -e devtools::install_github("MartinRoth/visDec", ref="chronos")
