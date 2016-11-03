@@ -4,10 +4,11 @@ language: r
 warnings_are_errors: true
 sudo: required
 
+r_github_packages:
+  - MartinRoth/visDec/chronos
+
 r_packages:
   - covr
 after_success:
   - Rscript -e 'covr::codecov()'
-#added Andrea
-install:
-- Rscript -e devtools::install_github("MartinRoth/visDec", ref="chronos")
+
