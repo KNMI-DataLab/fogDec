@@ -5,7 +5,7 @@ warnings_are_errors: true
 sudo: required
 
 r_github_packages:
-  - MartinRoth/visDec
+  - MartinRoth/visDec@chronos
 
 r_packages:
   - covr
