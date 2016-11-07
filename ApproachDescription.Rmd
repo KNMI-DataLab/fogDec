@@ -531,8 +531,11 @@ ggplot(trainTwente, aes(x = log(MOR), y = predMOR)) + geom_point() +
   ylab("modelled log(MOR)")
 ```
 
-```{r, LookIntoClusters, cache=TRUE, dependson='MultiLinearRegressionTwente'}
-predwrong <- trainTwente[predMOR >9 & log(MOR)<6]
+
+
+###Corner cases situations
+```{r, LookIntoClusters, cache=TRUE, echo=FALSE}
+#predwrong <- trainTwente[predMOR >9 & log(MOR)<6]
 # May 24 2015 04:20 surface fog in an previous time, picture looks clear
 # April 6 2015 03:50 slightly surface fog
 # August 23 14:00 / 18:40 sensor failure, clear day 
@@ -540,20 +543,29 @@ predwrong <- trainTwente[predMOR >9 & log(MOR)<6]
 #September 26 05:30 direct ray of light in the objective for a few shots might modify image properties
 #November 02 10:50 fog starts to dissolve (delay  in taking picture and read of MOR in KIS?)
 
-predwrong2 <- trainTwente[predMOR >11 & log(MOR)<9.5]
+#predwrong2 <- trainTwente[predMOR >11 & log(MOR)<9.5]
 #March 31 2015 16:35-45 dark light and colors (jammed colors?) in the image very different from other images previous next
 #April 28 2015 05:15-35 overexposed images light into objective
 
 
 exampleImg <- c("inst/extdata/cornerCasesTwente/EHTW_201503240815.jpg")
 example_par <- par(mfrow=c(1,2))
-img <- lapply(exampleImg, load.image)
-plot(img[[1]], main = "Light in the objective")
+image <- lapply(exampleImg, load.image)
+plot(image[[1]], main = "Light in the objective")
+plot(0,0)
 par(example_par)
 
 
+exampleImg2 <- list.files("inst/extdata/cornerCasesTwente/", pattern = "EHTW_20151027", full.names = TRUE)
+example_par2 <- par(mfrow=c(1,2))
+img3 <- lapply(exampleImg2, load.image)
+lapply(img3, plot, main = "Umidity lines on the objective", cex.main = 0.7)
+plot(0,0)
+par(example_par2)
 
-predwrong3 <- trainTwente[predMOR >10 & log(MOR)<8.5 & log(MOR)>8]
+
+
+#predwrong3 <- trainTwente[predMOR >10 & log(MOR)<8.5 & log(MOR)>8]
 #March 24 2015 08:05-09:05 light direct to the objective horizon too bright to be recognized
 #March 28 2015 05:25-05:55 some light into the objective (colors not sharp)
 #April 07 2015 05:55-06:05 some light into the objective (colors not sharp) as above
@@ -568,12 +580,29 @@ predwrong3 <- trainTwente[predMOR >10 & log(MOR)<8.5 & log(MOR)>8]
 
 exampleImg <- c("inst/extdata/cornerCasesTwente/EHTW_201504120955.jpg","inst/extdata/cornerCasesTwente/EHTW_201508251300.jpg")
 example_par <- par(mfrow=c(1,2))
-img <- lapply(exampleImg, load.image)
-plot(img[[1]], main = "Change in scene: light brown pattern in the distance")
-plot(img[[2]], main = "Change in scene: full green color in the distance")
+img2 <- lapply(exampleImg, load.image)
+plot(img2[[1]], main = "Change in scene: light brown pattern in the distance", cex.main = 0.7)
+plot(img2[[2]], main = "Change in scene: full green color in the distance", cex.main = 0.7)
 par(example_par)
 
-predwrong4 <- trainTwente[predMOR <10 & log(MOR)>10.75]
+
+exampleImg2 <- list.files("inst/extdata/cornerCasesTwente/", pattern = "EHTW_20150917", full.names = TRUE)
+example_par <- par(mfrow=c(1,2))
+img3 <- lapply(exampleImg2, load.image)
+lapply(img3, plot, main = "Objects appearing in the scene", cex.main = 0.7)
+par(example_par)
+
+
+exampleImg <- c("inst/extdata/cornerCasesTwente/EHTW_201512211403.jpg")
+example_par <- par(mfrow=c(1,2))
+img2 <- lapply(exampleImg, load.image)
+plot(img2[[1]], main = "Change in scene: wooden poles", cex.main = 0.7)
+plot(0,0)
+par(example_par)
+
+
+
+#predwrong4 <- trainTwente[predMOR <10 & log(MOR)>10.75]
 #March 21 2015 16:25-17:45 quite dark colors and light
 #March 22 2015 05:25-05:55 quite dark colors and light
 #March 26 2015 06:25-06:55 Ok, but might be quite dark colors and light
@@ -585,21 +614,30 @@ predwrong4 <- trainTwente[predMOR <10 & log(MOR)>10.75]
 #September 17 2015 05:10-07:20 some objects are appearing in the back in the scenes (vehicles working on the land)
 #December 22 2015 13:23-15:03 Ok, wooden poles around the measurement field are present in the scene, but were already present since october
 
-predwrong5 <- trainTwente[predMOR >10 & log(MOR)>6 & log(MOR)<7]
+#predwrong5 <- trainTwente[predMOR >10 & log(MOR)>6 & log(MOR)<7]
 #October 26 2015 13:40-15:10 some shadows on the objective (due to previous drops?)
 #August 23 2015 13:00-13:50 clear day (will follow a sensor failure)
 
 
-exampleImg <- list.files("inst/extdata/cornerCasesTwente/", pattern = "EHTW_20150628")
-example_par <- par(mfrow=c(1,3))
-img <- lapply(exampleImg, load.image)
-lapply(img, plot, main = "Humidity in the objective")
+exampleImg2 <- list.files("inst/extdata/cornerCasesTwente/", pattern = "EHTW_20150628", full.names = TRUE)
+example_par <- par(mfrow=c(1,2))
+img3 <- lapply(exampleImg2, load.image)
+lapply(img3, plot, main = "Humidity in the objective", cex.main = 0.7)
+par(example_par)
+
+
+
+exampleImg2 <- list.files("inst/extdata/cornerCasesTwente/", pattern = "EHTW_20151006", full.names = TRUE)
+example_par <- par(mfrow=c(1,2))
+img3 <- lapply(exampleImg2, load.image)
+lapply(img3, plot, main = "Water drops on the objective", cex.main = 0.7)
 par(example_par)
 
 
 
 
-predwrong6 <- trainTwente[predMOR >8  & predMOR <9 & log(MOR)<9]
+
+#predwrong6 <- trainTwente[predMOR >8  & predMOR <9 & log(MOR)<9]
 #March 20 2015 05:45-06:55 mist
 #June 28 2015 03:20-04:10 FALSE POSITIVE condition due to humidity in the objective image is fully blurred
 #July 20 2015 03:40-04:10 FALSE POSITIVE condition due to humidity in the objective image is fully blurred
@@ -618,7 +656,7 @@ predwrong6 <- trainTwente[predMOR >8  & predMOR <9 & log(MOR)<9]
 #November 15 2015 13:10 water on the camera
 #December 16 2015 water on the camera almost whole day
 
-predwrong7 <- trainTwente[predMOR <9 & log(MOR)>9]
+#predwrong7 <- trainTwente[predMOR <9 & log(MOR)>9]
 #September 16 2015 06:30 07:10 07:40 08:30 drops of water on the objective image is fully blurred FALSE POSITIVE (07:40)
 #September 22 2015 13:30-13:40 drops of water on the objective image is fully blurred
 ```
@@ -702,9 +740,9 @@ inspectLowHumPics<-trainTwente[meanEdge<0.008352802 & relHumidity<45.5 & meanEdg
 ```
 
 Faulty MOR detection on 23-08-2015
-```{r}
+```{r, cache=TRUE, echo=FALSE}
 fautlyIm <- list.files("inst/extdata/MORError/", full.names = TRUE)
-old_par <- par(mfrow=c(1,3))
+old_par <- par(mfrow=c(1,2))
 img <- lapply(fautlyIm, load.image)
 lapply(img, plot)
 par(fautlyIm)
