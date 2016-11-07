@@ -534,6 +534,9 @@ ggplot(trainTwente, aes(x = log(MOR), y = predMOR)) + geom_point() +
 
 
 ###Corner cases situations
+
+There are several situations that pose challenges in the correct classification of fog conditions and the estimation of the visibility range. In Twente, the situation is even more complex and more difficult for the classifier given the environmental conditions.  
+
 ```{r, LookIntoClusters, cache=TRUE, echo=FALSE}
 #predwrong <- trainTwente[predMOR >9 & log(MOR)<6]
 # May 24 2015 04:20 surface fog in an previous time, picture looks clear
@@ -546,24 +549,36 @@ ggplot(trainTwente, aes(x = log(MOR), y = predMOR)) + geom_point() +
 #predwrong2 <- trainTwente[predMOR >11 & log(MOR)<9.5]
 #March 31 2015 16:35-45 dark light and colors (jammed colors?) in the image very different from other images previous next
 #April 28 2015 05:15-35 overexposed images light into objective
+```
+  
+First, the objective is unprotected against direct light which has important consequences for distinction of objects in the background, the appearance of fake objects due to light spots.  
 
-
+```{r, LookIntoClusters1, cache=TRUE, echo=FALSE}
 exampleImg <- c("inst/extdata/cornerCasesTwente/EHTW_201503240815.jpg")
 example_par <- par(mfrow=c(1,2))
 image <- lapply(exampleImg, load.image)
 plot(image[[1]], main = "Light in the objective")
 plot(0,0)
 par(example_par)
+```
+  
+Second, it seems that some humidity is sometimes trapped into the objective which gives rise to lines of different colors in the image through the whole day until evaporation.  
 
 
+```{r, LookIntoClusters2, cache=TRUE, echo=FALSE}
 exampleImg2 <- list.files("inst/extdata/cornerCasesTwente/", pattern = "EHTW_20151027", full.names = TRUE)
 example_par2 <- par(mfrow=c(1,2))
 img3 <- lapply(exampleImg2, load.image)
 lapply(img3, plot, main = "Umidity lines on the objective", cex.main = 0.7)
 plot(0,0)
 par(example_par2)
+```
 
+  
+Third, there are objects that appear in the scene and that might cause problems in the recognition of edges. A dark brown land line appears at some time maybe due to some deforestation or enablings works of the countryside; sometimes distant vehicles appear on the horizon; wooden poles are installed at the perimeter of the weather station.
 
+  
+```{r, LookIntoClusters3, cache=TRUE, echo=FALSE}
 
 #predwrong3 <- trainTwente[predMOR >10 & log(MOR)<8.5 & log(MOR)>8]
 #March 24 2015 08:05-09:05 light direct to the objective horizon too bright to be recognized
@@ -599,8 +614,14 @@ img2 <- lapply(exampleImg, load.image)
 plot(img2[[1]], main = "Change in scene: wooden poles", cex.main = 0.7)
 plot(0,0)
 par(example_par)
+```
 
+  
+Other more complex conditions that almost always bring to False Positive classification are due to the presence of high humidity in the objective or drops of rains on the objective protection lid. The camera has unfortunately no protection against the rain.
 
+  
+  
+```{r, LookIntoClusters4, cache=TRUE, echo=FALSE}
 
 #predwrong4 <- trainTwente[predMOR <10 & log(MOR)>10.75]
 #March 21 2015 16:25-17:45 quite dark colors and light
@@ -661,8 +682,12 @@ par(example_par)
 #September 22 2015 13:30-13:40 drops of water on the objective image is fully blurred
 ```
 
-
+  
 Other meteorological parameters are added to the set of features analyzed for the machine learning problem for Twente.
+
+  
+  
+  
 ```{r, MeteoFeatureAdditionTwente, cache=TRUE, dependson='dataTwente'}
 
 fogTreeMeteoTwente <- rpart(foggy ~ meanEdge + changePoint + meanBrightness +
@@ -700,52 +725,51 @@ datesFN <- unique(format(FN$dateTime,"%Y-%m-%d"))
 ```
 False positive conditions occur in the following dates `r nrow(datesFP)`
 
-2016-01-04: drops of rain are in the objective of the camera, pictures are blurred. Affected pictures 28
-2016-01-05: there is humidity inside the objective. Likely from the previous day rain. Affected images 28
-2016-01-06: there is mist in the distance on of the picture and some pictures have water drops on the objective. Affected images 25
-2016-01-07: there are sort of zones with stripes of different lighter color, it seems again humidity in the objective enclosure. In conditions of low light is more evident a fog-like prediction. Images affected 4.
-2016-01-15: there are sort of zones with stripes of different lighter color, it seems again humidity in the objective enclosure. In conditions of low light is more evident a fog-like prediction. Images affected 4.
-2016-01-17: snow on the ground, less contrast/edges. Images affected 2.
-2016-02-14: water and snow on the objective. Images affected 18.
-2016-02-19: there are sort of zones with stripes of different lighter color, it seems again humidity in the objective enclosure. In conditions of low light is more evident a fog-like prediction. Images affected 4.
-2016-03-04: water and snow on the objective. Images affected 4.
-2016-03-05: misty conditions. MOR is slightly above 250m. Images affected 5.
-2016-03-11: misty conditions. MOR is slightly above 250m. Images affected 1.
-2016-04-09: conditions are fine, no mist. Images affected 15.
-2016-04-10: conditions are fine, no mist. Images affected 5.
-2016-04-12: conditions are fine, no mist. Images affected 6.
-2016-04-14: conditions are fine, no mist. Images affected 1.
+2016-01-04: drops of rain are in the objective of the camera, pictures are blurred. Affected pictures 28  
+2016-01-05: there is humidity inside the objective. Likely from the previous day rain. Affected images 28  
+2016-01-06: there is mist in the distance on of the picture and some pictures have water drops on the objective. Affected images 25  
+2016-01-07: there are sort of zones with stripes of different lighter color, it seems again humidity in the objective enclosure. In conditions of low light is more evident a fog-like prediction. Images affected 4.  
+2016-01-15: there are sort of zones with stripes of different lighter color, it seems again humidity in the objective enclosure. In conditions of low light is more evident a fog-like prediction. Images affected 4.  
+2016-01-17: snow on the ground, less contrast/edges. Images affected 2.  
+2016-02-14: water and snow on the objective. Images affected 18.  
+2016-02-19: there are sort of zones with stripes of different lighter color, it seems again humidity in the objective enclosure. In conditions of low light is more evident a fog-like prediction. Images affected 4.  
+2016-03-04: water and snow on the objective. Images affected 4.  
+2016-03-05: misty conditions. MOR is slightly above 250m. Images affected 5.  
+2016-03-11: misty conditions. MOR is slightly above 250m. Images affected 1.  
+2016-04-09: conditions are fine, no mist. Images affected 15.  
+2016-04-10: conditions are fine, no mist. Images affected 5.  
+2016-04-12: conditions are fine, no mist. Images affected 6.  
+2016-04-14: conditions are fine, no mist. Images affected 1.  
 
 False negative conditions occur in the following dates  `r nrow(datesFN)`
-2016-02-26: conditions are foggy and snow/ice on the ground. Images affected 6.
-2016-03-05: mist. Images affected 1.
-2016-03-15: mist. Images affected 5.
-2016-04-13: there is a ray of light coming straight into the objective. Images affected 13.
-2016-05-23: fog only in the surface. Images affected 1.
+2016-02-26: conditions are foggy and snow/ice on the ground. Images affected 6.  
+2016-03-05: mist. Images affected 1.  
+2016-03-15: mist. Images affected 5.  
+2016-04-13: there is a ray of light coming straight into the objective. Images affected 13.  
+2016-05-23: fog only in the surface. Images affected 1.  
 2016-06-04: fog condition dissolving. Images affected 8. (1 image the horizon is well visible)
-2016-06-28: camera is not fully sharp, but fog seems to have dissolved. Images affected 4.
+2016-06-28: camera is not fully sharp, but fog seems to have dissolved. Images affected 4.  
 
-
+  
 
 We investigated with more attention the result of the decision tree were the classification of the training set suggests a high chance of fog in the following condition:
-
+  
 meanEdge<0.008352802 & relHumidity<45.5 & meanEdge>=0.004425891 & airTemperature>=1.85 & relHumidity <99.5
-
-Actually after a visual inspection of the 9 of the 10 selected that the MOR sensor data reported as foggy, we conclude that the MOR senso was in a faulty condition since it is a clear afternoon day.
+  
+Actually after a visual inspection of the 9 of the 10 selected that the MOR sensor data reported as foggy, we conclude that the MOR senso was in a faulty condition since it is a clear afternoon day. 
 
 ```{r, cache=TRUE, dependson='TestWithWindTw'}
-
 inspectLowHumPics<-trainTwente[meanEdge<0.008352802 & relHumidity<45.5 & meanEdge>=0.004425891 & airTemperature>=1.85 & relHumidity <99.5]
-
 ```
 
-Faulty MOR detection on 23-08-2015
+Faulty MOR detection on 23-08-2015  
+
 ```{r, cache=TRUE, echo=FALSE}
-fautlyIm <- list.files("inst/extdata/MORError/", full.names = TRUE)
-old_par <- par(mfrow=c(1,2))
+fautlyIm <- list.files("inst/extdata/MORError", full.names = TRUE)
+parFaulty <- par(mfrow=c(1,2))
 img <- lapply(fautlyIm, load.image)
 lapply(img, plot)
-par(fautlyIm)
+par(parFaulty)
 ```
 
 
