@@ -67,12 +67,24 @@ ReadTempDewPointData <- function(filename) {
 #' @return data.table
 #' @export
 ReadPrecipitationData <- function(filename) {
-  dateTime <- day <- IT_DATETIME <- precipitation <- NULL
+  dateTime <- day <- IT_DATETIME <- precipitationIntElec <- precipitationIntPWS <-precipitationDurationElec <- precipitationDurationPWS  <- NULL
   sensorData <- fread(filename)
-  setnames(sensorData, "TOR.RI_REGENM_10", "precipitation")
+  setnames(sensorData, "TOR.RI_REGENM_10", "precipitationIntElec")
+  setnames(sensorData, "TOR.RI_PWS_10", "precipitationIntPWS")
+  setnames(sensorData, "TOR.DR_REGENM_10", "precipitationDurationElec")
+  setnames(sensorData, "TOR.DR_PWS_10", "precipitationDurationPWS")
   sensorData[, TOR.Q_RI_REGENM_10 := NULL]
-  sensorData[precipitation == '', precipitation := NA]
-  sensorData[, precipitation := as.numeric(precipitation)]
+  sensorData[, TOR.Q_RI_PWS_10 := NULL]
+  sensorData[, TOR.Q_DR_REGENM_10 := NULL]
+  sensorData[, TOR.Q_DR_PWS_10 := NULL]
+  sensorData[precipitationIntElec == '', precipitationIntElec := NA]
+  sensorData[, precipitationIntElec := as.numeric(precipitationIntElec)]
+  sensorData[precipitationIntPWS == '', precipitationIntPWS := NA]
+  sensorData[, precipitationIntPWS := as.numeric(precipitationIntPWS)]
+  sensorData[precipitationDurationElec == '', precipitationDurationElec := NA]
+  sensorData[, precipitationDurationElec := as.numeric(precipitationDurationElec)]
+  sensorData[precipitationDurationPWS == '', precipitationDurationPWS := NA]
+  sensorData[, precipitationDurationPWS := as.numeric(precipitationDurationPWS)]
   sensorData[, IT_DATETIME := as.POSIXct(sensorData[, IT_DATETIME], format = "%Y%m%d_%H%M%S", tz = "UTC")]
   setnames(sensorData, "IT_DATETIME", "dateTime")
   return(sensorData)

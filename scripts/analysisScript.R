@@ -139,7 +139,9 @@ analysisTwente<-function(){
   tempDewPointTwente <- ReadTempDewPointData("inst/extdata/Sensor/TwenteTemp_DewPoint1-1-2015-31-08-2016.csv")
   setkey(tempDewPointTwente, dateTime)
   
-  precipitationTwente <- ReadPrecipitationData("inst/extdata/Sensor/TwentePrecipitation1-1-2015-31-10-2016.csv")
+  precipitationTwente <- ReadPrecipitationData("inst/extdata/Sensor/TwenteRainAll-1-2015-31-08-2016.csv")
+  precipitationTwente[, rain := FALSE]
+  precipitationTwente[ precipitationDurationPWS > 300 | precipitationDurationElec > 300, rain:=TRUE]
   setkey(precipitationTwente, dateTime)
   
   
@@ -151,13 +153,14 @@ analysisTwente<-function(){
   
   
   
+  
   dataTwente <- na.omit(dataTwente)
   
   trainTwente <- dataTwente[year==2015, .(dateTime, meanEdge, changePoint, smoothness, meanHue,
-                                          meanSaturation, meanBrightness, MOR, foggy, day, month, hour, windSpeed, relHumidity, airTemperature, dewPoint, precipitation) ]
+                                          meanSaturation, meanBrightness, MOR, foggy, day, month, hour, windSpeed, relHumidity, airTemperature, dewPoint, precipitationIntElec, precipitationIntPWS, precipitationDurationElec, precipitationDurationPWS, rain) ]
   
   testTwente <- dataTwente[year==2016, .(dateTime, meanEdge, changePoint, smoothness, meanHue,
-                                         meanSaturation, meanBrightness, MOR, foggy, day, month, hour, windSpeed, relHumidity, airTemperature, dewPoint, precipitation) ]
+                                         meanSaturation, meanBrightness, MOR, foggy, day, month, hour, windSpeed, relHumidity, airTemperature, dewPoint, precipitationIntElec, precipitationIntPWS, precipitationDurationElec, precipitationDurationPWS, rain) ]
   
   
   
@@ -193,11 +196,15 @@ analysisTwente<-function(){
   
   
   fogTreeMeteoTwente <- rpart(foggy ~ meanEdge + changePoint + meanBrightness +
-                                 relHumidity + windSpeed + airTemperature + precipitation, 
-                              trainTwente , control = rpart.control(cp = 0.02))
+                                 relHumidity + windSpeed + airTemperature + dewPoint + rain, 
+                                 trainTwente , control = rpart.control(cp = 0.01))
+  
+  
 
   
   fancyRpartPlot(fogTreeMeteoTwente, sub="")
+  
+  print(fogTreeMeteoTwente)
 
   
   
@@ -206,10 +213,13 @@ analysisTwente<-function(){
   predVals <- predict(fogTreeMeteoTwente, testTwente, method="class")
   testTwente[, pred := predVals]
   
+  ###RAIN CORRECTION###
+  testTwente[rain == TRUE, pred := 0.1]
+  
   confusionMatrix(ifelse(trainTwente$pred > 0.3, TRUE, FALSE), trainTwente$foggy, positive = "TRUE")
   confmatAllMeteoFeaturesTest<-confusionMatrix(ifelse(testTwente$pred > 0.3, TRUE, FALSE), testTwente$foggy, positive = "TRUE")
   print(confmatAllMeteoFeaturesTest)
   
-  
+  return(trainTwente)
   
 }

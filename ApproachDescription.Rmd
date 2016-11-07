@@ -429,6 +429,21 @@ probability of fog exceeds a certain level seems relatively close.
 
 ### Twente test field
 
+The images from the test field in Twente present some additional challenges when to be elaborated.
+First of all the images are taken from a "Fish-eye" camera (A fisheye lens is an ultra wide-angle lens that produces strong visual distortion intended to create a wide panoramic or hemispherical image. Fisheye lenses achieve extremely wide angles of view by forgoing producing images with straight lines of perspective (rectilinear images), opting instead for a special mapping (for example: equisolid angle), which gives images a characteristic convex non-rectilinear appearance. Source: wikipedia).
+
+After a preliminary analysis we noted that the metrics characterizing the image (i.e., mean edges, changepoint) were also influenced by the wide angle objective. We have then proceeded to rectify the images accordingly. The rectification has been done by using an ad-hoc script leveraging on the internal capabilities of GNU Image Manipulation Program (GIMP).
+
+```{r, ImagesExample, cache=TRUE, echo=FALSE}
+exampleImg <- c("inst/extdata/EHTW_201508011440.jpg","inst/extdata/EHTW_201508011440_Rectified.jpg")
+example_par <- par(mfrow=c(1,2))
+img <- lapply(exampleImg, load.image)
+plot(img[[1]], main = "Original Fish-eye image")
+plot(img[[2]], main = "Rectified image")
+par(example_par)
+```
+
+
 ```{r, dataTwente, cache=TRUE}
 dataTwente <- readRDS("results/ResultsTwente2015-2016_3hSun.rds")
 offsetBeforeSunrise <- 0 #time in minutes
@@ -530,6 +545,14 @@ predwrong2 <- trainTwente[predMOR >11 & log(MOR)<9.5]
 #April 28 2015 05:15-35 overexposed images light into objective
 
 
+exampleImg <- c("inst/extdata/cornerCasesTwente/EHTW_201503240815.jpg")
+example_par <- par(mfrow=c(1,2))
+img <- lapply(exampleImg, load.image)
+plot(img[[1]], main = "Light in the objective")
+par(example_par)
+
+
+
 predwrong3 <- trainTwente[predMOR >10 & log(MOR)<8.5 & log(MOR)>8]
 #March 24 2015 08:05-09:05 light direct to the objective horizon too bright to be recognized
 #March 28 2015 05:25-05:55 some light into the objective (colors not sharp)
@@ -540,6 +563,15 @@ predwrong3 <- trainTwente[predMOR >10 & log(MOR)<8.5 & log(MOR)>8]
 #April 21 2015 06:25 light direct to the objective horizon to bright to be recognized left part of image
 #April 24 2015 04:45-06:05 light direct to the objective horizon to bright to be recognized left part of image
 #October 27 2015 10:50-14:30 some water drops paths seems to be present on the camera
+
+
+
+exampleImg <- c("inst/extdata/cornerCasesTwente/EHTW_201504120955.jpg","inst/extdata/cornerCasesTwente/EHTW_201508251300.jpg")
+example_par <- par(mfrow=c(1,2))
+img <- lapply(exampleImg, load.image)
+plot(img[[1]], main = "Change in scene: light brown pattern in the distance")
+plot(img[[2]], main = "Change in scene: full green color in the distance")
+par(example_par)
 
 predwrong4 <- trainTwente[predMOR <10 & log(MOR)>10.75]
 #March 21 2015 16:25-17:45 quite dark colors and light
@@ -556,6 +588,16 @@ predwrong4 <- trainTwente[predMOR <10 & log(MOR)>10.75]
 predwrong5 <- trainTwente[predMOR >10 & log(MOR)>6 & log(MOR)<7]
 #October 26 2015 13:40-15:10 some shadows on the objective (due to previous drops?)
 #August 23 2015 13:00-13:50 clear day (will follow a sensor failure)
+
+
+exampleImg <- list.files("inst/extdata/cornerCasesTwente/", pattern = "EHTW_20150628")
+example_par <- par(mfrow=c(1,3))
+img <- lapply(exampleImg, load.image)
+lapply(img, plot, main = "Humidity in the objective")
+par(example_par)
+
+
+
 
 predwrong6 <- trainTwente[predMOR >8  & predMOR <9 & log(MOR)<9]
 #March 20 2015 05:45-06:55 mist
@@ -575,7 +617,6 @@ predwrong6 <- trainTwente[predMOR >8  & predMOR <9 & log(MOR)<9]
 #November 10 2015 09:40 water on the camera
 #November 15 2015 13:10 water on the camera
 #December 16 2015 water on the camera almost whole day
-#December 22 2015 water on the camera almost whole day
 
 predwrong7 <- trainTwente[predMOR <9 & log(MOR)>9]
 #September 16 2015 06:30 07:10 07:40 08:30 drops of water on the objective image is fully blurred FALSE POSITIVE (07:40)
@@ -648,10 +689,26 @@ False negative conditions occur in the following dates  `r nrow(datesFN)`
 
 
 
+We investigated with more attention the result of the decision tree were the classification of the training set suggests a high chance of fog in the following condition:
 
+meanEdge<0.008352802 & relHumidity<45.5 & meanEdge>=0.004425891 & airTemperature>=1.85 & relHumidity <99.5
 
+Actually after a visual inspection of the 9 of the 10 selected that the MOR sensor data reported as foggy, we conclude that the MOR senso was in a faulty condition since it is a clear afternoon day.
 
+```{r, cache=TRUE, dependson='TestWithWindTw'}
 
+inspectLowHumPics<-trainTwente[meanEdge<0.008352802 & relHumidity<45.5 & meanEdge>=0.004425891 & airTemperature>=1.85 & relHumidity <99.5]
+
+```
+
+Faulty MOR detection on 23-08-2015
+```{r}
+fautlyIm <- list.files("inst/extdata/MORError/", full.names = TRUE)
+old_par <- par(mfrow=c(1,3))
+img <- lapply(fautlyIm, load.image)
+lapply(img, plot)
+par(fautlyIm)
+```
 
 
 
