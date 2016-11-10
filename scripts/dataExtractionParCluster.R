@@ -9,7 +9,7 @@ library(maptools)
 #library(lubridate)
 
 
-
+##Function to detectedges in images
 detect.edges <- function(im,sigma=1) {
   # adapted from http://dahtah.github.io/imager/foreground_background.html
   isoblur(im,sigma) %>% imgradient("xy") %>% llply(function(v) v^2) %>%
@@ -20,8 +20,10 @@ detect.edges <- function(im,sigma=1) {
 
 runScript <-function() {
   
-#createParallelCluster()
+createParallelCluster()
 
+  
+##Data is on a shared filesystem accessible from every node (master and slaves)
 path1 <- "~/efs/data/twente"
 path2 <- "/mnt/disks/dataDisk/data/twente/"
 filenames <- list.files(path1, recursive = T,
@@ -30,6 +32,7 @@ filenames <- list.files(path1, recursive = T,
                         full.names=TRUE)
 
 
+##This is run in parallel
 imageSummary <- foreach(file = iter(filenames), .combine = rbind, .packages = "visDec") %dopar% {
   #FileNameParser(file, "na*me_yyyymmdd_hhmm.jpg")#DeBilt pattern
   FileNameParser(file, "na*me_yyyymmddhhmm.jpg")#Twente pattern
@@ -62,6 +65,7 @@ featureNames <- c("meanEdge", "changePoint", "smoothness",
 daylightImages[, id := 1:.N]
 setkey(daylightImages, id)
 
+##This is run in parallel and this is the most compute-intense part 
 imageSummary <- foreach(id = iter(daylightImages[, id]), .packages = c('data.table','visDec'), .combine = rbind) %dopar% {
   tmp <- daylightImages[id, ]
   tmp[, eval(featureNames) := ReturnFeatures(filePath), by = dateTime]
@@ -82,12 +86,14 @@ imageSummary[, MOR := TOA.MOR_10, by = dateTime]
 
 stopImplicitCluster()
 
-save(imageSummary, file = "ResultsTwente2015_3hSun.RData")
+saveRDS(imageSummary, file = "ResultsTwente2015_3hSun.rds")
 return(imageSummary)
 }
 
 
-
+##Function that creates the parallel cluster on the amazon AWS cloud
+## creates one master 
+## and a set of slaves
 createParallelCluster <- function()
 {
   i<-0
@@ -95,6 +101,7 @@ machines<-list()
 user    <- 'ubuntu'
 primary <- '172.31.45.30'
 
+#IPs contains a list of slaves that will run the computations
 IPs<-paste0("172.31.46.", seq(from = 157, to = 174))
 IPs<-c(IPs, "172.31.38.73")
 for (ip in IPs){
@@ -107,6 +114,8 @@ machineAddresses <- list(
        ncore=1)
 )
 machineAddresses<-c(machineAddresses,machines)
+
+##characteristics of the cluster are assigned (e.g., IPs, hosts, users, IPs)
 spec <- lapply(machineAddresses,
                function(machine) {
                  rep(list(list(host=machine$host,
@@ -114,12 +123,16 @@ spec <- lapply(machineAddresses,
                      machine$ncore)
                })
 spec <- unlist(spec,recursive=FALSE)
+
+##cluster is created (the communication between master and slaves takes place on the port 11000 and is a SSH-like session)
 parallelCluster <- parallel::makeCluster(type='PSOCK',
                                          master=primary,
                                          spec=spec,
                                          port=11000)
 print(parallelCluster)
 
+
+##some libraries and functions are explicitly exported
 #clusterEvalQ(parallelCluster, library(imager), FileNameParser())
 clusterEvalQ(parallelCluster, c(library(imager),library(data.table)))
 clusterExport(parallelCluster,"FileNameParser")
