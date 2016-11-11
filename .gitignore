@@ -15,3 +15,5 @@ PresentationProject.snm
 PresentationProject.synctex.gz
 PresentationProject.tex
 PresentationProject.toc
+*.o
+*.so
