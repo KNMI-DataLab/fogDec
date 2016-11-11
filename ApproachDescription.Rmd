@@ -466,7 +466,7 @@ First of all the images are taken from a "Fish-eye" camera (A fisheye lens is an
 
 After a preliminary analysis we noted that the metrics characterizing the image (i.e., mean edges, changepoint) were also influenced by the wide angle objective. We have then proceeded to rectify the images accordingly. The rectification has been done by using an ad-hoc script leveraging on the internal capabilities of GNU Image Manipulation Program (GIMP).
 
-```{r, ImagesExample, cache=TRUE, echo=FALSE}
+```{r, ImagesExampleTwente, cache=TRUE, echo=FALSE}
 exampleImg <- c("inst/extdata/EHTW_201508011440.jpg","inst/extdata/EHTW_201508011440_Rectified.jpg")
 example_par <- par(mfrow=c(1,2))
 img <- lapply(exampleImg, load.image)
@@ -493,19 +493,19 @@ windTwente <- ReadWindData("inst/extdata/Sensor/TwenteWind1-1-2015-31-08-2016.cs
 setkey(windTwente, dateTime)
 ```
 
-```{r, HumidityDataTw, cache=TRUE}
+```{r, HumidityDataTwente, cache=TRUE}
 humidityTwente <- ReadHumidityData("inst/extdata/Sensor/TwenteHumidity1-1-2015-31-08-2016.csv")
 setkey(humidityTwente, dateTime)
 ```
 
-```{r, Temperature, cache=TRUE}
+```{r, TemperatureDataTwente, cache=TRUE}
 tempDewPointTwente <- ReadTempDewPointData("inst/extdata/Sensor/TwenteTemp_DewPoint1-1-2015-31-08-2016.csv")
 setkey(tempDewPointTwente, dateTime)
 ```
 
 
 
-```{r, TestAndTrainDataTwente, cache=TRUE}
+```{r, trainTestDataTwente ,cache=TRUE, dependson=c('TemperatureDataTwente', 'HumidityDataTwente', 'WindDataTwente', 'dataTwente')}
 dataTwente <- SynchronizeSensorReadingsNoMORPicture(windTwente, dataTwente)
 dataTwente <- SynchronizeSensorReadingsNoMORPicture(humidityTwente, dataTwente)
 dataTwente <- SynchronizeSensorReadingsNoMORPicture(tempDewPointTwente, dataTwente)
@@ -525,7 +525,7 @@ In 2015 we have `r trainTwente[foggy == TRUE, .N]` images
 in the test set, that are labeled as foggy, i.e. a MOR below 250 meters.
 
 Based on the training set we obtain the following preliminary decision tree using just the features of the images:
-```{r, ClassificationTwente, include=FALSE, cache=TRUE, dependson='TestAndTrainDataTwente'}
+```{r, ClassificationTwente, include=FALSE, cache=TRUE, dependson='trainTestDataTwente'}
 
 
 fogTree <- rpart(foggy ~ meanEdge + changePoint + meanBrightness, trainTwente , control = rpart.control(cp = 0.019))
@@ -536,7 +536,7 @@ fancyRpartPlot(fogTree, sub="")
 ```
 
 The accurancy of the classification is as follows for the :
-```{r,EvaluatePredictionTwente, cache=TRUE, dependson='ClassificationTwente'}
+```{r, EvaluatePredictionTwente, cache=TRUE, dependson='ClassificationTwente'}
 hindVals <- predict(fogTree, trainTwente, method = "class")
 trainTwente[, pred := hindVals]
 
@@ -588,9 +588,9 @@ First, the objective is unprotected against direct light which has important con
 ```{r, LookIntoClusters1, cache=TRUE, echo=FALSE}
 exampleImg <- c("inst/extdata/cornerCasesTwente/EHTW_201503240815.jpg")
 example_par <- par(mfrow=c(1,2))
-image <- lapply(exampleImg, load.image)
-plot(image[[1]], main = "Light in the objective")
-plot(0,0)
+image <- load.image(exampleImg)
+plot(image, main = "Light in the objective")
+#plot(0,0)
 par(example_par)
 ```
   
@@ -598,11 +598,11 @@ Second, it seems that some humidity is sometimes trapped into the objective whic
 
 
 ```{r, LookIntoClusters2, cache=TRUE, echo=FALSE}
-exampleImg2 <- list.files("inst/extdata/cornerCasesTwente/", pattern = "EHTW_20151027", full.names = TRUE)
+exampleImg2 <- c("inst/extdata/cornerCasesTwente/EHTW_201510271350.jpg")
 example_par2 <- par(mfrow=c(1,2))
-img3 <- lapply(exampleImg2, load.image)
-lapply(img3, plot, main = "Umidity lines on the objective", cex.main = 0.7)
-plot(0,0)
+img3 <- load.image(exampleImg2)
+plot(img3, main = "Umidity lines on the objective", cex.main = 0.7)
+#plot(0,0)
 par(example_par2)
 ```
 
@@ -627,24 +627,25 @@ Third, there are objects that appear in the scene and that might cause problems 
 
 exampleImg <- c("inst/extdata/cornerCasesTwente/EHTW_201504120955.jpg","inst/extdata/cornerCasesTwente/EHTW_201508251300.jpg")
 example_par <- par(mfrow=c(1,2))
-img2 <- lapply(exampleImg, load.image)
-plot(img2[[1]], main = "Change in scene: light brown pattern in the distance", cex.main = 0.7)
-plot(img2[[2]], main = "Change in scene: full green color in the distance", cex.main = 0.7)
+img2 <- load.image(exampleImg[[1]])
+img3 <- load.image(exampleImg[[2]])
+plot(img2, main = "Change in scene: light brown pattern in the distance", cex.main = 0.7)
+plot(img3, main = "Change in scene: full green color in the distance", cex.main = 0.7)
 par(example_par)
 
 
-exampleImg2 <- list.files("inst/extdata/cornerCasesTwente/", pattern = "EHTW_20150917", full.names = TRUE)
+exampleImg2 <- c("inst/extdata/cornerCasesTwente/EHTW_201509170520.jpg")
 example_par <- par(mfrow=c(1,2))
-img3 <- lapply(exampleImg2, load.image)
-lapply(img3, plot, main = "Objects appearing in the scene", cex.main = 0.7)
+img3 <- load.image(exampleImg2)
+plot(img3, main = "Objects appearing in the scene: working vehicles in the distance", cex.main = 0.7)
 par(example_par)
 
 
 exampleImg <- c("inst/extdata/cornerCasesTwente/EHTW_201512211403.jpg")
 example_par <- par(mfrow=c(1,2))
-img2 <- lapply(exampleImg, load.image)
-plot(img2[[1]], main = "Change in scene: wooden poles", cex.main = 0.7)
-plot(0,0)
+img2 <- load.image(exampleImg)
+plot(img2, main = "Change in scene: wooden poles", cex.main = 0.7)
+#plot(0,0)
 par(example_par)
 ```
 
@@ -672,18 +673,18 @@ Other more complex conditions that almost always bring to False Positive classif
 #August 23 2015 13:00-13:50 clear day (will follow a sensor failure)
 
 
-exampleImg2 <- list.files("inst/extdata/cornerCasesTwente/", pattern = "EHTW_20150628", full.names = TRUE)
+exampleImg2 <- list.files("inst/extdata/cornerCasesTwente/", pattern = "EHTW_201506280400.jpg", full.names = TRUE)
 example_par <- par(mfrow=c(1,2))
-img3 <- lapply(exampleImg2, load.image)
-lapply(img3, plot, main = "Humidity in the objective", cex.main = 0.7)
+img3 <- load.image(exampleImg2)
+plot(img3, main = "Humidity in the objective", cex.main = 0.7)
 par(example_par)
 
 
 
-exampleImg2 <- list.files("inst/extdata/cornerCasesTwente/", pattern = "EHTW_20151006", full.names = TRUE)
+exampleImg2 <- c("inst/extdata/cornerCasesTwente/EHTW_201510060700.jpg")
 example_par <- par(mfrow=c(1,2))
-img3 <- lapply(exampleImg2, load.image)
-lapply(img3, plot, main = "Water drops on the objective", cex.main = 0.7)
+img3 <- load.image(exampleImg2)
+plot(img3, main = "Water drops on the objective", cex.main = 0.7)
 par(example_par)
 
 
@@ -720,7 +721,7 @@ Other meteorological parameters are added to the set of features analyzed for th
   
   
   
-```{r, MeteoFeatureAdditionTwente, cache=TRUE, dependson='TestAndTrainDataTwente'}
+```{r, MeteoFeatureAdditionTwente, cache=TRUE, dependson='trainTestDataTwente'}
 
 fogTreeMeteoTwente <- rpart(foggy ~ meanEdge + changePoint + meanBrightness +
                        windSpeed + relHumidity + airTemperature + dewPoint, 
@@ -732,7 +733,7 @@ fancyRpartPlot(fogTreeMeteoTwente, sub="")
 ```
 
 
-```{r, TestWithWindTw, cache=TRUE, dependson=c('TestAndTrainDataTwente', 'MeteoFeatureAdditionTwente')}
+```{r, TestWithWindTw, cache=TRUE, dependson=c('trainTestDataTwente', 'MeteoFeatureAdditionTwente')}
 hindVals <- predict(fogTreeMeteoTwente, trainTwente, method = "class")
 trainTwente[, pred := hindVals]
 predVals <- predict(fogTreeMeteoTwente, testTwente, method="class")
@@ -788,19 +789,18 @@ We investigated with more attention the result of the decision tree were the cla
   
 meanEdge<0.008352802 & relHumidity<45.5 & meanEdge>=0.004425891 & airTemperature>=1.85 & relHumidity <99.5
   
-Actually after a visual inspection of the 9 of the 10 selected that the MOR sensor data reported as foggy, we conclude that the MOR senso was in a faulty condition since it is a clear afternoon day. 
+Actually after a visual inspection of the 9 of the 10 selected that the MOR sensor data reported as foggy, we conclude that the MOR sensor was in a faulty condition since it is a clear afternoon day as shown in the figures below. 
 
 ```{r, cache=TRUE, dependson='TestWithWindTw'}
 inspectLowHumPics<-trainTwente[meanEdge<0.008352802 & relHumidity<45.5 & meanEdge>=0.004425891 & airTemperature>=1.85 & relHumidity <99.5]
 ```
 
 Faulty MOR detection on 23-08-2015  
-
 ```{r, cache=TRUE, echo=FALSE}
-fautlyIm <- list.files("inst/extdata/MORError", full.names = TRUE)
+fautlyIm <- c("inst/extdata/MORError/EHTW_201508231700.jpg")
 parFaulty <- par(mfrow=c(1,2))
-img <- lapply(fautlyIm, load.image)
-lapply(img, plot)
+img <- load.image(fautlyIm)
+plot(img)
 par(parFaulty)
 ```
 

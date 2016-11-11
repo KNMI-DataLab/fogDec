@@ -1,8 +1,7 @@
 #' Divide the training and test set based on day number
-#' @param fullFilename String
-#' @param pattern String encoding the filename pattern
+#' @param directoryPath
 #' @export
-assignTrainAndTestSet <- function(direcoryPath){
+assignTrainAndTestSet <- function(directoryPath){
   registerDoParallel(cores=2)
   filenames <- list.files(direcoryPath,
                           pattern=glob2rx("Meetterrein_201511*.jpg"),
