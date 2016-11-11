@@ -241,8 +241,8 @@ trainDeBilt[, pred := hindVals]
 predVals <- predict(fogTree, testDeBilt, method="class")
 testDeBilt[, pred := predVals]
 
-confusionMatrix(ifelse(trainDeBilt$pred > 0.3, TRUE, FALSE), trainDeBilt$foggy)
-confusionMatrix(ifelse(testDeBilt$pred > 0.3, TRUE, FALSE), testDeBilt$foggy)
+confusionMatrix(ifelse(trainDeBilt$pred > 0.3, TRUE, FALSE), trainDeBilt$foggy, positive = "TRUE")
+confusionMatrix(ifelse(testDeBilt$pred > 0.3, TRUE, FALSE), testDeBilt$foggy, positive = "TRUE")
 
 ```
 
@@ -268,8 +268,8 @@ trainDeBilt[, pred := hindVals]
 predVals <- predict(fogTreeMeteo, testDeBilt, method="class")
 testDeBilt[, pred := predVals]
 
-confusionMatrix(ifelse(trainDeBilt$pred > 0.3, TRUE, FALSE), trainDeBilt$foggy)
-confusionMatrix(ifelse(testDeBilt$pred > 0.3, TRUE, FALSE), testDeBilt$foggy)
+confusionMatrix(ifelse(trainDeBilt$pred > 0.3, TRUE, FALSE), trainDeBilt$foggy, positive = "TRUE")
+confusionMatrix(ifelse(testDeBilt$pred > 0.3, TRUE, FALSE), testDeBilt$foggy, positive = "TRUE")
 
 ```
 
@@ -457,7 +457,6 @@ setkey(dataTwente, dateTime)
 ```{r, WindDataTwente, cache=TRUE}
 source("scripts/ReadMeteoData.R")
 windTwente <- ReadWindData("inst/extdata/Sensor/TwenteWind1-1-2015-31-08-2016.csv")
-#windTwente <- ReadWindData()
 setkey(windTwente, dateTime)
 ```
 
@@ -471,21 +470,31 @@ tempDewPointTwente <- ReadTempDewPointData("inst/extdata/Sensor/TwenteTemp_DewPo
 setkey(tempDewPointTwente, dateTime)
 ```
 
+```{r, PrecipitationDataTwente, cache=TRUE}
+precipitationTwente <- ReadPrecipitationData("inst/extdata/Sensor/TwenteRainAll-1-2015-31-08-2016.csv")
+precipitationTwente[, rain := FALSE]
+precipitationTwente[ precipitationDurationPWS > 300 | precipitationDurationElec > 300, rain:=TRUE]
+setkey(precipitationTwente, dateTime)
+```
 
 
-```{r, trainTestDataTwente ,cache=TRUE, dependson=c('TemperatureDataTwente', 'HumidityDataTwente', 'WindDataTwente', 'dataTwente')}
+
+```{r, trainTestDataTwente ,cache=TRUE, dependson=c('TemperatureDataTwente', 'HumidityDataTwente', 'WindDataTwente', 'dataTwente', 'PrecipitationDataTwente')}
 dataTwente <- SynchronizeSensorReadingsNoMORPicture(windTwente, dataTwente)
 dataTwente <- SynchronizeSensorReadingsNoMORPicture(humidityTwente, dataTwente)
 dataTwente <- SynchronizeSensorReadingsNoMORPicture(tempDewPointTwente, dataTwente)
+dataTwente <- SynchronizeSensorReadingsNoMORPicture(precipitationTwente, dataTwente)
 
 
 dataTwente <- na.omit(dataTwente)
 
 trainTwente <- dataTwente[year==2015, .(dateTime, meanEdge, changePoint, smoothness, meanHue,
-                meanSaturation, meanBrightness, MOR, foggy, day, month, hour, windSpeed, relHumidity, airTemperature, dewPoint) ]
+                meanSaturation, meanBrightness, MOR, foggy, day, month, hour, windSpeed, relHumidity, airTemperature, dewPoint,
+                precipitationIntElec, precipitationIntPWS, precipitationDurationElec, precipitationDurationPWS, rain) ]
 
 testTwente <- dataTwente[year==2016, .(dateTime, meanEdge, changePoint, smoothness, meanHue,
-                meanSaturation, meanBrightness, MOR, foggy, day, month, hour, windSpeed, relHumidity, airTemperature, dewPoint) ]
+                meanSaturation, meanBrightness, MOR, foggy, day, month, hour, windSpeed, relHumidity, airTemperature, dewPoint,
+                precipitationIntElec, precipitationIntPWS, precipitationDurationElec, precipitationDurationPWS, rain) ]
 
 ```
 
@@ -512,8 +521,8 @@ predVals <- predict(fogTree, testTwente, method="class")
 testTwente[, pred := predVals]
 
 #usually it is not a good practice to show the results of the classification on the training set itself.
-confusionMatrix(ifelse(trainTwente$pred > 0.3, TRUE, FALSE), trainTwente$foggy)
-confusionMatrix(ifelse(testTwente$pred  > 0.3, TRUE, FALSE), testTwente$foggy)
+confusionMatrix(ifelse(trainTwente$pred > 0.3, TRUE, FALSE), trainTwente$foggy, positive = "TRUE")
+confusionMatrix(ifelse(testTwente$pred  > 0.3, TRUE, FALSE), testTwente$foggy, positive = "TRUE")
 
 ```
 
@@ -707,8 +716,8 @@ trainTwente[, pred := hindVals]
 predVals <- predict(fogTreeMeteoTwente, testTwente, method="class")
 testTwente[, pred := predVals]
 
-confusionMatrix(ifelse(trainTwente$pred > 0.3, TRUE, FALSE), trainTwente$foggy)
-confusionMatrix(ifelse(testTwente$pred > 0.3, TRUE, FALSE), testTwente$foggy)
+confusionMatrix(ifelse(trainTwente$pred > 0.3, TRUE, FALSE), trainTwente$foggy, positive = "TRUE")
+confusionMatrix(ifelse(testTwente$pred > 0.3, TRUE, FALSE), testTwente$foggy, positive = "TRUE")
 
 ```
 
@@ -773,6 +782,33 @@ par(parFaulty)
 ```
 
 
+
+Rain on the camera objective is an issue that creates false positive situations in Twente. The idea is then to try to add precipitation variables to the features to train the decision tree in order to identify and classify these situations automatically.
+```{r, TwentePrecipitationTrainTree, cache=TRUE, echo=FALSE, dependson='trainTestDataTwente'}
+
+
+fogTreeRainTwente <- rpart(foggy ~ meanEdge + changePoint + meanBrightness +
+                                 relHumidity + windSpeed + airTemperature + dewPoint + precipitationIntElec + 
+                                 precipitationIntPWS + precipitationDurationElec + precipitationDurationPWS, 
+                                 trainTwente , control = rpart.control(cp = 0.01))
+
+```
+
+
+```{r, ClassificationTreeWithPrecipitationdTw, echo=FALSE, cache=TRUE, dependson='TwentePrecipitationTrainTree'}
+fancyRpartPlot(fogTreeRainTwente, sub="")
+```
+
+```{r, ResultsPrecipitation, dependson=c('TwentePrecipitationTrainTree', 'TrainTestDataTwente')}
+hindVals <- predict(fogTreeRainTwente, trainTwente, method = "class")
+  trainTwente[, pred := hindVals]
+  predVals <- predict(fogTreeRainTwente, testTwente, method="class")
+  testTwente[, pred := predVals]
+confusionMatrix(ifelse(trainTwente$pred > 0.3, TRUE, FALSE), trainTwente$foggy, positive = "TRUE")
+confusionMatrix(ifelse(testTwente$pred > 0.3, TRUE, FALSE), testTwente$foggy, positive = "TRUE")
+
+
+```
 
 
 
