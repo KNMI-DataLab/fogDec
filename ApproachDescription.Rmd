@@ -688,7 +688,7 @@ Other meteorological parameters are added to the set of features analyzed for th
   
   
   
-```{r, MeteoFeatureAdditionTwente, cache=TRUE, dependson='dataTwente'}
+```{r, MeteoFeatureAdditionTwente, cache=TRUE, dependson='trainTestDataTwente'}
 
 fogTreeMeteoTwente <- rpart(foggy ~ meanEdge + changePoint + meanBrightness +
                        windSpeed + relHumidity + airTemperature + dewPoint, 
@@ -700,7 +700,7 @@ fancyRpartPlot(fogTreeMeteoTwente, sub="")
 ```
 
 
-```{r, TestWithWindTw, cache=TRUE, dependson=c('dataTwente', 'MeteoFeatureAdditionTwente')}
+```{r, TestWithWindTw, cache=TRUE, dependson=c('trainTestDataTwente', 'MeteoFeatureAdditionTwente')}
 hindVals <- predict(fogTreeMeteoTwente, trainTwente, method = "class")
 trainTwente[, pred := hindVals]
 predVals <- predict(fogTreeMeteoTwente, testTwente, method="class")
