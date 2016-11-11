@@ -556,8 +556,8 @@ First, the objective is unprotected against direct light which has important con
 ```{r, LookIntoClusters1, cache=TRUE, echo=FALSE}
 exampleImg <- c("inst/extdata/cornerCasesTwente/EHTW_201503240815.jpg")
 example_par <- par(mfrow=c(1,2))
-image <- lapply(exampleImg, load.image)
-plot(image[[1]], main = "Light in the objective")
+image <- load.image(exampleImg)
+plot(image, main = "Light in the objective")
 #plot(0,0)
 par(example_par)
 ```
@@ -566,10 +566,10 @@ Second, it seems that some humidity is sometimes trapped into the objective whic
 
 
 ```{r, LookIntoClusters2, cache=TRUE, echo=FALSE}
-exampleImg2 <- list.files("inst/extdata/cornerCasesTwente/", pattern = "EHTW_201510271350.jpg", full.names = TRUE)
+exampleImg2 <- c("inst/extdata/cornerCasesTwente/EHTW_201510271350.jpg")
 example_par2 <- par(mfrow=c(1,2))
-img3 <- lapply(exampleImg2, load.image)
-lapply(img3, plot, main = "Umidity lines on the objective", cex.main = 0.7)
+img3 <- load.image(exampleImg2)
+plot(img3, main = "Umidity lines on the objective", cex.main = 0.7)
 #plot(0,0)
 par(example_par2)
 ```
@@ -595,23 +595,24 @@ Third, there are objects that appear in the scene and that might cause problems 
 
 exampleImg <- c("inst/extdata/cornerCasesTwente/EHTW_201504120955.jpg","inst/extdata/cornerCasesTwente/EHTW_201508251300.jpg")
 example_par <- par(mfrow=c(1,2))
-img2 <- lapply(exampleImg, load.image)
-plot(img2[[1]], main = "Change in scene: light brown pattern in the distance", cex.main = 0.7)
-plot(img2[[2]], main = "Change in scene: full green color in the distance", cex.main = 0.7)
+img2 <- load.image(exampleImg[[1]])
+img3 <- load.image(exampleImg[[2]])
+plot(img2, main = "Change in scene: light brown pattern in the distance", cex.main = 0.7)
+plot(img3, main = "Change in scene: full green color in the distance", cex.main = 0.7)
 par(example_par)
 
 
-exampleImg2 <- list.files("inst/extdata/cornerCasesTwente/", pattern = "EHTW_201509170520.jpg", full.names = TRUE)
+exampleImg2 <- c("inst/extdata/cornerCasesTwente/EHTW_201509170520.jpg")
 example_par <- par(mfrow=c(1,2))
-img3 <- lapply(exampleImg2, load.image)
-lapply(img3, plot, main = "Objects appearing in the scene: working vehicles in the distance", cex.main = 0.7)
+img3 <- load.image(exampleImg2)
+plot(img3, main = "Objects appearing in the scene: working vehicles in the distance", cex.main = 0.7)
 par(example_par)
 
 
 exampleImg <- c("inst/extdata/cornerCasesTwente/EHTW_201512211403.jpg")
 example_par <- par(mfrow=c(1,2))
-img2 <- lapply(exampleImg, load.image)
-plot(img2[[1]], main = "Change in scene: wooden poles", cex.main = 0.7)
+img2 <- load.image(exampleImg)
+plot(img2, main = "Change in scene: wooden poles", cex.main = 0.7)
 #plot(0,0)
 par(example_par)
 ```
@@ -621,7 +622,7 @@ Other more complex conditions that almost always bring to False Positive classif
 
   
   
-```{r, LookIntoClusters4, cache=FALSE, echo=FALSE}
+```{r, LookIntoClusters4, cache=TRUE, echo=FALSE}
 
 #predwrong4 <- trainTwente[predMOR <10 & log(MOR)>10.75]
 #March 21 2015 16:25-17:45 quite dark colors and light
@@ -642,16 +643,16 @@ Other more complex conditions that almost always bring to False Positive classif
 
 exampleImg2 <- list.files("inst/extdata/cornerCasesTwente/", pattern = "EHTW_201506280400.jpg", full.names = TRUE)
 example_par <- par(mfrow=c(1,2))
-img3 <- lapply(exampleImg2, load.image)
-lapply(img3, plot, main = "Humidity in the objective", cex.main = 0.7)
+img3 <- load.image(exampleImg2)
+plot(img3, main = "Humidity in the objective", cex.main = 0.7)
 par(example_par)
 
 
 
-exampleImg2 <- list.files("inst/extdata/cornerCasesTwente/", pattern = "EHTW_201510060700.jpg", full.names = TRUE)
+exampleImg2 <- c("inst/extdata/cornerCasesTwente/EHTW_201510060700.jpg")
 example_par <- par(mfrow=c(1,2))
-img3 <- lapply(exampleImg2, load.image)
-lapply(img3, plot, main = "Water drops on the objective", cex.main = 0.7)
+img3 <- load.image(exampleImg2)
+plot(img3, main = "Water drops on the objective", cex.main = 0.7)
 par(example_par)
 
 
@@ -763,12 +764,11 @@ inspectLowHumPics<-trainTwente[meanEdge<0.008352802 & relHumidity<45.5 & meanEdg
 ```
 
 Faulty MOR detection on 23-08-2015  
-#put one picture only 
 ```{r, cache=TRUE, echo=FALSE}
-fautlyIm <- list.files("inst/extdata/MORError", full.names = TRUE)
+fautlyIm <- c("inst/extdata/MORError/EHTW_201508231700.jpg")
 parFaulty <- par(mfrow=c(1,2))
-img <- lapply(fautlyIm, load.image)
-lapply(img, plot)
+img <- load.image(fautlyIm)
+plot(img)
 par(parFaulty)
 ```
 
