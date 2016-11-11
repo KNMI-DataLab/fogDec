@@ -4,12 +4,7 @@
 \alias{assignTrainAndTestSet}
 \title{Divide the training and test set based on day number}
 \usage{
-assignTrainAndTestSet(direcoryPath)
-}
-\arguments{
-\item{fullFilename}{String}
-
-\item{pattern}{String encoding the filename pattern}
+assignTrainAndTestSet(directoryPath)
 }
 \description{
 Divide the training and test set based on day number
