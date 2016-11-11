@@ -621,7 +621,7 @@ Other more complex conditions that almost always bring to False Positive classif
 
   
   
-```{r, LookIntoClusters4, cache=TRUE, echo=FALSE}
+```{r, LookIntoClusters4, cache=FALSE, echo=FALSE}
 
 #predwrong4 <- trainTwente[predMOR <10 & log(MOR)>10.75]
 #March 21 2015 16:25-17:45 quite dark colors and light
@@ -763,7 +763,7 @@ inspectLowHumPics<-trainTwente[meanEdge<0.008352802 & relHumidity<45.5 & meanEdg
 ```
 
 Faulty MOR detection on 23-08-2015  
-
+#put one picture only 
 ```{r, cache=TRUE, echo=FALSE}
 fautlyIm <- list.files("inst/extdata/MORError", full.names = TRUE)
 parFaulty <- par(mfrow=c(1,2))
