@@ -149,7 +149,7 @@ setkey(humidityDeBilt, dateTime)
 ```
 
 
-```{r, dataDeBilt, cache=TRUE, dependson=c('WindData','HumidityData')}
+```{r, dataDeBilt, include=FALSE, cache=TRUE, dependson=c('WindData','HumidityData')}
 dataDeBilt <- readRDS("results/ResultsDeBilt2015-2016_3hSun.rds")
 offsetBeforeSunrise <- 0 #time in minutes
 offsetAfterSunset <- 0
