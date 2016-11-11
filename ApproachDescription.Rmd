@@ -156,16 +156,17 @@ offsetAfterSunset <- 0
 #trainDeBilt <- imageSummary[dateTime > sunriseDateTime - offsetBeforeSunrise * 60 & dateTime < sunsetDateTime + offsetAfterSunset * 60, ]
 dataDeBilt <- dataDeBilt[dateTime > sunriseDateTime & dateTime < sunsetDateTime, ]
 dataDeBilt[, foggy := MOR < 250]
+dataDeBilt[, foggyFactor := as.factor(ifelse(MOR < 250, 'denseFog', 'notspecified'))]
 setkey(dataDeBilt, dateTime)
 dataDeBilt <- dataDeBilt[windDeBilt, nomatch = 0]
 dataDeBilt <- dataDeBilt[humidityDeBilt, nomatch = 0]
 dataDeBilt <- na.omit(dataDeBilt)
 
 trainDeBilt <- dataDeBilt[year==2015, .(dateTime, meanEdge, changePoint, smoothness, meanHue,
-                meanSaturation, meanBrightness, MOR, foggy, windSpeed, relHumidity) ]
+                meanSaturation, meanBrightness, MOR, foggy, foggyFactor, windSpeed, relHumidity) ]
 
 testDeBilt <- dataDeBilt[year==2016, .(dateTime, meanEdge, changePoint, smoothness, meanHue,
-                meanSaturation, meanBrightness, MOR, foggy, windSpeed, relHumidity) ]
+                meanSaturation, meanBrightness, MOR, foggy, foggyFactor, windSpeed, relHumidity) ]
 
 # features <- c("meanEdge", "changePoint", "smoothness", "meanHue", "meanSaturation", "meanBrightness", "windSpeed")
 # 
@@ -177,6 +178,37 @@ testDeBilt <- dataDeBilt[year==2016, .(dateTime, meanEdge, changePoint, smoothne
 # 
 # trainDeBilt <- StandardizeFeatures(trainDeBilt, features)
 
+
+```
+
+```{r, CaretClassificationDeBilt, cache = TRUE, dependson='dataDeBilt'}
+set.seed(123)
+
+#inTrain = createDataPartition(y = dataDeBilt$foggy, p = 0.5, list = FALSE)
+#str(inTrain)
+#
+#training <- dataDeBilt[inTrain, ]
+#testing  <- dataDeBilt[-inTrain,]
+
+rfModel <- train(foggyFactor ~ meanEdge + changePoint + smoothness + meanBrightness +
+                   meanHue + meanSaturation,
+                 data = dataDeBilt,
+                 metric = "ROC",
+                 method = 'ranger',
+                 trControl = trainControl(method = "cv", number = 5, verboseIter = TRUE,
+                                          classProbs = TRUE))
+plot(rfModel)
+
+
+```
+
+```{r, CaretConfusionDeBilt, cache = TRUE, dependson='CaretClassificationDeBilt'}
+
+rfClassesTest  <- predict(rfModel, newdata = testDeBilt)
+rfClassesTrain <- predict(rfModel, newdata = trainDeBilt)
+
+confusionMatrix(data = rfClassesTrain, trainDeBilt$foggyFactor)
+confusionMatrix(data = rfClassesTest, testDeBilt$foggyFactor)
 
 ```
 
