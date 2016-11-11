@@ -2,8 +2,7 @@
 #' @param directoryPath
 #' @export
 assignTrainAndTestSet <- function(directoryPath){
-  registerDoParallel(cores=2)
-  filenames <- list.files(direcoryPath,
+  filenames <- list.files(directoryPath,
                           pattern=glob2rx("Meetterrein_201511*.jpg"),
                           full.names=TRUE, recursive = TRUE)
   imageSummary <- foreach(file = iter(filenames), .combine = rbind) %dopar% {
