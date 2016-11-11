@@ -11,3 +11,5 @@ gplots
 ROCR
 lattice
 caret
+e1071
+ranger
