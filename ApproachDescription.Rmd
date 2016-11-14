@@ -512,7 +512,7 @@ setkey(precipitationTwente, dateTime)
 
 
 
-```{r, trainTestDataTwente ,cache=TRUE, dependson=c('TemperatureDataTwente', 'HumidityDataTwente', 'WindDataTwente', 'dataTwente', 'PrecipitationDataTwente')}
+```{r, trainTestDataTwente, cache=TRUE, dependson=c('TemperatureDataTwente', 'HumidityDataTwente', 'WindDataTwente', 'dataTwente', 'PrecipitationDataTwente')}
 dataTwente <- SynchronizeSensorReadingsNoMORPicture(windTwente, dataTwente)
 dataTwente <- SynchronizeSensorReadingsNoMORPicture(humidityTwente, dataTwente)
 dataTwente <- SynchronizeSensorReadingsNoMORPicture(tempDewPointTwente, dataTwente)
@@ -917,15 +917,15 @@ fancyRpartPlot(fogTreeNoRain, sub="")
 
 The accurancy of the classification is as follows for the :
 ```{r, EvaluatePredictionTwenteNoRain, cache=TRUE, dependson=c('ClassificationTwenteNoRain','trainTestNoRainTwente')}
-hindVals <- predict(fogTreeNoRain, trainTwenteNoRain, method = "class")
-trainTwenteNoRain[, pred := hindVals]
-
-predVals <- predict(fogTreeNoRain, testTwenteNoRain, method="class")
-testTwenteNoRain[, pred := predVals]
-
-#usually it is not a good practice to show the results of the classification on the training set itself.
-confusionMatrix(ifelse(trainTwenteNoRain$pred > 0.3, TRUE, FALSE), trainTwenteNoRain$foggy, positive = "TRUE")
-confusionMatrix(ifelse(testTwenteNoRain$pred  > 0.3, TRUE, FALSE), testTwenteNoRain$foggy, positive = "TRUE")
+# hindVals <- predict(fogTreeNoRain, trainTwenteNoRain, method = "class")
+# trainTwenteNoRain[, pred := hindVals]
+# 
+# predVals <- predict(fogTreeNoRain, testTwenteNoRain, method="class")
+# testTwenteNoRain[, pred := predVals]
+# 
+# #usually it is not a good practice to show the results of the classification on the training set itself.
+# confusionMatrix(ifelse(trainTwenteNoRain$pred > 0.3, TRUE, FALSE), trainTwenteNoRain$foggy, positive = "TRUE")
+# confusionMatrix(ifelse(testTwenteNoRain$pred  > 0.3, TRUE, FALSE), testTwenteNoRain$foggy, positive = "TRUE")
 
 ```
 
