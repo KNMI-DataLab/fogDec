@@ -876,14 +876,13 @@ We remove then such conditions from the dataset and we also remove the day when 
 ```{r, cleanRainTwente, echo=FALSE, cache=TRUE, dependson='trainTestDataTwente'}
 noRainDataTwente <- dataTwente[precipitationDurationElec<600 & windSpeed<3.5,]
 
-noRainDataTwente <- noRainDataTwente[day!=23 & month!=08 & year!=2015,]
+#noRainDataTwente <- noRainDataTwente[day!=23 & month!=08 & year!=2015,]
 
 removedFoggyRain <- dim(dataTwente[foggy==TRUE,])[1]-dim(noRainDataTwente[foggy==TRUE,])[1]
 ```
 
 The dataset is now composed of `r dim(noRainDataTwente)[1]` pictures. With such a filtering procedure also `r removedFoggyRain` foggy pictures have been removed from the dataset.
 
-------HAVE TO CHECK THE PERFOMANCE IN THE NEW SITUATION AFTER REMOVAL OF RAIN-----
 
 We partition again the the dataset and train a decision tree with image and meteorological features.
 
@@ -929,7 +928,7 @@ confusionMatrix(ifelse(testTwenteNoRain$pred  > 0.3, TRUE, FALSE), testTwenteNoR
 
 ```
 
-
+This additional filtering helps partially in the reduction of the FALSE POSITIVE cases. With a threshold to discriminate between fog and non-fog conditions equal 30%, the classifier achives  on the test set a balanced accurancy of 81% compared when the rain situations are filtered out, while the balanced accuracy was 62% on the non-filtered dataset. Some FALSE POSITIVE cases still remain and they are still in situations where drops of rain or humidity are present in the objective.
 
 
 
