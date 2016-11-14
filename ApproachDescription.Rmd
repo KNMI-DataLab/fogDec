@@ -505,7 +505,8 @@ setkey(tempDewPointTwente, dateTime)
 ```{r, PrecipitationDataTwente, cache=TRUE}
 precipitationTwente <- ReadPrecipitationData("inst/extdata/Sensor/TwenteRainAll-1-2015-31-08-2016.csv")
 precipitationTwente[, rain := FALSE]
-precipitationTwente[ precipitationDurationPWS > 400 | precipitationDurationElec > 400, rain:=TRUE]
+rainDuration <- 400
+precipitationTwente[ precipitationDurationPWS > rainDuration | precipitationDurationElec > rainDuration, rain:= TRUE]
 setkey(precipitationTwente, dateTime)
 ```
 
@@ -842,7 +843,7 @@ confusionMatrix(ifelse(trainTwente$pred > 0.3, TRUE, FALSE), trainTwente$foggy, 
 confusionMatrix(ifelse(testTwente$pred > 0.3, TRUE, FALSE), testTwente$foggy, positive = "TRUE")
 ```
 
-Therefore a possibility is to create a binary variable that assesses the presence of rain instead of focusing  on precise measure of rain amount an duration.
+Therefore a possibility is to create a binary variable that assesses the presence of rain instead of focusing  on precise measure of rain amount an duration. The binary rain variable is created by looking at the rain duration. If one of the sensors measuring the rain duration measures a rain duration of more than `r rainDuration` seconds then the binary rain variable is set to TRUE.
 
 
 
@@ -855,13 +856,13 @@ fogTreeBinaryRainTwente <- rpart(foggy ~ meanEdge + changePoint + meanBrightness
 
 ```
 
-Also in this case there............FROM HERE ON
+Also in this case the binary variable is not selected in the decision tree.
 ```{r, ClassificationTreeWithBinaryPrecipitationdTw, echo=FALSE, cache=TRUE, dependson='TwenteBinaryPrecipitationTrainTree'}
 fancyRpartPlot(fogTreeBinaryRainTwente, sub="")
 ```
 
 
-```{r, ResultsBinaryPrecipitation, dependson=c('TwenteBinaryPrecipitationTrainTree', 'TrainTestDataTwente')}
+```{r, ResultsBinaryPrecipitation, echo=FALSE, cache=TRUE, dependson=c('TwenteBinaryPrecipitationTrainTree', 'TrainTestDataTwente')}
 hindVals <- predict(fogTreeBinaryRainTwente, trainTwente, method = "class")
   trainTwente[, pred := hindVals]
   predVals <- predict(fogTreeBinaryRainTwente, testTwente, method="class")
@@ -870,11 +871,63 @@ confusionMatrix(ifelse(trainTwente$pred > 0.3, TRUE, FALSE), trainTwente$foggy, 
 confusionMatrix(ifelse(testTwente$pred > 0.3, TRUE, FALSE), testTwente$foggy, positive = "TRUE")
 ```
 
+Inspecting the false positives caused by water drops in the  objective  we can recognize that this situation takes place when there is a sustained period of rain (it is reported rainy for a full 10-minute period in a 10 minutes sample) and the wind is higher than 3.5 m/s.
+We remove then such conditions from the dataset and we also remove the day when the MOR was not working properly giving visibility below 250m but visual inspection showed perfect conditions.
+```{r, cleanRainTwente, echo=FALSE, cache=TRUE, dependson='trainTestDataTwente'}
+noRainDataTwente <- dataTwente[precipitationDurationElec<600 & windSpeed<3.5,]
+
+noRainDataTwente <- noRainDataTwente[day!=23 & month!=08 & year!=2015,]
+
+removedFoggyRain <- dim(dataTwente[foggy==TRUE,])[1]-dim(noRainDataTwente[foggy==TRUE,])[1]
+```
+
+The dataset is now composed of `r dim(noRainDataTwente)[1]` pictures. With such a filtering procedure also `r removedFoggyRain` foggy pictures have been removed from the dataset.
+
+------HAVE TO CHECK THE PERFOMANCE IN THE NEW SITUATION AFTER REMOVAL OF RAIN-----
+
+We partition again the the dataset and train a decision tree with image and meteorological features.
+
+```{r, trainTestNoRainTwente, echo=FALSE, cache=TRUE, dependson='cleanRainTwente'}
+
+trainTwenteNoRain <- noRainDataTwente[year==2015, .(dateTime, meanEdge, changePoint, smoothness, meanHue,
+                meanSaturation, meanBrightness, MOR, foggy, day, month, hour, windSpeed, relHumidity, airTemperature, dewPoint,
+                precipitationIntElec, precipitationIntPWS, precipitationDurationElec, precipitationDurationPWS, rain) ]
+
+testTwenteNoRain <- noRainDataTwente[year==2016, .(dateTime, meanEdge, changePoint, smoothness, meanHue,
+                meanSaturation, meanBrightness, MOR, foggy, day, month, hour, windSpeed, relHumidity, airTemperature, dewPoint,
+                precipitationIntElec, precipitationIntPWS, precipitationDurationElec, precipitationDurationPWS, rain) ]
+
+```
 
 
 
 
+```{r, ClassificationTwenteNoRain, include=FALSE, cache=TRUE, dependson='trainTestDataNoRainTwente'}
 
+
+fogTreeNoRain <- rpart(foggy ~ meanEdge + changePoint + meanBrightness +
+                                 relHumidity + windSpeed + airTemperature + dewPoint + precipitationIntElec + 
+                                 precipitationIntPWS + precipitationDurationElec + precipitationDurationPWS, 
+                                 trainTwenteNoRain , control = rpart.control(cp = 0.015))
+```
+
+```{r, ClassificationTreeTwenteNoRain, echo=FALSE, cache=TRUE, dependson='ClassificationTwenteNoRain'}
+fancyRpartPlot(fogTreeNoRain, sub="")
+```
+
+The accurancy of the classification is as follows for the :
+```{r, EvaluatePredictionTwenteNoRain, cache=TRUE, dependson=c('ClassificationTwenteNoRain','trainTestNoRainTwente')}
+hindVals <- predict(fogTreeNoRain, trainTwenteNoRain, method = "class")
+trainTwenteNoRain[, pred := hindVals]
+
+predVals <- predict(fogTreeNoRain, testTwenteNoRain, method="class")
+testTwenteNoRain[, pred := predVals]
+
+#usually it is not a good practice to show the results of the classification on the training set itself.
+confusionMatrix(ifelse(trainTwenteNoRain$pred > 0.3, TRUE, FALSE), trainTwenteNoRain$foggy, positive = "TRUE")
+confusionMatrix(ifelse(testTwenteNoRain$pred  > 0.3, TRUE, FALSE), testTwenteNoRain$foggy, positive = "TRUE")
+
+```
 
 
 
