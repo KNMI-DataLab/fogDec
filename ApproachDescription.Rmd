@@ -193,7 +193,7 @@ set.seed(123)
 rfModel <- train(foggyFactor ~ meanEdge + changePoint + smoothness + meanBrightness +
                    meanHue + meanSaturation,
                  data = dataDeBilt,
-                 metric = "ROC",
+                 metric = "Accuracy",
                  method = 'ranger',
                  trControl = trainControl(method = "cv", number = 5, verboseIter = TRUE,
                                           classProbs = TRUE))
@@ -459,9 +459,17 @@ way (as there are usually only a few foggy situations), and reporting if the
 probability of fog exceeds a certain level seems relatively close.
 
 #### Outlier detection
-```{r Outliers, dependson='dataDeBilt', eval=FALSE}
-dataDeBilt <- dataDeBilt[changePoint < 400]
-dataDeBilt <- dataDeBilt[changePoint > 167]
+```{r Outliers, dependson='dataDeBilt'}
+tmp <- dataDeBilt[, changePoint]
+multiplier <- qcauchy(0.98) #ceiling(qnorm(0.99999)*10)/10 
+
+mean(tmp) + multiplier * sd(tmp)
+mean(tmp) - multiplier * sd(tmp)
+
+dataDeBilt[changePoint > mean(tmp) + multiplier * sd(tmp), .(dateTime, changePoint, MOR)]
+dataDeBilt[changePoint < mean(tmp) - multiplier * sd(tmp), .(dateTime, changePoint, MOR)]
+#dataDeBilt <- dataDeBilt[changePoint < 400]
+#dataDeBilt <- dataDeBilt[changePoint > 167]
 ```
 
 ### Twente test field
