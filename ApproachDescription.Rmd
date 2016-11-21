@@ -382,6 +382,7 @@ failure of the transmissometer. The values with the largest prediction on the
 other hand correspond to different sceneries in the picture (we believed the
 camera was fixed) or situations where it is already dark. The point on the lower
 right corner with a prediction below 7 corresponds again to a different scenery.
+
 ```{r, CleanData, echo=FALSE, cache = TRUE, dependson='MLM'}
 trainDeBilt[, id := 1:.N]
 #
@@ -445,7 +446,7 @@ trainDeBilt <- trainDeBilt[!(log(MOR) < 10 & predMOR > 11)]
 #
 ```
 
-### Outlook
+#### Outlook
 
 From the previous section, it is clear that the underlying pictures have to be
 reviewed carefully. In the end we want to be able to allow for different views
@@ -457,7 +458,11 @@ big challenge. But the idea of clustering the data, maybe in a semi supervised
 way (as there are usually only a few foggy situations), and reporting if the 
 probability of fog exceeds a certain level seems relatively close.
 
-
+#### Outlier detection
+```{r Outliers, dependson='dataDeBilt', eval=FALSE}
+dataDeBilt <- dataDeBilt[changePoint < 400]
+dataDeBilt <- dataDeBilt[changePoint > 167]
+```
 
 ### Twente test field
 
