@@ -878,10 +878,11 @@ noRainDataTwente <- dataTwente[precipitationDurationElec<600 & windSpeed<3.5,]
 
 #noRainDataTwente <- noRainDataTwente[day!=23 & month!=08 & year!=2015,]
 
-removedFoggyRain <- dim(dataTwente[foggy==TRUE,])[1]-dim(noRainDataTwente[foggy==TRUE,])[1]
+removedFoggyRainOrHighWind <- dim(dataTwente[foggy==TRUE,])[1]-dim(noRainDataTwente[foggy==TRUE,])[1]
+datesOfFoggyRainOrHighWind<- dataTwente[dateTime%in%setdiff(dataTwente[foggy==TRUE]$dateTime,noRainDataTwente[foggy==TRUE]$dateTime)]$dateTime
 ```
 
-The dataset is now composed of `r dim(noRainDataTwente)[1]` pictures. With such a filtering procedure also `r removedFoggyRain` foggy pictures have been removed from the dataset.
+The dataset is now composed of `r dim(noRainDataTwente)[1]` pictures. With such a filtering procedure also `r removedFoggyRainOrHighWind` foggy pictures have been removed from the dataset. The pictures removed that are considered foggy in conditions of rain or high wind are from `r datesOfFoggyRainOrHighWind`. This timestamp is the same as the faulty MOR readings reported above.
 
 
 We partition again the the dataset and train a decision tree with image and meteorological features.
@@ -916,21 +917,58 @@ fancyRpartPlot(fogTreeNoRain, sub="")
 
 The accurancy of the classification is as follows for the :
 ```{r, EvaluatePredictionTwenteNoRain, cache=TRUE, dependson=c('ClassificationTwenteNoRain','trainTestNoRainTwente')}
-# hindVals <- predict(fogTreeNoRain, trainTwenteNoRain, method = "class")
-# trainTwenteNoRain[, pred := hindVals]
-# 
-# predVals <- predict(fogTreeNoRain, testTwenteNoRain, method="class")
-# testTwenteNoRain[, pred := predVals]
-# 
-# #usually it is not a good practice to show the results of the classification on the training set itself.
-# confusionMatrix(ifelse(trainTwenteNoRain$pred > 0.3, TRUE, FALSE), trainTwenteNoRain$foggy, positive = "TRUE")
-# confusionMatrix(ifelse(testTwenteNoRain$pred  > 0.3, TRUE, FALSE), testTwenteNoRain$foggy, positive = "TRUE")
+hindVals <- predict(fogTreeNoRain, trainTwenteNoRain, method = "class")
+trainTwenteNoRain[, pred := hindVals]
+
+predVals <- predict(fogTreeNoRain, testTwenteNoRain, method="class")
+testTwenteNoRain[, pred := predVals]
+
+#usually it is not a good practice to show the results of the classification on the training set itself.
+confusionMatrix(ifelse(trainTwenteNoRain$pred > 0.3, TRUE, FALSE), trainTwenteNoRain$foggy, positive = "TRUE")
+confusionMatrix(ifelse(testTwenteNoRain$pred  > 0.3, TRUE, FALSE), testTwenteNoRain$foggy, positive = "TRUE")
 
 ```
 
 This additional filtering helps partially in the reduction of the FALSE POSITIVE cases. With a threshold to discriminate between fog and non-fog conditions equal 30%, the classifier achives  on the test set a balanced accurancy of 81% compared when the rain situations are filtered out, while the balanced accuracy was 62% on the non-filtered dataset. Some FALSE POSITIVE cases still remain and they are still in situations where drops of rain or humidity are present in the objective.
 
 
+From a visual inspection of the cases with the highest
 
+```{r, cache=TRUE, dependson='trainTestNoRainTwente'}
+inspectPicts1<-trainTwenteNoRain[meanEdge>=0.006225944 & airTemperature< 2.45 & meanEdge< 0.007368848]
+
+inspectPicts1$dateTime
+```
+20-03-2015: dissolvng fog
+21-04-2015: is this fog or UFO?? strong light in the objective
+02-05-2015: light surface fog
+02-10-2015: UFOs are back? strong light in the objective
+03-11-2015: dissolving fog.
+
+All these situation there is quite a lot of kind-of reflected light.
+
+```{r, cache=TRUE, dependson='trainTestNoRainTwente'}
+inspectPicts2<-trainTwenteNoRain[meanEdge<0.006225944 & airTemperature>=6.25 & meanBrightness>=0.0020341]
+
+inspectPicts2$dateTime
+```
+09-09-2015: fog dissolving
+02-11-2015: fog forming
+19-10-2015: fog
+06-10-2015: drop of water
+
+```{r, cache=TRUE, dependson='trainTestNoRainTwente'}
+inspectPicts3<-trainTwenteNoRain[meanEdge<0.006225944 & airTemperature>=6.25 & meanBrightness<0.0020341]
+
+inspectPicts3$dateTime
+```
+
+23-06-2015: humidity in the camera
+03-07-2015: forming fog
+20-07-2015: humidity/rain in the objective
+23-09-2015: foggy sometimes and humidity in objective
+27-10-2015: kind of foggy
+05-08-2015: lot of humidity in the objective
+31-08-2015: high bright sky in the picture involved
 
 
