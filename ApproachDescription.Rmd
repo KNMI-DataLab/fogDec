@@ -882,7 +882,12 @@ removedFoggyRainOrHighWind <- dataTwente[foggy==TRUE, .N] - noRainDataTwente[fog
 datesOfFoggyRainOrHighWind <- dataTwente[dateTime%in%setdiff(dataTwente[foggy==TRUE]$dateTime,noRainDataTwente[foggy==TRUE]$dateTime)]$dateTime
 ```
 
-The dataset is now composed of `r dim(noRainDataTwente)[1]` pictures. With such a filtering procedure also `r removedFoggyRainOrHighWind` foggy pictures have been removed from the dataset. The pictures removed that are considered foggy in conditions of rain or high wind are from `r datesOfFoggyRainOrHighWind`. This timestamp is the same as the faulty MOR readings reported above.
+The dataset is now composed of `r noRainDataTwente[,.N]` pictures. 
+With such a filtering procedure also `r removedFoggyRainOrHighWind` foggy 
+pictures have been removed from the dataset. 
+The pictures removed that are considered foggy in conditions of rain or high 
+wind are from `r datesOfFoggyRainOrHighWind`. 
+This timestamp is the same as the faulty MOR readings reported above.
 
 
 We partition again the the dataset and train a decision tree with image and meteorological features.
