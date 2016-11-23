@@ -463,10 +463,21 @@ probability of fog exceeds a certain level seems relatively close.
 
 ### Twente test field
 
-The images from the test field in Twente present some additional challenges when to be elaborated.
-First of all the images are taken from a "Fish-eye" camera (A fisheye lens is an ultra wide-angle lens that produces strong visual distortion intended to create a wide panoramic or hemispherical image. Fisheye lenses achieve extremely wide angles of view by forgoing producing images with straight lines of perspective (rectilinear images), opting instead for a special mapping (for example: equisolid angle), which gives images a characteristic convex non-rectilinear appearance. Source: wikipedia).
+The images from the test field in Twente present some additional challenges 
+when to be elaborated.
+First of all the images are taken from a "Fish-eye" camera (A fisheye lens is 
+an ultra wide-angle lens that produces strong visual distortion intended to 
+create a wide panoramic or hemispherical image. Fisheye lenses achieve extremely
+wide angles of view by forgoing producing images with straight lines of 
+perspective (rectilinear images), opting instead for a special mapping 
+(for example: equisolid angle), which gives images a characteristic convex 
+non-rectilinear appearance. Source: wikipedia).
 
-After a preliminary analysis we noted that the metrics characterizing the image (i.e., mean edges, changepoint) were also influenced by the wide angle objective. We have then proceeded to rectify the images accordingly. The rectification has been done by using an ad-hoc script leveraging on the internal capabilities of GNU Image Manipulation Program (GIMP).
+After a preliminary analysis we noted that the metrics characterizing the image
+(i.e., mean edges, changepoint) were also influenced by the wide angle 
+objective. We have then proceeded to rectify the images accordingly. 
+The rectification has been done by using an ad-hoc script leveraging on the 
+internal capabilities of GNU Image Manipulation Program (GIMP).
 
 ```{r, ImagesExTw, cache=TRUE, echo=FALSE}
 exampleImg <- c("inst/extdata/EHTW_201508011440.jpg","inst/extdata/EHTW_201508011440_Rectified.jpg")
@@ -536,7 +547,8 @@ testTwente <- dataTwente[year==2016, .(dateTime, meanEdge, changePoint, smoothne
 In 2015 we have `r trainTwente[foggy == TRUE, .N]` images
 in the test set, that are labeled as foggy, i.e. a MOR below 250 meters.
 
-Based on the training set we obtain the following preliminary decision tree using just the features of the images:
+Based on the training set we obtain the following preliminary decision tree 
+using just the features of the images:
 ```{r, ClassTw, include=FALSE, cache=TRUE, dependson='trainTestTw'}
 
 
@@ -579,23 +591,32 @@ ggplot(trainTwente, aes(x = log(MOR), y = predMOR)) + geom_point() +
 
 ###Corner cases situations
 
-There are several situations that pose challenges in the correct classification of fog conditions and the estimation of the visibility range. In Twente, the situation is even more complex and more difficult for the classifier given the environmental conditions.  
+There are several situations that pose challenges in the correct classification
+of fog conditions and the estimation of the visibility range. In Twente, the
+situation is even more complex and more difficult for the classifier given
+the environmental conditions.  
 
 ```{r, LookIntoClusters, cache=TRUE, echo=FALSE}
 #predwrong <- trainTwente[predMOR >9 & log(MOR)<6]
 # May 24 2015 04:20 surface fog in an previous time, picture looks clear
 # April 6 2015 03:50 slightly surface fog
 # August 23 14:00 / 18:40 sensor failure, clear day 
-# September 9 05:10 attenuation of fog (horizon visible) in a denser foggy period before and after
-#September 26 05:30 direct ray of light in the objective for a few shots might modify image properties
-#November 02 10:50 fog starts to dissolve (delay  in taking picture and read of MOR in KIS?)
+# September 9 05:10 attenuation of fog (horizon visible) in a denser foggy 
+#period before and after
+#September 26 05:30 direct ray of light in the objective for a few shots 
+#might modify image properties
+#November 02 10:50 fog starts to dissolve (delay  in taking picture and read 
+#of MOR in KIS?)
 
 #predwrong2 <- trainTwente[predMOR >11 & log(MOR)<9.5]
-#March 31 2015 16:35-45 dark light and colors (jammed colors?) in the image very different from other images previous next
+#March 31 2015 16:35-45 dark light and colors (jammed colors?) in the image 
+#very different from other images previous next
 #April 28 2015 05:15-35 overexposed images light into objective
 ```
   
-First, the objective is unprotected against direct light which has important consequences for distinction of objects in the background, the appearance of fake objects due to light spots.  
+First, the objective is unprotected against direct light which has important 
+consequences for distinction of objects in the background, the appearance of 
+fake objects due to light spots.  
 
 ```{r, LookIntoClusters1, cache=TRUE, echo=FALSE}
 exampleImg <- c("inst/extdata/cornerCasesTwente/EHTW_201503240815.jpg")
@@ -606,7 +627,9 @@ plot(image, main = "Light in the objective")
 par(example_par)
 ```
   
-Second, it seems that some humidity is sometimes trapped into the objective which gives rise to lines of different colors in the image through the whole day until evaporation.  
+Second, it seems that some humidity is sometimes trapped into the objective 
+which gives rise to lines of different colors in the image through the whole 
+day until evaporation.  
 
 
 ```{r, LookIntoClusters2, cache=TRUE, echo=FALSE}
@@ -619,7 +642,11 @@ par(example_par2)
 ```
 
   
-Third, there are objects that appear in the scene and that might cause problems in the recognition of edges. A dark brown land line appears at some time maybe due to some deforestation or enablings works of the countryside; sometimes distant vehicles appear on the horizon; wooden poles are installed at the perimeter of the weather station.
+Third, there are objects that appear in the scene and that might cause problems
+in the recognition of edges. A dark brown land line appears at some time maybe 
+due to some deforestation or enablings works of the countryside; sometimes 
+distant vehicles appear on the horizon; wooden poles are installed at the 
+perimeter of the weather station.
 
   
 ```{r, LookIntoClusters3, cache=TRUE, echo=FALSE}
@@ -662,7 +689,10 @@ par(example_par)
 ```
 
   
-Other more complex conditions that almost always bring to False Positive classification are due to the presence of high humidity in the objective or drops of rains on the objective protection lid. The camera has unfortunately no protection against the rain.
+Other more complex conditions that almost always bring to False Positive 
+classification are due to the presence of high humidity in the objective or 
+drops of rains on the objective protection lid. The camera has unfortunately 
+no protection against the rain.
 
   
   
@@ -728,7 +758,8 @@ par(example_par)
 ```
 
   
-Other meteorological parameters are added to the set of features analyzed for the machine learning problem for Twente.
+Other meteorological parameters are added to the set of features analyzed for 
+the machine learning problem for Twente.
 
   
   
@@ -865,7 +896,11 @@ confusionMatrix(ifelse(trainTwente$pred > 0.3, TRUE, FALSE), trainTwente$foggy, 
 confusionMatrix(ifelse(testTwente$pred > 0.3, TRUE, FALSE), testTwente$foggy, positive = "TRUE")
 ```
 
-Therefore a possibility is to create a binary variable that assesses the presence of rain instead of focusing  on precise measure of rain amount an duration. The binary rain variable is created by looking at the rain duration. If one of the sensors measuring the rain duration measures a rain duration of more than `r rainDuration` seconds then the binary rain variable is set to TRUE.
+Therefore a possibility is to create a binary variable that assesses the 
+presence of rain instead of focusing  on precise measure of rain amount an 
+duration. The binary rain variable is created by looking at the rain duration. 
+If one of the sensors measuring the rain duration measures a rain duration of 
+more than `r rainDuration` seconds then the binary rain variable is set to TRUE.
 
 
 
@@ -893,8 +928,13 @@ confusionMatrix(ifelse(trainTwente$pred > 0.3, TRUE, FALSE), trainTwente$foggy, 
 confusionMatrix(ifelse(testTwente$pred > 0.3, TRUE, FALSE), testTwente$foggy, positive = "TRUE")
 ```
 
-Inspecting the false positives caused by water drops in the  objective  we can recognize that this situation takes place when there is a sustained period of rain (it is reported rainy for a full 10-minute period in a 10 minutes sample) and the wind is higher than 3.5 m/s.
-We remove then such conditions from the dataset and we also remove the day when the MOR was not working properly giving visibility below 250m but visual inspection showed perfect conditions.
+Inspecting the false positives caused by water drops in the  objective  we can 
+recognize that this situation takes place when there is a sustained period of 
+rain (it is reported rainy for a full 10-minute period in a 10 minutes sample) 
+and the wind is higher than 3.5 m/s.
+We remove then such conditions from the dataset and we also remove the day when
+the MOR was not working properly giving visibility below 250m but visual 
+inspection showed perfect conditions.
 ```{r, cleanRainTw, echo=FALSE, cache=TRUE, dependson='trainTestTw'}
 noRainDataTwente <- dataTwente[precipitationDurationElec<600 & windSpeed<3.5,]
 
@@ -912,7 +952,8 @@ wind are from `r datesOfFoggyRainOrHighWind`.
 This timestamp is the same as the faulty MOR readings reported above.
 
 
-We partition again the the dataset and train a decision tree with image and meteorological features.
+We partition again the the dataset and train a decision tree with image and 
+meteorological features.
 
 ```{r, trainTestNoRainTw, echo=FALSE, cache=TRUE, dependson='cleanRainTw'}
 
@@ -956,7 +997,13 @@ confusionMatrix(ifelse(testTwenteNoRain$pred  > 0.3, TRUE, FALSE), testTwenteNoR
 
 ```
 
-This additional filtering helps partially in the reduction of the FALSE POSITIVE cases. With a threshold to discriminate between fog and non-fog conditions equal 30%, the classifier achives  on the test set a balanced accurancy of 81% compared when the rain situations are filtered out, while the balanced accuracy was 62% on the non-filtered dataset. Some FALSE POSITIVE cases still remain and they are still in situations where drops of rain or humidity are present in the objective.
+This additional filtering helps partially in the reduction of the FALSE 
+POSITIVE cases. With a threshold to discriminate between fog and non-fog 
+conditions equal 30%, the classifier achives  on the test set a balanced 
+accurancy of 81% compared when the rain situations are filtered out, while 
+the balanced accuracy was 62% on the non-filtered dataset. Some FALSE POSITIVE 
+cases still remain and they are still in situations where drops of rain or 
+humidity are present in the objective.
 
 
 From a visual inspection of the cases with the highest
