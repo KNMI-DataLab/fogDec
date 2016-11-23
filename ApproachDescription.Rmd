@@ -291,7 +291,7 @@ fogTreeMeteo <- rpart(foggy ~ meanEdge + changePoint + meanBrightness +
                      trainDeBilt , control = rpart.control(cp = 0.015))
 ```
 
-```{r, ClassificationTreeWithWind, echo=FALSE, cache=TRUE, dependson='MeteoFeatureAddition'}
+```{r, ClassTrWithWind, echo=FALSE, cache=TRUE, dependson='MeteoFeatureAddition'}
 fancyRpartPlot(fogTreeMeteo, sub="")
 ```
 
