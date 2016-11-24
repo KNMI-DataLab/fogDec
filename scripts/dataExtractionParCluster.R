@@ -9,85 +9,64 @@ library(maptools)
 #library(lubridate)
 
 
-##Function to detectedges in images
-detect.edges <- function(im,sigma=1) {
-  # adapted from http://dahtah.github.io/imager/foreground_background.html
-  isoblur(im,sigma) %>% imgradient("xy") %>% llply(function(v) v^2) %>%
-    add %>% imsplit("c") %>% add 
-}
-
-
-
 runScript <-function() {
+  createParallelCluster()
   
-createParallelCluster()
-
-  
-##Data is on a shared filesystem accessible from every node (master and slaves)
-path1 <- "~/efs/data/twente"
-path2 <- "/mnt/disks/dataDisk/data/twente/"
-filenames <- list.files(path1, recursive = T,
-                        #pattern=glob2rx("Meetterrein_2015*.jpg"),
-                        pattern=glob2rx("EHTW_2015*.jpg"),
-                        full.names=TRUE)
-
-
-##This is run in parallel
-imageSummary <- foreach(file = iter(filenames), .combine = rbind, .packages = "visDec") %dopar% {
-  #FileNameParser(file, "na*me_yyyymmdd_hhmm.jpg")#DeBilt pattern
-  FileNameParser(file, "na*me_yyyymmddhhmm.jpg")#Twente pattern
-}
-
-daylightImages <- FilterDayLightHours(imageSummary, properties, 180, 180)
-
-ReturnFeatures <- function(filePath) {
-  #im <- subim(load.image(filePath), y > 16) 
-  im <- load.image(filePath)
-  #check if the image is a RGB or grayscale (converted to grayscale when dark by GIMP rectification)
-  if(dim(im)[4] == 1){
-    im<-add.colour(im, TRUE)
-  }
-  imT <- RGBtoHSV(im)
-  transmission <- GetHorizAvgTrans(im)
-  list(meanEdge = DetectMeanEdges(im, 3),
-       changePoint = TransmissionChangepoint(transmission),
-       smoothness = TransmissionSmoothness(transmission),
-       meanHue = mean(channel(imT, 1)),
-       meanSaturation = mean(channel(imT, 2)),
-       meanBrightness = mean(channel(imT, 3)) )
-}
-
-featureNames <- c("meanEdge", "changePoint", "smoothness",
-                  "meanHue", "meanSaturation", "meanBrightness")
-
-
-
-daylightImages[, id := 1:.N]
-setkey(daylightImages, id)
-
-##This is run in parallel and this is the most compute-intense part 
-imageSummary <- foreach(id = iter(daylightImages[, id]), .packages = c('data.table','visDec'), .combine = rbind) %dopar% {
-  tmp <- daylightImages[id, ]
-  tmp[, eval(featureNames) := ReturnFeatures(filePath), by = dateTime]
-}
-
-
-
-path <- system.file("extdata/Sensor", package="visDec")
-sensorFiles <- list.files(path,
-                          pattern=glob2rx("Twente*.csv"),
+    
+  ##Data is on a shared filesystem accessible from every node (master and slaves)
+  path <- "~/efs/data/twente"
+  # path2 <- "/mnt/disks/dataDisk/data/twente/"
+  filenames <- list.files(path, recursive = T,
+                          #pattern=glob2rx("Meetterrein_2015*.jpg"),
+                          pattern=glob2rx("EHTW_2015*.jpg"),
                           full.names=TRUE)
-sensorData <- ReadMORSensorData(sensorFiles)
-setkey(sensorData, dateTime)
-setkey(imageSummary, dateTime)
-imageSummary <- SynchronizeSensorPicture(sensorData, imageSummary)
-#imageSummary <- merge(imageSummary, sensorData)
-imageSummary[, MOR := TOA.MOR_10, by = dateTime]
-
-stopImplicitCluster()
-
-saveRDS(imageSummary, file = "ResultsTwente2015_3hSun.rds")
-return(imageSummary)
+  
+  
+  ##This is run in parallel
+  imageSummary <- foreach(file = iter(filenames), .combine = rbind, .packages = "visDec") %dopar% {
+    #FileNameParser(file, "na*me_yyyymmdd_hhmm.jpg")#DeBilt pattern
+    FileNameParser(file, "na*me_yyyymmddhhmm.jpg")#Twente pattern
+  }
+  
+  daylightImages <- FilterDayLightHours(imageSummary, properties, 180, 180)
+  
+  ReturnFeatures <- function(filePath) {
+    #im <- subim(load.image(filePath), y > 16) 
+    im <- load.image(filePath)
+    #check if the image is a RGB or grayscale (converted to grayscale when dark by GIMP rectification)
+    if(dim(im)[4] == 1){
+      im<-add.colour(im, TRUE)
+    }
+    imT <- RGBtoHSV(im)
+    transmission <- GetHorizAvgTrans(im)
+    list(meanEdge = DetectMeanEdges(im, 3),
+         changePoint = TransmissionChangepoint(transmission),
+         smoothness = TransmissionSmoothness(transmission),
+         meanHue = mean(channel(imT, 1)),
+         meanSaturation = mean(channel(imT, 2)),
+         meanBrightness = mean(channel(imT, 3)) )
+  }
+  
+  featureNames <- c("meanEdge", "changePoint", "smoothness",
+                    "meanHue", "meanSaturation", "meanBrightness")
+  
+  
+  
+  daylightImages[, id := 1:.N]
+  setkey(daylightImages, id)
+  
+  ##This is run in parallel and this is the most compute-intense part 
+  imageSummary <- foreach(id = iter(daylightImages[, id]), .packages = c('data.table','visDec'), .combine = rbind) %dopar% {
+    tmp <- daylightImages[id, ]
+    tmp[, eval(featureNames) := ReturnFeatures(filePath), by = dateTime]
+  }
+  
+  
+  
+  stopImplicitCluster()
+  
+  saveRDS(imageSummary, file = "ResultsTwente2015_3hSun.rds")
+  return(imageSummary)
 }
 
 
