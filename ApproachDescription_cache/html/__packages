@@ -1,0 +1,15 @@
+base
+data.table
+plyr
+magrittr
+imager
+visDec
+ggplot2
+rpart
+rattle
+gplots
+ROCR
+lattice
+caret
+e1071
+ranger
