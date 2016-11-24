@@ -49,23 +49,7 @@ ggplot(imageSummary, aes(x = log(MOR), y = meanEdge)) + geom_point()
 ```
 
 ```{r, Edges, cache=TRUE, include=FALSE, fig.height=4, fig.width=8.4}
-imClear <-  subim(load.image(filenames[75]), y > 16)
-#```{r, EdgesPlotClear, echo=FALSE, fig.cap=paste("Edges in a clear situation"), fig.height=4, fig.width=8.4}
-#im <- subim(load.image(filenames[75]), y > 16)
-#old_par <- par(mfrow=c(1,2))
-#plot(im)
-#DetectEdges(im) %>% plot
-#par(old_par)
-#```
-#In a clear situation we observe `r round(DetectMeanEdges(im)*100,2)`% edges.
-#
-#```{r, EdgesPlotFoggy, echo=FALSE, fig.cap=paste("Edges in a foggy situation"), fig.height=4, fig.width=8.4}
-#im <- subim(load.image(filenames[49]), y > 16)
-#old_par <- par(mfrow=c(1,2))
-#plot(im)
-#DetectEdges(im) %>% plot
-#par(old_par)
-#```
+imClear <- subim(load.image(filenames[75]), y > 16)
 imFoggy <- subim(load.image(filenames[49]), y > 16)
 old_par <- par(mfrow=c(1,2))
 plot(imClear)
