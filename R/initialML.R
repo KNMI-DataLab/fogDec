@@ -1,30 +1,3 @@
-#' Divide the training and test set based on day number
-#' @param fullFilename String
-#' @param pattern String encoding the filename pattern
-#' @export
-assignTrainAndTestSet <- function(direcoryPath){
-  registerDoParallel(cores=2)
-  filenames <- list.files(direcoryPath,
-                          pattern=glob2rx("Meetterrein_201511*.jpg"),
-                          full.names=TRUE, recursive = TRUE)
-  imageSummary <- foreach(file = iter(filenames), .combine = rbind) %dopar% {
-    fileInformation <- FileNameParser(file, "na*me_yyyymmdd_hhmm.jpg")
-    if (yday(fileInformation$dateTime) %% 2 == 0){
-      fileInformation$trainTest = "train"
-    }
-    else{
-      fileInformation$trainTest = "test"
-    }
-    
-    data.table(path = file,
-               filename = fileInformation$name,
-               dateTime = fileInformation$dateTime,
-               trainTest = fileInformation$trainTest)
-  }
-}
-
-
-
 
 classifyUnsup <- function(dataSet){
   registerDoParallel(cores=6)
