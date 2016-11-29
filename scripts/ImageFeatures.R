@@ -11,6 +11,13 @@ library(maptools)
 
 
 
+cl<-makePSOCKcluster(2)
+primary<-'127.0.0.1'
+user<-'andrea'
+machineAddresses <- list(
+     list(host=primary,user=user,
+        ncore=2)
+  )
 
 ## make cluster
 registerDoParallel(cores=3)
@@ -38,13 +45,13 @@ machineAddresses<-c(machineAddresses,machines)
 ##characteristics of the cluster are assigned (e.g., IPs, hosts, users, IPs)
 spec <- lapply(machineAddresses,
                function(machine) {
-                 rep(list(list(host=machine$host,
+                  rep(list(list(host=machine$host,
                                user=machine$user)),
                      machine$ncore)
-               })
+                })
 spec <- unlist(spec,recursive=FALSE)
 
-##cluster is created (the communication between master and slaves takes place on the port 11000 and is a SSH-like session)
+#cluster is created (the communication between master and slaves takes place on the port 11000 and is a SSH-like session)
 parallelCluster <- parallel::makeCluster(type='PSOCK',
                                          master=primary,
                                          spec=spec,
@@ -52,7 +59,7 @@ parallelCluster <- parallel::makeCluster(type='PSOCK',
 print(parallelCluster)
 
 
-source("R/CoreFeatureCompute.R")# we might export those functions
+source("./R/CoreFeatureCompute.R")# we might export those functions
 
 
 ##some libraries and functions are explicitly exported
@@ -69,6 +76,7 @@ propertiesLocations <- fread("properties.csv") #, stringsAsFactors = FALSE)
 
 
 ## extract features save the data.table (do not print anything / besides progress)
+
 
 apply(propertiesLocations, 1, featureExtraction)
 

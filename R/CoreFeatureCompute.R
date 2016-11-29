@@ -19,16 +19,24 @@ ReturnFeatures <- function(filePath) {
 }
 
 
-featureExtraction <- function() {
+
+featureExtraction <- function(propertiesLocations) {
+#   propertiesLocations$fileLocation <- propertiesLocationsVect[9]
+#   propertiesLocations$imagePrefix <- propertiesLocationsVect[7]
+#   propertiesLocations$imageFormat <- propertiesLocationsVect[8]
+#   propertiesLocations$filePattern <- propertiesLocationsVect[6]
+#   propertiesLocations$stationID <- propertiesLocationsVect[2]
+#   propertiesLocations<-data.table(propertiesLocations)
+  
   filenames <- list.files(propertiesLocations$fileLocation, recursive = T,
-                          pattern=paste0(propertiesLocations$imagePrefix, "*.", 
-                                         propertiesLocations$imageFormat),
+                          pattern=paste0(propertiesLocations$imagePrefix, ".*.", 
+                                         propertiesLocations$imageFormat, "$"),
                           full.names=TRUE)
   
   
   ##This is run in parallel
   imageSummary <- foreach(file = iter(filenames), .combine = rbind, .packages = "visDec") %dopar% {
-    FileNameParser(file, propertiesLocations$filePattern)
+    fogDec::FileNameParser(file, propertiesLocations$filePattern)
   }
   
   
@@ -49,7 +57,7 @@ featureExtraction <- function() {
   ##This is run in parallel and this is the most compute-intense part 
   imageSummary <- foreach(id = iter(daylightImages[, id]), .packages = c('data.table','visDec'), .combine = rbind) %dopar% {
     tmp <- daylightImages[id, ]
-    tmp[, eval(featureNames) := ReturnFeatures(filePath), by = dateTime]
+    tmp[, eval(featureNames) := fogDec:::ReturnFeatures(filePath), by = dateTime]
   }
   
   saveRDS(imageSummary, file = paste0("ResultFeatures", propertiesLocations$stationID, ".rds"))
