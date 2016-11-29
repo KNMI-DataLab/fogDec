@@ -2,8 +2,8 @@
 
 ## Load Libraries
 library(data.table)
-library(visDec)
 library(fogDec)
+library(visDec)
 library(ggplot2)
 library(doParallel)
 library(imager)
@@ -12,16 +12,16 @@ library(maptools)
 
 
 
-cl<-makePSOCKcluster(2)
-primary<-'127.0.0.1'
-user<-'andrea'
-machineAddresses <- list(
-     list(host=primary,user=user,
-        ncore=2)
-  )
+#cl<-makePSOCKcluster(2)
+#primary<-'127.0.0.1'
+#user<-'andrea'
+#machineAddresses <- list(
+ #    list(host=primary,user=user,
+  #      ncore=2)
+ # )
 
 ## make cluster
-registerDoParallel(cores=3)
+#registerDoParallel(cores=3)
 
 i<-0
 machines<-list()
@@ -30,8 +30,9 @@ user    <- 'ubuntu'
 primary <- '172.31.45.30'
 
 #IPs contains a list of slaves that will run the computations
-IPs<-paste0("172.31.46.", seq(from = 157, to = 174))
-IPs<-c(IPs, "172.31.38.73") ##slave gold master machine
+#IPs<-paste0("172.31.46.", seq(from = 157, to = 174))
+#IPs<-c(IPs, "172.31.38.73") ##slave gold master machine
+IPs<-c("172.31.38.73")
 for (ip in IPs){
   i<-i+1
   machines[[i]]<-list(host=ip, user = user, ncore=1)
@@ -56,7 +57,7 @@ spec <- unlist(spec,recursive=FALSE)
 parallelCluster <- parallel::makeCluster(type='PSOCK',
                                          master=primary,
                                          spec=spec,
-                                         port=11000)
+                                         port=11000, outfile="")
 print(parallelCluster)
 
 
@@ -66,6 +67,7 @@ print(parallelCluster)
 ##some libraries and functions are explicitly exported
 #clusterEvalQ(parallelCluster, library(imager), FileNameParser())
 clusterEvalQ(parallelCluster, c(library(imager),library(data.table)))
+clusterEvalQ(parallelCluster, c(library(fogDec)))
 clusterExport(parallelCluster,"FileNameParser")
 registerDoParallel(parallelCluster)
 
@@ -74,12 +76,12 @@ registerDoParallel(parallelCluster)
 
 propertiesLocations <- fread("properties.csv") #, stringsAsFactors = FALSE)
 
-
+print(propertiesLocations)
 
 ## extract features save the data.table (do not print anything / besides progress)
 
 
-apply(propertiesLocations, 1, featureExtraction)
+apply(propertiesLocations, 1, fogDec:::featureExtraction)
 
 
 ##stop the cluster

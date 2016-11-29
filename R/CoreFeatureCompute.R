@@ -26,12 +26,13 @@ ReturnFeatures <- function(filePath) {
 #' @param propertiesLocations data table containing the configuration/properties of that image
 #' @export
 featureExtraction <- function(propertiesLocations) {
-#   propertiesLocations$fileLocation <- propertiesLocationsVect[9]
-#   propertiesLocations$imagePrefix <- propertiesLocationsVect[7]
-#   propertiesLocations$imageFormat <- propertiesLocationsVect[8]
-#   propertiesLocations$filePattern <- propertiesLocationsVect[6]
-#   propertiesLocations$stationID <- propertiesLocationsVect[2]
-#   propertiesLocations<-data.table(propertiesLocations)
+print(propertiesLocations)  
+ propertiesLocations$fileLocation <- propertiesLocationsVect[9]
+   propertiesLocations$imagePrefix <- propertiesLocationsVect[7]
+   propertiesLocations$imageFormat <- propertiesLocationsVect[8]
+   propertiesLocations$filePattern <- propertiesLocationsVect[6]
+   propertiesLocations$stationID <- propertiesLocationsVect[2]
+   propertiesLocations<-data.table(propertiesLocations)
   
   filenames <- list.files(propertiesLocations$fileLocation, recursive = T,
                           pattern=paste0(propertiesLocations$imagePrefix, ".*.", 
