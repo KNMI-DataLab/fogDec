@@ -1,3 +1,6 @@
+#' Computes the features of the images
+#' @param filePath String of the file location
+#' @export
 ReturnFeatures <- function(filePath) {
   if(grepl("Meetterrein",filePath) == TRUE){
     im <- subim(load.image(filePath), y > 16) #cut the upper black band of DeBilt
@@ -19,7 +22,9 @@ ReturnFeatures <- function(filePath) {
 }
 
 
-
+#' Saves the features of the images
+#' @param propertiesLocations data table containing the configuration/properties of that image
+#' @export
 featureExtraction <- function(propertiesLocations) {
 #   propertiesLocations$fileLocation <- propertiesLocationsVect[9]
 #   propertiesLocations$imagePrefix <- propertiesLocationsVect[7]

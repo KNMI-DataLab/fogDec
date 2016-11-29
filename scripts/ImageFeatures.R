@@ -3,6 +3,7 @@
 ## Load Libraries
 library(data.table)
 library(visDec)
+library(fogDec)
 library(ggplot2)
 library(doParallel)
 library(imager)
@@ -59,7 +60,7 @@ parallelCluster <- parallel::makeCluster(type='PSOCK',
 print(parallelCluster)
 
 
-source("./R/CoreFeatureCompute.R")# we might export those functions
+#source("./R/CoreFeatureCompute.R")# we might export those functions
 
 
 ##some libraries and functions are explicitly exported
