@@ -4,7 +4,7 @@
 \alias{featureExtraction}
 \title{Saves the features of the images}
 \usage{
-featureExtraction(propertiesLocations)
+featureExtraction(propertiesLocationsVect)
 }
 \arguments{
 \item{propertiesLocations}{data table containing the configuration/properties of that image}

@@ -3,3 +3,4 @@
 export(FileNameParser)
 export(ReturnFeatures)
 export(featureExtraction)
+import(data.table)

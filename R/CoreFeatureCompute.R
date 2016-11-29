@@ -1,5 +1,6 @@
 #' Computes the features of the images
 #' @param filePath String of the file location
+#' @import data.table
 #' @export
 ReturnFeatures <- function(filePath) {
   if(grepl("Meetterrein",filePath) == TRUE){
@@ -24,15 +25,19 @@ ReturnFeatures <- function(filePath) {
 
 #' Saves the features of the images
 #' @param propertiesLocations data table containing the configuration/properties of that image
+#' @import data.table
 #' @export
-featureExtraction <- function(propertiesLocations) {
+featureExtraction <- function(propertiesLocationsVect) {
+  print("test")
 print(propertiesLocations)  
  propertiesLocations$fileLocation <- propertiesLocationsVect[9]
+ print(propertiesLocations$fileLocation)
    propertiesLocations$imagePrefix <- propertiesLocationsVect[7]
    propertiesLocations$imageFormat <- propertiesLocationsVect[8]
    propertiesLocations$filePattern <- propertiesLocationsVect[6]
    propertiesLocations$stationID <- propertiesLocationsVect[2]
    propertiesLocations<-data.table(propertiesLocations)
+   print(str(propertiesLocations))
   
   filenames <- list.files(propertiesLocations$fileLocation, recursive = T,
                           pattern=paste0(propertiesLocations$imagePrefix, ".*.", 

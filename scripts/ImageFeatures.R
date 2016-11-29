@@ -21,7 +21,7 @@ library(maptools)
  # )
 
 ## make cluster
-#registerDoParallel(cores=3)
+registerDoParallel(cores=3)
 
 i<-0
 machines<-list()
@@ -44,7 +44,7 @@ machineAddresses <- list(
 )
 machineAddresses<-c(machineAddresses,machines)
 
-##characteristics of the cluster are assigned (e.g., IPs, hosts, users, IPs)
+#characteristics of the cluster are assigned (e.g., IPs, hosts, users, IPs)
 spec <- lapply(machineAddresses,
                function(machine) {
                   rep(list(list(host=machine$host,
@@ -66,6 +66,7 @@ print(parallelCluster)
 
 ##some libraries and functions are explicitly exported
 #clusterEvalQ(parallelCluster, library(imager), FileNameParser())
+parallelCluster <- cl
 clusterEvalQ(parallelCluster, c(library(imager),library(data.table)))
 clusterEvalQ(parallelCluster, c(library(fogDec)))
 clusterExport(parallelCluster,"FileNameParser")
