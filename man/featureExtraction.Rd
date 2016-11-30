@@ -7,7 +7,8 @@
 featureExtraction(propertiesLocationsVect)
 }
 \arguments{
-\item{propertiesLocations}{data table containing the configuration/properties of that image}
+\item{propertiesLocationsVect}{vector containing the configuration/properties
+of the location of the images}
 }
 \description{
 Saves the features of the images
