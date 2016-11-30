@@ -24,14 +24,13 @@ ReturnFeatures <- function(filePath) {
 
 
 #' Saves the features of the images
-#' @param propertiesLocations data table containing the configuration/properties of that image
+#' @param propertiesLocationsVect vector containing the configuration/properties
+#' of the location of the images
 #' @import data.table
 #' @export
 featureExtraction <- function(propertiesLocationsVect) {
-  print("test")
-print(propertiesLocations)  
- propertiesLocations$fileLocation <- propertiesLocationsVect[9]
- print(propertiesLocations$fileLocation)
+   propertiesLocations$fileLocation <- propertiesLocationsVect[9]
+   print(propertiesLocations$fileLocation)
    propertiesLocations$imagePrefix <- propertiesLocationsVect[7]
    propertiesLocations$imageFormat <- propertiesLocationsVect[8]
    propertiesLocations$filePattern <- propertiesLocationsVect[6]

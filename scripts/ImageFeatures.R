@@ -77,7 +77,7 @@ registerDoParallel(parallelCluster)
 
 propertiesLocations <- fread("properties.csv") #, stringsAsFactors = FALSE)
 
-print(propertiesLocations)
+#print(propertiesLocations)
 
 ## extract features save the data.table (do not print anything / besides progress)
 
