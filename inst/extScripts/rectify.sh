@@ -2,7 +2,7 @@
 # rectify and cut images
 	
 
-for fileImage in $(find /nobackup/users/pagani/TwenteTest -type f -name "*.jpg"); do
+for fileImage in $(find /nobackup/users/pagani/TwenteRect -type f -name "*.jpg"); do
                 echo item: $fileImage
 		#TARGET="'(rectify-image \""${fileImage}"\"-80.0-5.0-31.0)'-b'(gimp-quit 0)'"
 		#echo $TARGET
