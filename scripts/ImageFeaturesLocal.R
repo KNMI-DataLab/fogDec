@@ -15,7 +15,7 @@ basePath <- "/net/bhw420/nobackup/users/haijde/DATA/AXIS214/Meetterrein"
 # output   <- "/nobackup/users/roth/processedImages/Meetterrein"
 
 directories <- dir(basePath,
-                   pattern = glob2rx("*nmi*"))
+                   pattern = glob2rx("20*"))
 
 foreach(directory = iter(directories), .combine = "rbind") %do% {
   message(paste0("Directory ", directory, " is being processed."))
