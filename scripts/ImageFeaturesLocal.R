@@ -10,6 +10,10 @@ library(maptools)
 
 registerDoParallel(cores=2)
 
+filenames <- list.files("/net/bhw420/nobackup/users/haijde/DATA/AXIS214/Meetterrein",
+                        recursive = TRUE,
+                        pattern=glob2rx("Meetterrein_*.jpg"),
+              ful
 
 properties <- fread(system.file("extdata/properties.csv", package="visDec"))
 
