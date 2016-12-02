@@ -17,11 +17,12 @@ basePath <- "/net/bhw420/nobackup/users/haijde/DATA/AXIS214/Meetterrein"
 directories <- dir(basePath,
                    pattern = glob2rx("20*"))
 
-foreach(directory = iter(directories), .combine = "rbind") %do% {
+foreach(directory = iter(directories), .combine = "c") %do% {
   message(paste0("Directory ", directory, " is being processed."))
   filenames <- list.files(paste0(basePath, directory),
                           pattern=glob2rx("Meetterrein_*.jpg"),
                           full.names = TRUE)
+  return(filenames)
 }
 
 # filenames <- list.files(paste0(basePath, directory),
