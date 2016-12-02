@@ -10,7 +10,7 @@ library(maptools)
 
 registerDoParallel(cores=2)
 
-basePath <- "/net/bhw420/nobackup/users/haijde/DATA/AXIS214/Meetterrein"
+basePath <- "/net/bhw420/nobackup/users/haijde/DATA/AXIS214/Meetterrein/"
 # basePath <- "~/Academia/"
 # output   <- "/nobackup/users/roth/processedImages/Meetterrein"
 
