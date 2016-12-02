@@ -21,7 +21,7 @@ directories <- dir(basePath,
 foreach(directory = iter(directories), .combine = "rbind") %do% {
   message(paste0("Directory ", directory, " is being processed."))
   filenames <- list.files(paste0(basePath, directory),
-                          pattern=glob2rx("Meetterrein_*01_1230.jpg"),
+                          pattern=glob2rx("Meetterrein_*01_12.0.jpg"),
                           full.names = TRUE)
   
   imageSummary <- foreach(file = iter(filenames), .combine = rbind) %dopar% {
@@ -46,7 +46,7 @@ foreach(directory = iter(directories), .combine = "rbind") %do% {
   setkey(imageFeatures, filePath)
   
   imageSummary <- merge(daylightImages, imageFeatures)
-  saveRDS(imageSummary, file = paste0(output, directory))
+  saveRDS(imageSummary, file = paste0(output, directory, "_summary.rds"))
 }
 
 
