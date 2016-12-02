@@ -22,7 +22,7 @@ directories <- dir(basePath,
 foreach(directory = iter(directories), .combine = "rbind") %do% {
   message(paste0("Directory ", directory, " is being processed."))
   filenames <- list.files(paste0(basePath, directory),
-                          pattern=glob2rx("Meetterrein_*_1230.jpg"),
+                          pattern=glob2rx("Meetterrein_*.jpg"),
                           full.names = TRUE)
   
   imageSummary <- foreach(file = iter(filenames), .combine = rbind) %dopar% {
