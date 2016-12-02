@@ -12,7 +12,7 @@ library(maptools)
 
 
 
-#cl<-makePSOCKcluster(2)
+cl<-makePSOCKcluster(2)
 #primary<-'127.0.0.1'
 #user<-'andrea'
 #machineAddresses <- list(
@@ -75,14 +75,14 @@ registerDoParallel(parallelCluster)
 
 ## get configuration
 
-propertiesLocations <- fread("properties.csv") #, stringsAsFactors = FALSE)
+propertiesLoc <- fread("properties.csv") #, stringsAsFactors = FALSE)
 
 #print(propertiesLocations)
 
 ## extract features save the data.table (do not print anything / besides progress)
 
 
-apply(propertiesLocations, 1, fogDec:::featureExtraction)
+apply(propertiesLoc, 1, fogDec:::featureExtraction)
 
 
 ##stop the cluster
