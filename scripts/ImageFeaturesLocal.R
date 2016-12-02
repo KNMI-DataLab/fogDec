@@ -10,6 +10,7 @@ library(maptools)
 
 registerDoParallel(cores=5)
 
+system.time({
 properties <- fread(system.file("extdata/properties.csv", package="visDec"))
 
 basePath <- "/net/bhw420/nobackup/users/haijde/DATA/AXIS214/Meetterrein/"
@@ -21,7 +22,7 @@ directories <- dir(basePath,
 foreach(directory = iter(directories), .combine = "rbind") %do% {
   message(paste0("Directory ", directory, " is being processed."))
   filenames <- list.files(paste0(basePath, directory),
-                          pattern=glob2rx("Meetterrein_*.jpg"),
+                          pattern=glob2rx("Meetterrein_*_1230.jpg"),
                           full.names = TRUE)
   
   imageSummary <- foreach(file = iter(filenames), .combine = rbind) %dopar% {
@@ -48,7 +49,7 @@ foreach(directory = iter(directories), .combine = "rbind") %do% {
   imageSummary <- merge(daylightImages, imageFeatures)
   saveRDS(imageSummary, file = paste0(output, directory, "_summary.rds"))
 }
-
+})
 
 ##stop the cluster
 stopImplicitCluster()
