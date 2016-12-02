@@ -2,19 +2,18 @@
 
 ## Load Libraries
 library(data.table)
-library(fogDec)
 library(visDec)
+library(fogDec)
 library(ggplot2)
 library(doParallel)
 library(maptools)
 
-registerDoParallel(cores=2)
+registerDoParallel(cores=5)
 
 properties <- fread(system.file("extdata/properties.csv", package="visDec"))
 
 basePath <- "/net/bhw420/nobackup/users/haijde/DATA/AXIS214/Meetterrein/"
-# basePath <- "~/Academia/"
-# output   <- "/nobackup/users/roth/processedImages/Meetterrein"
+output   <- "/nobackup/users/roth/processedImages/Meetterrein/"
 
 directories <- dir(basePath,
                    pattern = glob2rx("20*"))
@@ -47,7 +46,7 @@ foreach(directory = iter(directories), .combine = "rbind") %do% {
   setkey(imageFeatures, filePath)
   
   imageSummary <- merge(daylightImages, imageFeatures)
-  return(imageSummary)
+  saveRDS(imageSummary, file = paste0(output, directory))
 }
 
 
