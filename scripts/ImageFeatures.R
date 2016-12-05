@@ -12,7 +12,7 @@ library(maptools)
 
 
 
-cl<-makePSOCKcluster(2)
+#cl<-makePSOCKcluster(2)
 #primary<-'127.0.0.1'
 #user<-'andrea'
 #machineAddresses <- list(
@@ -21,7 +21,7 @@ cl<-makePSOCKcluster(2)
  # )
 
 ## make cluster
-registerDoParallel(cores=3)
+registerDoParallel(cores=4)
 
 i<-0
 machines<-list()
@@ -30,12 +30,12 @@ user    <- 'ubuntu'
 primary <- '172.31.45.30'
 
 #IPs contains a list of slaves that will run the computations
-#IPs<-paste0("172.31.46.", seq(from = 157, to = 174))
+IPs<-paste0("172.31.46.", seq(from = 24, to = 33))
 #IPs<-c(IPs, "172.31.38.73") ##slave gold master machine
-IPs<-c("172.31.38.73")
+#IPs<-c("172.31.38.73")
 for (ip in IPs){
   i<-i+1
-  machines[[i]]<-list(host=ip, user = user, ncore=1)
+  machines[[i]]<-list(host=ip, user = user, ncore=4)
 }
 
 machineAddresses <- list(

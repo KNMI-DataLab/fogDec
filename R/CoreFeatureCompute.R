@@ -45,7 +45,7 @@ featureExtraction <- function(propertiesLocationsVect) {
    #print(str(propertiesLocations))
   
   filenames <- list.files(propertiesLocations$fileLocation, recursive = T,
-                          pattern=paste0(propertiesLocations$imagePrefix, ".*.", 
+                          pattern=paste0(propertiesLocations$filePrefix, ".*.", 
                                          propertiesLocations$imageFormat, "$"),
                           full.names=TRUE)
   
