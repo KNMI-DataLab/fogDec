@@ -54,6 +54,11 @@ foreach(directory = iter(directories), .combine = "rbind") %do% {
 ##stop the cluster
 stopImplicitCluster()
 
+# output <- "/nobackup/users/roth/processedImages/Meetterrein"
+# files  <- list.files(output, full.names = TRUE)
+# result <- foreach(f = iter(files), .combine = "rbind") %do% {
+#   readRDS(f)
+# }
 
 
 
