@@ -75,7 +75,7 @@ featureExtraction <- function(propertiesLocationsVect) {
   
   
   ##This is run in parallel and this is the most compute-intense part 
-  imageFeatures <- foreach(id = iter(daylightImages[, id]), .combine = rbind) %do% {
+  imageFeatures <- foreach(id = iter(daylightImages[, id]), .combine = rbind) %dopar% {
     cutPoint <- 0
     if ((daylightImages$locationID == "UK21" || daylightImages$locationID == "UK11") == TRUE) {
       cutPoint <- 39
