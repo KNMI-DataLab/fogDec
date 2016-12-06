@@ -52,7 +52,6 @@ featureExtraction <- function(propertiesLocationsVect) {
   
   ##This is run in parallel
   imageSummary <- foreach(file = iter(filenames), .combine = rbind, .packages = "visDec") %dopar% {
-    cat(paste0(file,"\n"), file="mylog.txt", append=TRUE)
     fogDec::FileNameParser(file, propertiesLocations$filePattern)
   }
   
@@ -80,6 +79,7 @@ featureExtraction <- function(propertiesLocationsVect) {
     if ((daylightImages$locationID == "UK21" || daylightImages$locationID == "UK11") == TRUE) {
       cutPoint <- 39
     }
+    cat(paste0(filePath,"\n"), file="mylog.txt", append=TRUE)
     ##WE HAVE TO FIND A SOLUTION FOR THE ARGUMENTS TO THIS NEW IMAGE FEATURE FUNCTION,
     ##IT DOEASN'T LIKE VARIABLES
     daylightImages[id, ImageFeatures(filePath, y > 39)]
