@@ -79,7 +79,7 @@ featureExtraction <- function(propertiesLocationsVect) {
     if ((daylightImages$locationID == "UK21" || daylightImages$locationID == "UK11") == TRUE) {
       cutPoint <- 39
     }
-    cat(paste0(filePath,"\n"), file="mylog.txt", append=TRUE)
+    cat(paste0(daylightImages$filePath,"\n"), file="mylog.txt", append=TRUE)
     ##WE HAVE TO FIND A SOLUTION FOR THE ARGUMENTS TO THIS NEW IMAGE FEATURE FUNCTION,
     ##IT DOEASN'T LIKE VARIABLES
     daylightImages[id, ImageFeatures(filePath, y > 39)]
