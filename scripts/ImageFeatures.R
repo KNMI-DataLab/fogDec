@@ -23,6 +23,7 @@ library(maptools)
 ## make cluster
 registerDoParallel(cores=4)
 
+
 i<-0
 machines<-list()
 ## the users and addresses are based on the AWS configuration
@@ -60,13 +61,12 @@ parallelCluster <- parallel::makeCluster(type='PSOCK',
                                          port=11000, outfile="")
 print(parallelCluster)
 
-
 #source("./R/CoreFeatureCompute.R")# we might export those functions
 
 
 ##some libraries and functions are explicitly exported
 #clusterEvalQ(parallelCluster, library(imager), FileNameParser())
-parallelCluster <- cl
+#parallelCluster <- cl
 clusterEvalQ(parallelCluster, c(library(imager),library(data.table)))
 clusterEvalQ(parallelCluster, c(library(fogDec)))
 clusterExport(parallelCluster,"FileNameParser")

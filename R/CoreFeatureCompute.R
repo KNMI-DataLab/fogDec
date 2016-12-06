@@ -52,6 +52,7 @@ featureExtraction <- function(propertiesLocationsVect) {
   
   ##This is run in parallel
   imageSummary <- foreach(file = iter(filenames), .combine = rbind, .packages = "visDec") %dopar% {
+    cat(paste0(file,"\n"), file="mylog.txt", append=TRUE)
     fogDec::FileNameParser(file, propertiesLocations$filePattern)
   }
   
