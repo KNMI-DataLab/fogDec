@@ -60,7 +60,14 @@ stopImplicitCluster()
 #   readRDS(f)
 # }
 
+# sensorData <- ReadMORSensorData("inst/extdata/Sensor/DeBiltMOR2015-2016.csv")
+# sensorData <- sensorData[DS_CODE == "260_A_a", .(dateTime, TOA.MOR_10)]
+# setnames(sensorData, c("dateTime", "MOR"))
 
+setkey(result, dateTime)
+setkey(sensorData, dateTime)
+values <- merge(result, sensorData)
+values <- na.omit(values)
 
 
 
