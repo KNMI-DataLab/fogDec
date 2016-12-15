@@ -1,2 +1,2 @@
-locationID,stationID,locationName,lon,lat,filePattern,imagePrefix,imageFormat,fileLocation
+locationID,stationID,locationName,lon,lat,filePattern,filePrefix,imageFormat,fileLocation
 2,290_A_a,Twente,6.89,52.276944,na*me_yyyymmddhhmm.jpg,EHTW,jpg,~/efs/test
