@@ -31,6 +31,7 @@
 #' @import data.table
 #' @export
 featureExtraction <- function(propertiesLocationsVect) {
+  cat(paste0(propertiesLocationsVect[1],"\n"), file="mylog.txt", append=TRUE)
   propertiesLocations<-data.table(
    fileLocation = propertiesLocationsVect[9],
    filePrefix = propertiesLocationsVect[7],
@@ -79,10 +80,13 @@ featureExtraction <- function(propertiesLocationsVect) {
     if ((daylightImages$locationID == "UK21" || daylightImages$locationID == "UK11") == TRUE) {
       cutPoint <- 39
     }
-    cat(paste0(daylightImages[id, filePath],"\n"), file="mylog.txt", append=TRUE)
+    
     ##WE HAVE TO FIND A SOLUTION FOR THE ARGUMENTS TO THIS NEW IMAGE FEATURE FUNCTION,
     ##IT DOEASN'T LIKE VARIABLES
-    daylightImages[id, ImageFeatures(filePath, y > 39)]
+    #print(paste0("elaboration:", daylightImages[id, filePath]))
+    cat(paste0(daylightImages[id, filePath],"\n"), file="mylog.txt", append=TRUE)
+    daylightImages[id, visDec::ImageFeatures(filePath, y > 39)]
+    #
   }
   
   
