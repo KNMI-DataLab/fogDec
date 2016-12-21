@@ -17,53 +17,53 @@ hb.list.tables()
 hb.describe.table(TABLE_NAME)
 
 
-dataScotland <- readRDS("~/Dropbox/KNMIWork/scotland/ResultFeatures7_709.rds")
-dataScotland[, fileName:=sapply(strsplit(filePath, '/'), "[[",8)]
-dataScotland[, year:= lubridate::year(dateTime)]
-dataScotland[, month:= lubridate::month(dateTime)]
-dataScotland[, day:= lubridate::day(dateTime)]
-dataScotland[, hour:= lubridate::hour(dateTime)]
-dataScotland[, minute:= lubridate::minute(dateTime)]
+dataFeatures <- readRDS("~/Dropbox/KNMIWork/scotland/ResultFeatures7_709.rds")
+dataFeatures[, fileName:=sapply(strsplit(filePath, '/'), "[[",8)]
+dataFeatures[, year:= lubridate::year(dateTime)]
+dataFeatures[, month:= lubridate::month(dateTime)]
+dataFeatures[, day:= lubridate::day(dateTime)]
+dataFeatures[, hour:= lubridate::hour(dateTime)]
+dataFeatures[, minute:= lubridate::minute(dateTime)]
 
 
-dataScotland[, c("filePrefix","fileLocation","filePattern","id", "stationID"):=NULL]
+dataFeatures[, c("filePrefix","fileLocation","filePattern","id", "stationID"):=NULL]
 
 
-dataScotland<-data.frame(dataScotland)
+dataFeatures<-data.frame(dataFeatures)
 
 
-setnames(dataScotland, "filePath",as.character("FileProperties:FilePath"))
-setnames(dataScotland, "imageFormat",as.character("FileProperties:FileType"))
-#setnames(dataScotland, "LocationDescription","Location:LocationDescription")
-setnames(dataScotland, "locationID",as.character("Location:LocationID"))
-setnames(dataScotland, "lat",as.character("Location:Latitude"))
-setnames(dataScotland, "lon",as.character("Location:Longitude"))
-setnames(dataScotland, "dateTime",as.character("Time:DateTime"))
-#setnames(dataScotland, "Dawn","Time:Dawn")
-#setnames(dataScotland, "Dusk","Time:Dusk")
-#setnames(dataScotland, "SunriseTime","Time:SunriseTime")
-#setnames(dataScotland, "SunsetTime","Time:SunsetTime")
-setnames(dataScotland, "year",as.character("Time:Year"))
-setnames(dataScotland, "month",as.character("Time:Month"))
-setnames(dataScotland, "day",as.character("Time:Day"))
-setnames(dataScotland, "hour",as.character("Time:Hour"))
-setnames(dataScotland, "minute",as.character("Time:Minute"))
-setnames(dataScotland, "meanEdge",as.character("ImageFeatures:MeanEdge"))
-setnames(dataScotland, "changePoint",as.character("ImageFeatures:ChangePoint"))
-setnames(dataScotland, "smoothness",as.character("ImageFeatures:Smoothness"))
-setnames(dataScotland, "fractalDim",as.character("ImageFeatures:FractalDim"))
-setnames(dataScotland, "meanHue",as.character("ImageFeatures:MeanHue"))
-setnames(dataScotland, "meanSaturation",as.character("ImageFeatures:MeanSaturation"))
-setnames(dataScotland, "meanBrightness",as.character("ImageFeatures:MeanBrightness"))
+setnames(dataFeatures, "filePath",as.character("FileProperties:FilePath"))
+setnames(dataFeatures, "imageFormat",as.character("FileProperties:FileType"))
+setnames(dataFeatures, "LocationName","Location:LocationDescription")
+setnames(dataFeatures, "locationID",as.character("Location:LocationID"))
+setnames(dataFeatures, "lat",as.character("Location:Latitude"))
+setnames(dataFeatures, "lon",as.character("Location:Longitude"))
+setnames(dataFeatures, "dateTime",as.character("Time:DateTime"))
+#setnames(dataFeatures, "Dawn","Time:Dawn")
+#setnames(dataFeatures, "Dusk","Time:Dusk")
+#setnames(dataFeatures, "SunriseTime","Time:SunriseTime")
+#setnames(dataFeatures, "SunsetTime","Time:SunsetTime")
+setnames(dataFeatures, "year",as.character("Time:Year"))
+setnames(dataFeatures, "month",as.character("Time:Month"))
+setnames(dataFeatures, "day",as.character("Time:Day"))
+setnames(dataFeatures, "hour",as.character("Time:Hour"))
+setnames(dataFeatures, "minute",as.character("Time:Minute"))
+setnames(dataFeatures, "meanEdge",as.character("ImageFeatures:MeanEdge"))
+setnames(dataFeatures, "changePoint",as.character("ImageFeatures:ChangePoint"))
+setnames(dataFeatures, "smoothness",as.character("ImageFeatures:Smoothness"))
+setnames(dataFeatures, "fractalDim",as.character("ImageFeatures:FractalDim"))
+setnames(dataFeatures, "meanHue",as.character("ImageFeatures:MeanHue"))
+setnames(dataFeatures, "meanSaturation",as.character("ImageFeatures:MeanSaturation"))
+setnames(dataFeatures, "meanBrightness",as.character("ImageFeatures:MeanBrightness"))
 
 
 
-rownames(dataScotland) <- lapply(dataScotland$fileName, digest, algo = "sha256")
+rownames(dataFeatures) <- lapply(dataFeatures$fileName, digest, algo = "sha256")
 
-dataScotland$fileName<-NULL
+dataFeatures$fileName<-NULL
 
 
-hb.insert.data.frame(TABLE_NAME, dataScotland)
+hb.insert.data.frame(TABLE_NAME, dataFeatures)
 
-#hb.insert(TABLE_NAME, list(list(digest(dataScotland$fileName[[3]], "sha256"), 
-                                 #  c("FileProperties:FilePath"), list(dataScotland$filePath[[3]]))))
+#hb.insert(TABLE_NAME, list(list(digest(dataFeatures$fileName[[3]], "sha256"), 
+                                 #  c("FileProperties:FilePath"), list(dataFeatures$filePath[[3]]))))
