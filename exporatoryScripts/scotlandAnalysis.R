@@ -1,14 +1,21 @@
 scotland709<-readRDS("results/ResultFeatures7-709.rds")
 
 
+filtered709<-scotland709[complete.cases(scotland709),]
 
 
 
 filtered709[fractalDim<=2.2]
 #image seems out of focus
 
+filtered709.2<-filtered709[fractalDim>2.2]
 
 
+#use of fractal dimention to recognize the change of scene 
+
+
+filtered709.3<-filtered709.2[meanEdge>=0.010]
+#removed images that are fault system scottish service
 
 
 
@@ -31,6 +38,30 @@ filtered709[meanHue<=60]
 
 filtered709[meanHue>=170 & fractalDim<2.3]
 #scenary is changed
+
+
+
+
+
+#there is fog at 8.10-20; 9.10-20-30; 10.40; 11.40
+foggy<-filtered709.3[as.Date(dateTime)=="2016-11-21" & hour(dateTime)<12 & lubridate::minute(dateTime)<30,]
+
+
+#looking at the bivariate plots it is difficult to say which features matter probably meanEdge but 
+
+
+
+ggplot(filtered709.3, aes(x = meanEdge, meanBrightness))
++geom_point(color="black")
++geom_point(data=filtered709.3[as.Date(dateTime)=="2016-11-21" & ((hour(dateTime)==9 & lubridate::minute(dateTime)==10) | (hour(dateTime)==9 & lubridate::minute(dateTime)==20) | (hour(dateTime)==9 & lubridate::minute(dateTime)==30)| (hour(dateTime)==8 & lubridate::minute(dateTime)==10)| (hour(dateTime)==8 & lubridate::minute(dateTime)==20) | (hour(dateTime)==10 & lubridate::minute(dateTime)==40)),], aes(x = meanEdge, meanBrightness), colour="red",size =4)
+
+
+
+
+ggplot(filtered709.3, aes(x = meanEdge, fractalDim))+geom_point(color="black")+geom_point(data=filtered709.3[as.Date(dateTime)=="2016-11-21" & ((hour(dateTime)==9 & lubridate::minute(dateTime)==10) | (hour(dateTime)==9 & lubridate::minute(dateTime)==20) | (hour(dateTime)==9 & lubridate::minute(dateTime)==30)| (hour(dateTime)==8 & lubridate::minute(dateTime)==10)| (hour(dateTime)==8 & lubridate::minute(dateTime)==20) | (hour(dateTime)==10 & lubridate::minute(dateTime)==40)),], aes(x = meanEdge, fractalDim), colour="red",size =4)
+
+
+
 
 
 
@@ -81,6 +112,21 @@ test<-filtered709[fractalDim<2.3 & fractalDim>2.2]
 View(test)
 
 
+#######################################################################
+
+scotland715<-readRDS("results/ResultFeatures7-715.rds")
+
+filtered715<-scotland715[meanEdge>0.008,] # remove the frozen dark images of the night error of the system
 
 
+filtered715[meanEdge<0.011,] # the images have light in the camera
+
+# /nobackup/users/pagani/scotland/2016_10/7-715/7-715_20161027_1610.jpg      7-715 2016-10-27 16:10:00
+# 2: /nobackup/users/pagani/scotland/2016_12/7-715/7-715_20161217_1420.jpg      7-715 2016-12-17 14:20:00
+# 3: /nobackup/users/pagani/scotland/2016_12/7-715/7-715_20161217_1500.jpg      7-715 2016-12-17 15:00:00
+# 4: /nobackup/users/pagani/scotland/2016_12/7-715/7-715_20161217_1510.jpg      7-715 2016-12-17 15:10:00
+
+filtered715[meanHue<75] # these pictures are in Black and White :-(
+
+filtered715.1<-filtered715[meanHue>=75]
 
