@@ -9,7 +9,12 @@ Critical infrastructures such as transportation systems, telecommunications netw
 ######################################################################################################################################################################################
 Title: Automatic fog detection for infrastructure safety by using camera images.
 
-Authors: G.A. Pagani, M. Roth, W. Wauben
+Authors: G.A. Pagani*, M. Roth*, W. Wauben*
+
+*R&D Observations and Data Technology
+Royal Netherlands Meteorological Institute (KNMI) 
+P.O. Box 201, 3730 AE De Bilt, The Netherlands 
+email: {pagani, roth, wauben}@knmi.nl 
 
 
 

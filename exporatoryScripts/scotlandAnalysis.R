@@ -60,7 +60,7 @@ foggyDay = filtered709.3[as.Date(dateTime)=="2016-11-21" & ((hour(dateTime)==9 &
 
 
 
-foggyDay2 = filtered709.3[as.Date(dateTime)=="2016-11-21" & ((hour(dateTime)>=8 & (hour(dateTime)<=12))),]
+foggyDay2 = filtered709.3[as.Date(dateTime)=="2016-11-21" & ((hour(dateTime)>=8 & (hour(dateTime)<=12))),] 
 
 
 ggplot(filtered709.3, aes(x = meanEdge, fractalDim))+geom_point(color="black")+geom_point(data=foggyDay, aes(x = meanEdge, fractalDim, label=filePath), colour="red",size =3)+geom_text(data = foggyDay, aes(label= dateTime, colour = "red"),check_overlap = F, size =3)
