@@ -453,10 +453,19 @@ fancyRpartPlot(fogTreeNoRain, sub="")
  \end{frame}
 
 
+\begin{frame}{Experiments of scotland traffic cameras}
+\begin{itemize}
+\item{Non-supervised problem}
+\item{Highliy dynamic}
+%%put the location of the cameras in picutres
+%% put a couple of examples of dynamic 
+%% first results scotland scatterplot
+
+\end{frame}
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%MODIFIED ANDREA END%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 
 
 
