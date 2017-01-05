@@ -2,6 +2,7 @@
 
 \usepackage{lmodern}
 \usepackage{knmiBeamer}
+\usepackage{multirow}
 \Engelstrue     % For English slides 
 
 % ---------------
@@ -204,6 +205,8 @@ test[, pred := pred]
 
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%MODIFIED ANDREA%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \begin{frame}{Situation in Twente}\centering
 %The situation in Twente is different for two reasons, the wide angle of the
 %camera makes the horizontal averaging of the transmission rate less appropriate.
@@ -217,9 +220,248 @@ test[, pred := pred]
  \begin{itemize}
   \item wide angle camera
   \item only a few edges
-  \item still a few outliers can be detected already
+  \item unprotected camera
  \end{itemize}
 \end{frame}
+
+
+\begin{frame}{Situation in Twente}\centering
+\begin{itemize}
+\item rectification of the image and cut helps
+
+\begin{figure}
+%\begin{subfigure}
+  \centering
+  \includegraphics[height=2.5cm]{inst/extdata/EHTW_201508011440.jpg}
+  \hspace{0.1cm}
+  \hspace{0.1cm}
+  \includegraphics[height=2.5cm]{inst/extdata/EHTW_201508011440_Rectified.jpg}
+%\end{subfigure}
+\end{figure}
+\item but reduces edges and scenery even more
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Problems of this class of cameras}%\centering
+\begin{columns}
+\column{0.2\textwidth}
+\includegraphics[height=2cm]{figure/wideCamera}
+
+\column{0.8\textwidth}
+\includegraphics[height=3cm]{inst/extdata/cornerCasesTwente/EHTW_201503240815.jpg} Light in the objective\\
+\includegraphics[height=3cm]{inst/extdata/cornerCasesTwente/EHTW_201510271350.jpg} Humidity lines in the camera enclosure\\
+
+
+\end{columns}
+
+
+\end{frame}
+
+\begin{frame}{Problems of this class of cameras}%\centering
+\begin{columns}
+\column{0.2\textwidth}
+\includegraphics[height=2cm]{figure/wideCamera}
+
+\column{0.8\textwidth}
+\includegraphics[height=3cm]{inst/extdata/cornerCasesTwente/EHTW_201506280400.jpg} Ice on the camera enclosure\\
+\includegraphics[height=3cm]{inst/extdata/cornerCasesTwente/EHTW_201510060700.jpg} Water drops on the camera enclosure\\
+
+\end{columns}
+
+
+\end{frame}
+
+
+
+\begin{frame}{Performance classification Twente}%\centering
+
+Based on pure image features
+
+<<ClassificationTwente, echo=FALSE>>=
+dataTwente <- readRDS("results/ResultsTwente2015-2016_3hSun.rds")
+offsetBeforeSunrise <- 0 #time in minutes
+offsetAfterSunset <- 0
+#trainDeBilt <- imageSummary[dateTime > sunriseDateTime - offsetBeforeSunrise * 60 & dateTime < sunsetDateTime + offsetAfterSunset * 60, ]
+dataTwente <- dataTwente[dateTime > sunriseDateTime & dateTime < sunsetDateTime, ]
+dataTwente[, foggy := MOR < 250]
+setkey(dataTwente, dateTime)
+
+
+source("scripts/ReadMeteoData.R")
+windTwente <- ReadWindData("inst/extdata/Sensor/TwenteWind1-1-2015-31-08-2016.csv")
+setkey(windTwente, dateTime)
+
+
+humidityTwente <- ReadHumidityData("inst/extdata/Sensor/TwenteHumidity1-1-2015-31-08-2016.csv")
+setkey(humidityTwente, dateTime)
+
+
+tempDewPointTwente <- ReadTempDewPointData("inst/extdata/Sensor/TwenteTemp_DewPoint1-1-2015-31-08-2016.csv")
+setkey(tempDewPointTwente, dateTime)
+
+
+precipitationTwente <- ReadPrecipitationData("inst/extdata/Sensor/TwenteRainAll-1-2015-31-08-2016.csv")
+precipitationTwente[, rain := FALSE]
+rainDuration <- 400
+precipitationTwente[ precipitationDurationPWS > rainDuration | precipitationDurationElec > rainDuration, rain:= TRUE]
+setkey(precipitationTwente, dateTime)
+
+
+
+
+dataTwente <- SynchronizeSensorReadingsNoMORPicture(windTwente, dataTwente)
+dataTwente <- SynchronizeSensorReadingsNoMORPicture(humidityTwente, dataTwente)
+dataTwente <- SynchronizeSensorReadingsNoMORPicture(tempDewPointTwente, dataTwente)
+dataTwente <- SynchronizeSensorReadingsNoMORPicture(precipitationTwente, dataTwente)
+
+
+dataTwente <- na.omit(dataTwente)
+
+trainTwente <- dataTwente[year==2015, .(dateTime, meanEdge, changePoint, smoothness, meanHue,
+                meanSaturation, meanBrightness, MOR, foggy, day, month, hour, windSpeed, relHumidity, airTemperature, dewPoint,
+                precipitationIntElec, precipitationIntPWS, precipitationDurationElec, precipitationDurationPWS, rain) ]
+
+testTwente <- dataTwente[year==2016, .(dateTime, meanEdge, changePoint, smoothness, meanHue,
+                meanSaturation, meanBrightness, MOR, foggy, day, month, hour, windSpeed, relHumidity, airTemperature, dewPoint,
+                precipitationIntElec, precipitationIntPWS, precipitationDurationElec, precipitationDurationPWS, rain) ]
+                
+                
+fogTree <- rpart(foggy ~ meanEdge + changePoint + meanBrightness, trainTwente , control = rpart.control(cp = 0.019))
+@
+
+<<ClassificationTreeTwente, echo=FALSE, fig.height=4>>=
+fancyRpartPlot(fogTree, sub="")
+@
+
+
+\end{frame}
+
+
+\begin{frame}{Confusion Table}\centering
+% 
+\begin{itemize}
+\item {Picture-only features test set (8 months of observations)}
+
+% 
+\end{itemize}
+\begin{table}
+    %\setlength{\extrarowheight}{2pt}
+    \begin{tabular}{cc|c|c|}
+       & \multicolumn{1}{c}{} & \multicolumn{2}{c}{Reference}\\
+       & \multicolumn{1}{c}{} & \multicolumn{1}{c}{FALSE}  & \multicolumn{1}{c}{TRUE} \\\cline{3-4}
+       \multirow{2}*{Prediction}  & FALSE & 15736  & 34 \\\cline{3-4}
+      & TRUE & 38 &6 \\\cline{3-4}
+    \end{tabular}
+  \end{table}
+  
+  \begin{itemize}
+\item {Issues mentioned above play a role in the false positive/negative}
+\item{Sensitivity: 0.1500000}
+\item{Specificity: 0.9975910}
+
+% 
+\end{itemize}
+  
+% % Original
+% % ##
+% % ## Reference
+% % ## Prediction FALSE TRUE
+% % ## FALSE 15736 34
+% % ## TRUE 38 6
+% 
+% 
+ \end{frame}
+% 
+
+
+
+
+
+\begin{frame} {Performance classification Twente}%\centering
+
+Based on image features and meteo features (air temperature, dew point, wind speed, relative humidity)
+
+<<ClassificationTwenteMeteo, echo=FALSE>>=
+
+noRainDataTwente <- dataTwente[precipitationDurationElec<600 & windSpeed<3.5,]
+
+#noRainDataTwente <- noRainDataTwente[day!=23 & month!=08 & year!=2015,]
+
+removedFoggyRainOrHighWind <- dataTwente[foggy==TRUE, .N] - noRainDataTwente[foggy==TRUE, .N]
+datesOfFoggyRainOrHighWind <- dataTwente[dateTime%in%setdiff(dataTwente[foggy==TRUE]$dateTime,noRainDataTwente[foggy==TRUE]$dateTime)]$dateTime
+
+trainTwenteNoRain <- noRainDataTwente[year==2015, .(dateTime, meanEdge, changePoint, smoothness, meanHue,
+                meanSaturation, meanBrightness, MOR, foggy, day, month, hour, windSpeed, relHumidity, airTemperature, dewPoint,
+                precipitationIntElec, precipitationIntPWS, precipitationDurationElec, precipitationDurationPWS, rain) ]
+
+testTwenteNoRain <- noRainDataTwente[year==2016, .(dateTime, meanEdge, changePoint, smoothness, meanHue,
+                meanSaturation, meanBrightness, MOR, foggy, day, month, hour, windSpeed, relHumidity, airTemperature, dewPoint,
+                precipitationIntElec, precipitationIntPWS, precipitationDurationElec, precipitationDurationPWS, rain) ]
+
+fogTreeNoRain <- rpart(foggy ~ meanEdge + changePoint + meanBrightness +
+                                 relHumidity + windSpeed + airTemperature + dewPoint + precipitationIntElec + 
+                                 precipitationIntPWS + precipitationDurationElec + precipitationDurationPWS, 
+                                 trainTwenteNoRain , control = rpart.control(cp = 0.015))
+
+
+<<ClassificationTreeTwenteMeteo, echo=FALSE, fig.height=4>>=
+
+fancyRpartPlot(fogTreeNoRain, sub="")
+@
+
+\end{frame}
+
+
+
+
+
+\begin{frame}{Confusion Table}\centering
+% 
+\begin{itemize}
+\item {Picture and meteo features test set (8 months of observations)}
+\item{Filtered out continuous rain conditions and wind speed $\geq$ 3.5 m/s}
+% 
+\end{itemize}
+\begin{table}
+    %\setlength{\extrarowheight}{2pt}
+    \begin{tabular}{cc|c|c|}
+       & \multicolumn{1}{c}{} & \multicolumn{2}{c}{Reference}\\
+       & \multicolumn{1}{c}{} & \multicolumn{1}{c}{FALSE}  & \multicolumn{1}{c}{TRUE} \\\cline{3-4}
+       \multirow{2}*{Prediction}  & FALSE & 6743  & 14 \\\cline{3-4}
+      & TRUE & 165 & 26 \\\cline{3-4}
+    \end{tabular}
+  \end{table}
+  
+  \begin{itemize}
+\item {Metereological features are not selected except air temperature}
+\item{Sensitivity: 0.6500000}
+\item{Specificity: 0.976115}
+
+
+% 
+\end{itemize}
+  
+% % Original
+% % ##
+% % ## Reference
+% % ## Prediction FALSE TRUE
+% % ## FALSE 15736 34
+% % ## TRUE 38 6
+% 
+% 
+ \end{frame}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%MODIFIED ANDREA END%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
 
 <<MultiLinearRegression, include=FALSE>>=
 mlm <- lm(log(MOR) ~ meanEdge + changePoint + meanBrightness, train) 
