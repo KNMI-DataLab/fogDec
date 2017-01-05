@@ -5,8 +5,9 @@ registerDoParallel(cores=4)
 
 
 difference<-function(image){
-ideal<-load.image("~/development/KNMI/fogDec/fog.jpg")
-scotland<-subim(load.image(image), y>39)
+ideal<-load.image("inst/extdata/fogPictures/fog.jpg")
+#scotland<-subim(load.image(image), y>39)
+scotland<-load.image(image)
 idealResize<-resize(ideal,width(scotland),height(scotland))
 diffnorm<-idealResize-scotland
 meanval<-mean(diffnorm)
