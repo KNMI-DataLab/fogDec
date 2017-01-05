@@ -53,12 +53,17 @@ foggy<-filtered709.3[as.Date(dateTime)=="2016-11-21" & hour(dateTime)<12 & lubri
 
 ggplot(filtered709.3, aes(x = meanEdge, meanBrightness))
 +geom_point(color="black")
-+geom_point(data=filtered709.3[as.Date(dateTime)=="2016-11-21" & ((hour(dateTime)==9 & lubridate::minute(dateTime)==10) | (hour(dateTime)==9 & lubridate::minute(dateTime)==20) | (hour(dateTime)==9 & lubridate::minute(dateTime)==30)| (hour(dateTime)==8 & lubridate::minute(dateTime)==10)| (hour(dateTime)==8 & lubridate::minute(dateTime)==20) | (hour(dateTime)==10 & lubridate::minute(dateTime)==40)),], aes(x = meanEdge, meanBrightness), colour="red",size =4)
++geom_point(data=filtered709.3[as.Date(dateTime)=="2016-11-21" & ((hour(dateTime)==9 & lubridate::minute(dateTime)==10) | (hour(dateTime)==9 & lubridate::minute(dateTime)==20) | (hour(dateTime)==9 & lubridate::minute(dateTime)==30)| (hour(dateTime)==8 & lubridate::minute(dateTime)==10)| (hour(dateTime)==8 & lubridate::minute(dateTime)==20) | (hour(dateTime)==10 & lubridate::minute(dateTime)==40)),], aes(x = meanEdge, meanBrightness), colour="red",size =3)
+
+
+foggyDay = filtered709.3[as.Date(dateTime)=="2016-11-21" & ((hour(dateTime)==9 & lubridate::minute(dateTime)==10) | (hour(dateTime)==9 & lubridate::minute(dateTime)==20) | (hour(dateTime)==9 & lubridate::minute(dateTime)==30)| (hour(dateTime)==8 & lubridate::minute(dateTime)==10)| (hour(dateTime)==8 & lubridate::minute(dateTime)==20) | (hour(dateTime)==10 & lubridate::minute(dateTime)==40)),]
 
 
 
+foggyDay2 = filtered709.3[as.Date(dateTime)=="2016-11-21" & ((hour(dateTime)>=8 & (hour(dateTime)<=12))),]
 
-ggplot(filtered709.3, aes(x = meanEdge, fractalDim))+geom_point(color="black")+geom_point(data=filtered709.3[as.Date(dateTime)=="2016-11-21" & ((hour(dateTime)==9 & lubridate::minute(dateTime)==10) | (hour(dateTime)==9 & lubridate::minute(dateTime)==20) | (hour(dateTime)==9 & lubridate::minute(dateTime)==30)| (hour(dateTime)==8 & lubridate::minute(dateTime)==10)| (hour(dateTime)==8 & lubridate::minute(dateTime)==20) | (hour(dateTime)==10 & lubridate::minute(dateTime)==40)),], aes(x = meanEdge, fractalDim), colour="red",size =4)
+
+ggplot(filtered709.3, aes(x = meanEdge, fractalDim))+geom_point(color="black")+geom_point(data=foggyDay, aes(x = meanEdge, fractalDim, label=filePath), colour="red",size =3)+geom_text(data = foggyDay, aes(label= dateTime, colour = "red"),check_overlap = F, size =3)
 
 
 
