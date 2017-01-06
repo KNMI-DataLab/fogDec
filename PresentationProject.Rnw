@@ -10,12 +10,13 @@
 % ---------------
 \graphicspath{{figure/}}
 
-\title{Fog detection using cameras}
-\author{Wiel, Andrea and Martin}
+\title{Experiences of fog detection using cameras at KNMI}
+\subtitle{Working meeting with RWS}
+\date{De Bilt, 16th January 2017}
+\author{Dr. W. Wauber, Dr. G.A. Pagani, and Dr. M. Roth}
 %\author[M. Roth (\MYhref{mailto:roth@knmi.nl}{roth@knmi.nl})]{Martin Roth\texorpdfstring{\\[2mm] \scriptsize \href{mailto:roth@knmi.nl}{roth@knmi.nl}\\[4mm] {\scriptsize Joint work with A. Buishand and G. Jongbloed}}{}}
 
 \begin{document}
-
 << Libraries, include=FALSE>>=
 library(data.table)
 library(imager)
@@ -441,27 +442,117 @@ fancyRpartPlot(fogTreeNoRain, sub="")
 
 % 
 \end{itemize}
-  
-% % Original
-% % ##
-% % ## Reference
-% % ## Prediction FALSE TRUE
-% % ## FALSE 15736 34
-% % ## TRUE 38 6
-% 
-% 
+ 
  \end{frame}
 
 
 \begin{frame}{Experiments of scotland traffic cameras}
+
+
+\begin{columns}
+\column{0.4\textwidth}
+\includegraphics[height=3cm]{figure/scotlandOverviewAll}\\
+\vspace{0.2cm}
+\includegraphics[height=3cm]{figure/scotlandOverview}
+
+\column{0.55\textwidth}
 \begin{itemize}
-\item{Non-supervised problem}
-\item{Highliy dynamic}
-%%put the location of the cameras in picutres
-%% put a couple of examples of dynamic 
+\item{Archiving images of 300 cameras around Scotland every 10 minutes}
+\item{Analysis of a 2 cameras on the M90 for 2 months}
+\item{Challenges:}
+\begin{itemize}
+\item{Non-supervised problem: no visibility measures directly available}
+\item{Highly dynamic: appearing disappearing objects, change in scenery}
+\end{itemize}
+\end{itemize}
+\end{columns}
+
+
+
+
 %% first results scotland scatterplot
 
 \end{frame}
+
+
+
+\begin{frame}{Scotland traffic cameras: dynamic scene}
+
+\begin{columns}
+\column{0.55\textwidth}
+\begin{itemize}
+\item{ Location: M90 Junction 1A EB Slip}
+\item {Same camera three different scenes}
+\end{itemize}
+\vspace{0.5cm}
+\includegraphics[height=3.5cm]{figure/scotland709Location}
+
+
+
+\column{0.3\textwidth}
+%\hspace{2cm}
+\includegraphics[height=2.3cm]{figure/7-709-Example1.jpg}\\
+\includegraphics[height=2.3cm]{figure/7-709-Example2.jpg}\\
+\includegraphics[height=2.3cm]{figure/7-709-Example3.jpg}
+\end{columns}
+
+
+\end{frame}
+
+
+\begin{frame}{Scotland traffic cameras: dynamic scene}
+
+\begin{columns}
+\column{0.55\textwidth}
+\begin{itemize}
+\item{ Location: M90 Craigbrae 2}
+\item {Same camera three different scenes}
+\end{itemize}
+\vspace{0.5cm}
+\includegraphics[height=3.5cm]{figure/scotland715Location}
+
+
+
+\column{0.3\textwidth}
+%\hspace{2cm}
+\includegraphics[height=2.3cm]{figure/7-715-Example1.jpg}\\
+\includegraphics[height=2.3cm]{figure/7-715-Example2.jpg}\\
+\includegraphics[height=2.3cm]{figure/7-715-Example3.jpg}
+\end{columns}
+
+
+\end{frame}
+
+
+
+\begin{frame}{Note on technologies used}
+
+\begin{columns}
+\column{0.55\textwidth}
+\begin{itemize}
+\item{Image analysis code in R}
+\item{Heavy use of parallel computation in R}
+\item{Parallel cluster on Amazon AWS cloud (20 nodes)}
+\item{Storage of the image analysis features in Apache HBase}
+\begin{itemize}
+\item{Open source nonSQL DB technology}
+\item{Based on the heritage of Google BigTable}
+\item{Horizontal scaling to handle billions of rows}
+\end{itemize}
+\end{itemize}
+
+\column{0.45\textwidth}
+%\hspace{2cm}
+\includegraphics[height=2cm]{figure/R_logo}\\
+\vspace{0.2cm}
+\includegraphics[width=4cm]{figure/aws}\\
+\vspace{0.2cm}
+\includegraphics[width=4.5cm]{figure/hbase}
+\end{columns}
+
+
+\end{frame}
+
 
 
 
