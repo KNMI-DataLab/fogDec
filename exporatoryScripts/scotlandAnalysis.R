@@ -60,61 +60,131 @@ foggyDay = filtered709.3[as.Date(dateTime)=="2016-11-21" & ((hour(dateTime)==9 &
 
 
 
-foggyDay2 = filtered709.3[as.Date(dateTime)=="2016-11-21" & ((hour(dateTime)>=8 & (hour(dateTime)<=12))),] 
+foggyDay2 = filtered709.3[as.Date(dateTime)=="2016-11-21" & ((hour(dateTime)>=8 & (hour(dateTime)<=11))),] 
 
 
-ggplot(filtered709.3, aes(x = meanEdge, fractalDim))+geom_point(color="black")+geom_point(data=foggyDay, aes(x = meanEdge, fractalDim, label=filePath), colour="red",size =3)+geom_text(data = foggyDay, aes(label= dateTime, colour = "red"),check_overlap = F, size =3)
-
-
-
+ggplot(filtered709.3, aes(x = meanEdge, fractalDim))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = meanEdge, fractalDim, label=filePath), colour="red",size =3)+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =3)
 
 
 
-clusters<-hclust(dist(filtered709[,meanEdge,fractalDim]))
-clusterCut<-cutree(clusters,5)
-ggplot(filtered709,aes(meanEdge,fractalDim))+geom_point(col = clusterCut)
-clusters<-hclust(dist(filtered709[,meanEdge,fractalDim,changePoint]))
-clusters<-hclust(dist(filtered709[,c(meanEdge,fractalDim,changePoint)]))
-clusterCut<-cutree(clusters,5)
-clusters<-hclust(dist(filtered709[,c(meanEdge,fractalDim,changePoint)]))
-clusterCut<-cutree(clusters,5)
-ggplot(filtered709,aes(meanEdge,fractalDim))+geom_point(col = clusterCut)
-filtered709[,c(meanEdge,meanHue)]
-filtered709[,c(meanEdge,changePoint)]
-filtered709[,c("meanEdge","changePoint")]
-clusters<-hclust(dist(filtered709[,c("meanEdge","fractalDim","changePoint")]))
-clusterCut<-cutree(clusters,5)
-ggplot(filtered709,aes(meanEdge,fractalDim))+geom_point(col = clusterCut)
-clusters<-hclust(dist(filtered709[,c("meanEdge","fractalDim","changePoint", "smoothness")]))
-clusterCut<-cutree(clusters,4)
-ggplot(filtered709,aes(meanEdge,fractalDim))+geom_point(col = clusterCut)
-clusterCut
-filtered709[clusterCut==2,]
-clusterCut<-cutree(clusters,5)
-ggplot(filtered709,aes(meanEdge,fractalDim))+geom_point(col = clusterCut)
-hist(filtered709$changePoint)
-filtered709[,changePoint>175]
-filtered709[changePoint>175]
-filtered709[changePoint>180]
-test<-filtered709[changePoint>180]
-test
-head(test,30)
-test<-filtered709[changePoint>195]
-test<-filtered709[changePoint>190]
-test<-filtered709[changePoint>192]
-test<-filtered709[changePoint>193]
-test<-filtered709[changePoint>193]
-test<-filtered709[changePoint>194]
-test<-filtered709[changePoint>193]
-View(test)
-View(test)
-test<-filtered709[changePoint>175 & changePoint<190]
-View(test)
-hist(filtered709$fractalDim)
-test<-filtered709[fractalDim<2.2]
-View(test)
-test<-filtered709[fractalDim<2.3 & fractalDim>2.2]
-View(test)
+#given the visual inspection they are similar in terms of features but only 21-11 is foggy
+filtered709.3[meanEdge>0.014 & meanEdge<0.0152 & fractalDim>2.37 & fractalDim<2.38,]
+
+
+ggplot(filtered709.3, aes(x = meanEdge, smoothness))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = meanEdge, smoothness, label=filePath), colour="red",size =3)#+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =3)
+
+ggplot(filtered709.3, aes(x = meanEdge, meanHue))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = meanEdge, meanHue, label=filePath), colour="red",size =3)+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =3)
+
+ggplot(filtered709.3, aes(x = meanEdge, changePoint))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = meanEdge, changePoint, label=filePath), colour="red",size =3)+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =3)
+
+
+#given the visual inspection they are similar in features but sunny day but different zoom in scenery on 21-11 is foggy
+filtered709.3[meanEdge<=0.015 & changePoint<80 &changePoint>70,]
+
+ggplot(filtered709.3, aes(x = meanEdge, meanSaturation))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = meanEdge, meanSaturation, label=filePath), colour="red",size =3)+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =3)
+
+
+#given the visual inspection on 2016-12-07/08 seems misty
+filtered709.3[meanEdge<=0.013 & meanSaturation<0.15 & meanSaturation>0.1,]
+
+
+
+ggplot(filtered709.3, aes(x = meanEdge, meanBrightness))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = meanEdge, meanBrightness, label=filePath), colour="red",size =3)+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =3)
+
+
+ggplot(filtered709.3, aes(x = changePoint, fractalDim))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = changePoint, fractalDim, label=filePath), colour="red",size =3)+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =3)
+
+
+ggplot(filtered709.3, aes(x = changePoint, meanSaturation))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = changePoint, meanSaturation, label=filePath), colour="red",size =3)+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =3)
+
+ggplot(filtered709.3, aes(x = changePoint, meanHue))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = changePoint, meanHue, label=filePath), colour="red",size =3)+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =3)
+
+
+#none of the imagaes with the similar features to the one of 21-11 has fog
+filtered709.3[meanHue<=125 & meanHue>100 & changePoint<100 & changePoint>70,]
+
+
+ggplot(filtered709.3, aes(x = changePoint, meanBrightness))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = changePoint, meanBrightness, label=filePath), colour="red",size =3)+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =3)
+
+ggplot(filtered709.3, aes(x = meanSaturation, meanBrightness))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = meanSaturation, meanBrightness, label=filePath), colour="red",size =3)+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =3)
+
+
+ggplot(filtered709.3[smoothness<2.5,], aes(x = meanSaturation, smoothness))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = meanSaturation, smoothness, label=filePath), colour="red",size =3)+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =3)
+
+
+#some haziness conditions are identified, better than other indicators
+filtered709.3[meanSaturation<=0.15 & meanSaturation<1 & smoothness<1,]
+
+
+ggplot(filtered709.3, aes(x = meanSaturation, meanHue))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = meanSaturation, meanHue, label=filePath), colour="red",size =3)+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =3)
+
+filtered709.3[meanSaturation<=0.1 & meanSaturation<1 & meanHue<150,]
+
+ggplot(filtered709.3[smoothness<2.5], aes(x = fractalDim, smoothness))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = fractalDim, smoothness, label=filePath), colour="red",size =3)+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =3)
+
+
+#not really useful
+filtered709.3[fractalDim<=2.4 & smoothness<.8 & smoothness>.7,]
+
+
+
+
+#looking if any dimentions can be removed, PCA analysis
+valuesNumbers<-filtered709.3[,12:18]
+
+
+library(caret)
+PCAtransf<-preProcess(valuesNumbers,method=c("BoxCox", "center", "scale", "pca"))
+
+PCAtransf
+
+# 
+# 
+# clusters<-hclust(dist(filtered709[,meanEdge,fractalDim]))
+# clusterCut<-cutree(clusters,5)
+# ggplot(filtered709,aes(meanEdge,fractalDim))+geom_point(col = clusterCut)
+# clusters<-hclust(dist(filtered709[,meanEdge,fractalDim,changePoint]))
+# clusters<-hclust(dist(filtered709[,c(meanEdge,fractalDim,changePoint)]))
+# clusterCut<-cutree(clusters,5)
+# clusters<-hclust(dist(filtered709[,c(meanEdge,fractalDim,changePoint)]))
+# clusterCut<-cutree(clusters,5)
+# ggplot(filtered709,aes(meanEdge,fractalDim))+geom_point(col = clusterCut)
+# filtered709[,c(meanEdge,meanHue)]
+# filtered709[,c(meanEdge,changePoint)]
+# filtered709[,c("meanEdge","changePoint")]
+# clusters<-hclust(dist(filtered709[,c("meanEdge","fractalDim","changePoint")]))
+# clusterCut<-cutree(clusters,5)
+# ggplot(filtered709,aes(meanEdge,fractalDim))+geom_point(col = clusterCut)
+# clusters<-hclust(dist(filtered709[,c("meanEdge","fractalDim","changePoint", "smoothness")]))
+# clusterCut<-cutree(clusters,4)
+# ggplot(filtered709,aes(meanEdge,fractalDim))+geom_point(col = clusterCut)
+# clusterCut
+# filtered709[clusterCut==2,]
+# clusterCut<-cutree(clusters,5)
+# ggplot(filtered709,aes(meanEdge,fractalDim))+geom_point(col = clusterCut)
+# hist(filtered709$changePoint)
+# filtered709[,changePoint>175]
+# filtered709[changePoint>175]
+# filtered709[changePoint>180]
+# test<-filtered709[changePoint>180]
+# test
+# head(test,30)
+# test<-filtered709[changePoint>195]
+# test<-filtered709[changePoint>190]
+# test<-filtered709[changePoint>192]
+# test<-filtered709[changePoint>193]
+# test<-filtered709[changePoint>193]
+# test<-filtered709[changePoint>194]
+# test<-filtered709[changePoint>193]
+# View(test)
+# View(test)
+# test<-filtered709[changePoint>175 & changePoint<190]
+# View(test)
+# hist(filtered709$fractalDim)
+# test<-filtered709[fractalDim<2.2]
+# View(test)
+# test<-filtered709[fractalDim<2.3 & fractalDim>2.2]
+# View(test)
 
 
 #######################################################################
