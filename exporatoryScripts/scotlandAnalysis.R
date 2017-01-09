@@ -1,3 +1,6 @@
+library(data.table)
+library(ggplot2)
+
 scotland709<-readRDS("results/ResultFeatures7-709.rds")
 
 
@@ -63,12 +66,17 @@ foggyDay = filtered709.3[as.Date(dateTime)=="2016-11-21" & ((hour(dateTime)==9 &
 foggyDay2 = filtered709.3[as.Date(dateTime)=="2016-11-21" & ((hour(dateTime)>=8 & (hour(dateTime)<=11))),] 
 
 
-ggplot(filtered709.3, aes(x = meanEdge, fractalDim))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = meanEdge, fractalDim, label=filePath), colour="red",size =3)+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =3)
+ggplot(filtered709.3, aes(x = meanEdge, fractalDim))+geom_point(color="black")+
+    geom_point(data=foggyDay2, aes(x = meanEdge, fractalDim, label=filePath), colour="red",size =3)+
+    geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =3)+
+     annotate("rect",xmin = 0.014,xmax = 0.0152, ymin = 2.37,ymax = 2.38, fill = "green", alpha = 0.5)#+scale_colour_discrete(labels  ="Foggy image")
 
 
 
 #given the visual inspection they are similar in terms of features but only 21-11 is foggy
 filtered709.3[meanEdge>0.014 & meanEdge<0.0152 & fractalDim>2.37 & fractalDim<2.38,]
+
+
 
 
 ggplot(filtered709.3, aes(x = meanEdge, smoothness))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = meanEdge, smoothness, label=filePath), colour="red",size =3)#+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =3)
@@ -109,11 +117,11 @@ ggplot(filtered709.3, aes(x = changePoint, meanBrightness))+geom_point(color="bl
 ggplot(filtered709.3, aes(x = meanSaturation, meanBrightness))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = meanSaturation, meanBrightness, label=filePath), colour="red",size =3)+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =3)
 
 
-ggplot(filtered709.3[smoothness<2.5,], aes(x = meanSaturation, smoothness))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = meanSaturation, smoothness, label=filePath), colour="red",size =3)+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =3)
+ggplot(filtered709.3[smoothness<5,], aes(x = meanSaturation, smoothness))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = meanSaturation, smoothness, label=filePath), colour="red",size =3)+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =3)
 
 
 #some haziness conditions are identified, better than other indicators
-filtered709.3[meanSaturation<=0.15 & meanSaturation<1 & smoothness<1,]
+filtered709.3[meanSaturation<=0.125 & meanSaturation>0.05 & smoothness<1,]
 
 
 ggplot(filtered709.3, aes(x = meanSaturation, meanHue))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = meanSaturation, meanHue, label=filePath), colour="red",size =3)+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =3)

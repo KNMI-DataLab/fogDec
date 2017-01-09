@@ -405,6 +405,7 @@ fogTreeNoRain <- rpart(foggy ~ meanEdge + changePoint + meanBrightness +
                                  precipitationIntPWS + precipitationDurationElec + precipitationDurationPWS, 
                                  trainTwenteNoRain , control = rpart.control(cp = 0.015))
 
+@
 
 <<ClassificationTreeTwenteMeteo, echo=FALSE, fig.height=4>>=
 
@@ -523,9 +524,136 @@ fancyRpartPlot(fogTreeNoRain, sub="")
 
 \end{frame}
 
+\begin{frame}{Noise in feature space}
+
+\begin{columns}
+\column{0.55\textwidth}
+\begin{itemize}
+\item{Location: M90 Craigbrae 2}
+\item{Same camera three different scenes}
+\end{itemize}
+\vspace{0.5cm}
+\includegraphics[height=3.5cm]{figure/scotland715Location}
+
+\column{0.3\textwidth}
+%\hspace{2cm}
+\includegraphics[height=2.3cm]{figure/7-715-Example1.jpg}\\
+\includegraphics[height=2.3cm]{figure/7-715-Example2.jpg}\\
+\includegraphics[height=2.3cm]{figure/7-715-Example3.jpg}
+\end{columns}
+
+
+\end{frame}
+
+
+
+
+
+
+
+
+\begin{frame}{Impact of dynamics on features}
+
+
+Not a clear cluster
+
+<<Scotland709Exploration, echo=FALSE>>=
+
+scotland709<-readRDS("results/ResultFeatures7-709.rds")
+filtered709<-scotland709[complete.cases(scotland709),]
+filtered709.2<-filtered709[fractalDim>2.2]
+filtered709.3<-filtered709.2[meanEdge>=0.010]
+foggyDay2 = filtered709.3[as.Date(dateTime)=="2016-11-21" & ((hour(dateTime)>=8 & (hour(dateTime)<=11))),] 
+@
+
+
+<<Scotland709ExplorationPlot, echo=FALSE, fig.height=4>>=
+ggplot(filtered709.3, aes(x = meanEdge, fractalDim))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = meanEdge, fractalDim, label=filePath), colour="red")+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =1)+scale_colour_discrete(labels  ="Foggy image")
+@
+
+
+
+
+\end{frame}
+
+
+
+\begin{frame}{Impact of dynamics on features}
+
+
+Looking closer to images with similar features
+%' <<Scotland709Exploration, echo=FALSE>>=
+%' 
+%' scotland709<-readRDS("results/ResultFeatures7-709.rds")
+%' filtered709<-scotland709[complete.cases(scotland709),]
+%' filtered709.2<-filtered709[fractalDim>2.2]
+%' filtered709.3<-filtered709.2[meanEdge>=0.010]
+%' foggyDay2 = filtered709.3[as.Date(dateTime)=="2016-11-21" & ((hour(dateTime)>=8 & (hour(dateTime)<=11))),] 
+%' @
+
+
+<<Scotland709ExplorationPlot2, echo=FALSE, fig.height=4>>=
+ggplot(filtered709.3, aes(x = meanEdge, fractalDim))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = meanEdge, fractalDim, label=filePath), colour="red")+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =1)+scale_colour_discrete(labels  ="Foggy image")+annotate("rect",xmin = 0.014,xmax = 0.0152, ymin = 2.37,ymax = 2.38, fill = "green", alpha = 0.5)
+@
+
+
+
+
+\end{frame}
+
+
+\begin{frame}{Impact of dynamics on features}
+Looking closer to images with similar features (green box)
+
+
+<<Scotland709ExplorationPlot3, echo=FALSE, fig.height=2.5, fig.width=8.4>>=
+old_par <- par(mfrow=c(1,3))
+plot(load.image("figure/scotlandAnalysis/7-709_20161121_1130.jpg"),main="Foggy Day")
+plot(load.image("figure/scotlandAnalysis/7-709_20161201_1340.jpg"),main="Non-foggy Day")
+plot(load.image("figure/scotlandAnalysis/7-709_20161201_1350.jpg"),main="Non-foggy Day")
+plot(load.image("figure/scotlandAnalysis/7-709_20161201_1410.jpg"),main="Non-foggy Day")
+plot(load.image("figure/scotlandAnalysis/7-709_20161211_1240.jpg"),main="Non-foggy Day")
+par(old_par)
+@
+\end{frame}
+
+
+\begin{frame}{Impact of dynamics on features}
+Other feature space show bit more clustering
+
+<<Scotland709ExplorationPlot4, echo=FALSE, fig.height=4>>=
+ggplot(filtered709.3[smoothness<5,], aes(x = meanSaturation, smoothness))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = meanSaturation, smoothness, label=filePath), colour="red")+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =1)+annotate("rect",xmin = 0.05,xmax = 0.125, ymin = 0,ymax = 1, fill = "green", alpha = 0.5)
+@
+
+%filtered709.3[meanSaturation<=0.16 & meanSaturation>0.05 & smoothness<1,]
+
+
+\end{frame}
+
+
+\begin{frame}{Impact of dynamics on features}
+Looking closer to images with similar features (green box)
+
+
+<<Scotland709ExplorationPlot5, echo=FALSE, fig.height=2.5, fig.width=8.4>>=
+old_par <- par(mfrow=c(1,3))
+plot(load.image("figure/scotlandAnalysis/7-709_20161121_1140.jpg"),main="Foggy Day (more of the same day are selected)")
+plot(load.image("figure/scotlandAnalysis/7-709_20161207_1310.jpg"),main="Mist?")
+plot(load.image("figure/scotlandAnalysis/7-709_20161207_1340.jpg"),main="Mist?")
+plot(load.image("figure/scotlandAnalysis/7-709_20161213_0910.jpg"),main="Mist?")
+plot(load.image("figure/scotlandAnalysis/7-709_20161213_1000.jpg"),main="Non-foggy Day")
+plot(load.image("figure/scotlandAnalysis/7-709_20161213_1040.jpg"),main="Mist?")
+
+par(old_par)
+@
+\end{frame}
+
+
 
 
 \begin{frame}{Note on technologies used}
+
+
 
 \begin{columns}
 \column{0.55\textwidth}
@@ -555,12 +683,33 @@ fancyRpartPlot(fogTreeNoRain, sub="")
 
 
 
+\begin{frame}{Features extracted from images}
+
+
+\begin{itemize}
+\begin{footnotesize}
+\item{Mean Edges: for finding the boundaries of objects within images. It works by detecting discontinuities in the image (e.g., foreground and background elements).}
+\item{Mean Brightness: perception of a source of radiating/reflecting light.}
+\item{Mean Saturation: is a measure of the purity of the color. The purest (most saturated) color is achieved by using just one wavelength, less pure come from a combination at different wavelegths.}
+\item{Mean HUE: perception of a source of being similar to one of the perceived colors: red, yellow, green, and blue, or to a combination of two of them.}
+\item{Fractal Dimension: self similarity in filling space.}
+\item{Transmission smoothness: transmission of the darkchannel of the image (smoothed indicator).}
+\item{Transmission changepoint: horizontal point where the transmission of the dark channel is subject to change.}
+\end{footnotesize}
+\end{itemize}
+
+
+
+
+
+\end{frame}
+
+
+
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%MODIFIED ANDREA END%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-
 
 
 <<MultiLinearRegression, include=FALSE>>=
