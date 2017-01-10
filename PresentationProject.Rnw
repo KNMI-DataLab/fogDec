@@ -10,10 +10,10 @@
 % ---------------
 \graphicspath{{figure/}}
 
-\title{Experiences of fog detection using cameras at KNMI}
+\title[Fog detection]{Experiences of fog detection using cameras at KNMI}
 \subtitle{Working meeting with RWS}
-\date{De Bilt, 16th January 2017}
-\author{Dr. W. Wauber, Dr. G.A. Pagani, and Dr. M. Roth}
+\date{January 16, 2017}
+\author[Wauben, Pagani, Roth]{Dr. W. Wauben, Dr. G.A. Pagani, and Dr. M. Roth}
 %\author[M. Roth (\MYhref{mailto:roth@knmi.nl}{roth@knmi.nl})]{Martin Roth\texorpdfstring{\\[2mm] \scriptsize \href{mailto:roth@knmi.nl}{roth@knmi.nl}\\[4mm] {\scriptsize Joint work with A. Buishand and G. Jongbloed}}{}}
 
 \begin{document}
