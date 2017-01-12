@@ -45,14 +45,22 @@ library(ggplot2)
 library(data.table)
 library(ggmap)
 tmp4 <- data.table(fortify(tmp3))
+tmp4[, visibility := sample(c("clear", "light fog", "dense fog"), 1, prob = c(0.75, 0.15, 0.1)), by = group]
+
+tmp4[, visibility := factor(visibility, levels = c("clear", "light fog", "dense fog"))]
 
 ggplot(tmp4, aes(x = long, y = lat, group = group)) + geom_path()
 
-myMap <- get_map("Netherlands", zoom = 7)
+# myMap <- get_map("Netherlands", zoom = 8)
+myMap <- get_map(c(lon = 5.5, lat = 52.5), zoom = 8)
 ggmap(myMap) + 
-  geom_path(aes(x = long, y = lat, group = group, col = foggy), data = tmp4, lwd = 2) +
-  scale_color_manual(values = c("green", "red"))
+  geom_path(aes(x = long, y = lat, group = group, col = visibility),
+            data = tmp4, lwd = 2) +
+  scale_color_manual(values = c("green", "orange", "red"))
 
-ggmap(myMap) + 
-  geom_path(aes(x = long, y = lat, group = group, col = foggy), data = tmp4, lwd = 2) +
-  scale_color_manual(values = c("green", "red")) + xlim(5.5, 6.5) + ylim(51.75, 52.25)
+myFocusMap <- get_map("Amsterdam", zoom = 11)
+# myFocusMap <- get_map(c(lon = 5.9, lat = 52), zoom = 10)
+ggmap(myFocusMap) + 
+  geom_path(aes(x = long, y = lat, group = group, col = visibility),
+            data = tmp4, lwd = 2) +
+  scale_color_manual(values = c("green", "orange", "red")) 
