@@ -526,7 +526,7 @@ Water drops on the camera enclosure
 
 \only<2>{
 \begin{textblock*}{6cm}(6.2cm,4.3cm)
-\begin{tcolorbox}[width=6cm, left=-0.2cm, right=-0.1cm,enhanced,drop shadow southwest,sharp corners] %{width=5cm, left=7.2cm, top=2cm}
+\begin{tcolorbox}[width=6cm, left=-0.2cm, right=-0.1cm,enhanced,drop shadow southwest] %{width=5cm, left=7.2cm, top=2cm}
 
  \begin{itemize}
   \item[$\Rightarrow$] if possible weather protection
