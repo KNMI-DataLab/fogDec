@@ -725,7 +725,8 @@ Water drops on the camera enclosure
 
 %\column{0.55\textwidth}
 \begin{itemize}
-\item{Archiving images of 300 cameras around Scotland every 10 minutes}
+\item{300 available cameras around Scotland every 10 minutes}
+\item{Archiving images along the M90 motorway (39 cameras)}
 %\item{Analysis of a 2 cameras on the M90 for 2 months}
 \item{Challenges:}
 \begin{itemize}
