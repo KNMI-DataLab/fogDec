@@ -3,6 +3,8 @@
 \usepackage{lmodern}
 \usepackage{knmiBeamer}
 \usepackage{multirow}
+\usepackage[skins]{tcolorbox}
+
 \Engelstrue     % For English slides 
 \renewcommand{\titleFigure}{figure/fogCover.jpg}
 
@@ -512,18 +514,25 @@ ggplot(podfar, aes(visibility, value, fill=year)) + geom_bar(position="dodge", s
 \includegraphics[height=2cm]{figure/wideCamera}
 
 \column{0.8\textwidth}
-\includegraphics[height=3cm]{inst/extdata/cornerCasesTwente/EHTW_201506280400.jpg} Ice on the camera enclosure\\
-\includegraphics[height=3cm]{inst/extdata/cornerCasesTwente/EHTW_201510060700.jpg} Water drops on the camera enclosure\\
+\includegraphics[height=3cm]{inst/extdata/cornerCasesTwente/EHTW_201506280400.jpg} \\
+\includegraphics[height=3cm]{inst/extdata/cornerCasesTwente/EHTW_201510060700.jpg} \\
 
 \end{columns}
-
+\begin{textblock*}{5cm}(6.2cm,3.85cm)
+Ice on the camera enclosure\\
+\vspace{2.7cm}
+Water drops on the camera enclosure
+\end{textblock*}
 
 \only<2>{
-\begin{textblock*}{5cm}(5.2cm,3.5cm)
+\begin{textblock*}{6cm}(6.2cm,4.3cm)
+\begin{tcolorbox}[width=6cm, left=-0.2cm, right=-0.1cm,enhanced,drop shadow southwest,sharp corners] %{width=5cm, left=7.2cm, top=2cm}
+
  \begin{itemize}
   \item[$\Rightarrow$] if possible weather protection
   \item[$\Rightarrow$] adding meteo information into ML helps as well (perceived visibility can be low also due to heavy rain)
  \end{itemize}
+ \end{tcolorbox}
 \end{textblock*}
 }
 
@@ -909,11 +918,12 @@ ggplot(podfar, aes(visibility, value, fill=year)) + geom_bar(position="dodge", s
 
 
 \begin{columns}
-\column{0.55\textwidth}
+\column{0.65\textwidth}
 \begin{itemize}
 \item{Image analysis code in R/C++}
 \item{Heavy use of parallel computation in R}
 \item{Parallel cluster on Amazon AWS cloud (20 nodes)}
+\item{GitHub repository for versioning}
 \item{Storage of the image features in Apache HBase}
 \begin{itemize}
 \item{Open source nonSQL DB technology}
