@@ -24,3 +24,8 @@ Below a set of requirements is defined to select the appropriate cameras in term
 
 * Sampling period: 1 minute (preferred) to 10 minutes
 
+* Filename convention: cameraID_YYYYMMDD_HHmm.jpg  
+    + cameraID should not contain underscore "_"  
+    + YYYYMMDD_HHmm are Year Month Day Hour(24hour format) minute
+
+
