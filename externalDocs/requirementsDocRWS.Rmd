@@ -1,0 +1,26 @@
+---
+title: "KNMI-RWS Automatic fog detection through camera pictures"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Below a set of requirements is defined to select the appropriate cameras in term of location, picture properties, and sampling period.
+
+### KNMI requirement list:
+
+* Location:  
+    + TO DO: Martin analysis of location given the MOR data (if they will ever come out of KISS)
+    + Areas where there is a dynamic trajectory information system 
+
+* Pictures of at least 320x240 pixels
+* No labels written in the pictures (e.g., labels of time or camera ID)
+* Camera categories of interest:
+    + belonging to Gladheid Meld Systeem
+    + static
+    + dynamic (ideally close to the location of a static camera for comparison) 
+
+* Sampling period: 1 minute (preferred) to 10 minutes
+
