@@ -20,7 +20,7 @@
 \title[Fog detection]{Experiences of fog detection using cameras at KNMI}
 \subtitle{Working meeting with RWS}
 \date{January 16, 2017}
-\author[Pagani, Roth, Wauben]{G.A. Pagani, M. Roth and W. Wauben}
+\author[Pagani, Roth, Wauben]{G.A. Pagani, M. Roth\\ and W. Wauben}
 %\author[M. Roth (\MYhref{mailto:roth@knmi.nl}{roth@knmi.nl})]{Martin Roth\texorpdfstring{\\[2mm] \scriptsize \href{mailto:roth@knmi.nl}{roth@knmi.nl}\\[4mm] {\scriptsize Joint work with A. Buishand and G. Jongbloed}}{}}
 
 \begin{document}
@@ -141,7 +141,7 @@ datNDW[, visibility := factor(visibility, levels = c("clear", "light fog", "dens
 <<NLMap, echo=FALSE, warning=FALSE, fig.height=10>>=
 ggmap(mapNL) + 
   geom_path(aes(x = long, y = lat, group = group, col = visibility),
-            data = datNDW, lwd = 1) +
+            data = datNDW, lwd = 2) +
   scale_color_manual(values = c("green", "orange", "red")) +
   theme(legend.position="bottom")
 @
@@ -1025,13 +1025,13 @@ testClean[MOR < 5000 & predMOR > 9.65, .N] / testClean[predMOR > 9.65, .N]
 
 \begin{frame}{Next steps}
 
- \begin{block}{\alert{Hopefully} more images to test algorithms}
+ \begin{block}{More testing \alert{$\Rightarrow$} need more representative images}
  \end{block}
  
  \begin{block}{More research into features and different ML algorithms}
  \end{block}
  
- \begin{block}{Development of a spatio-temporal model}
+ \begin{block}{Use multiple cameras (spatio-temporal model)}
  \end{block}
  
  % \begin{block}{Next directions}
