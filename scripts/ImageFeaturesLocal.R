@@ -8,7 +8,7 @@ library(ggplot2)
 library(doParallel)
 library(maptools)
 
-registerDoParallel(cores=5)
+registerDoParallel(cores=4)
 
 system.time({
 # properties <- fread(system.file("extdata/properties.csv", package="visDec"))
@@ -18,8 +18,8 @@ system.time({
 # basePath <- "/net/bhw420/nobackup/users/wauben/CAMERA/EHTW/"
 # output   <- "/nobackup/users/roth/processedImages/AWSTwente/"
 properties <- fread("properties.csv")
-basePath <- "/net/bhw510/nobackup/users/pagani/cabauw"
-output   <- "/nobackup/users/roth/processedImages/AWSTwenteRect/"
+basePath <- "/net/bhw510/nobackup/users/pagani/cabauw/"
+output   <- "/nobackup/users/roth/processedImages/Cabauw/"
 
 directories <- dir(basePath,
                    pattern = glob2rx("20*"))
