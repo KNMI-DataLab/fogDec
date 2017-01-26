@@ -34,6 +34,8 @@ foggyLocations
     + belonging to Gladheid Meld Systeem
     + static
     + dynamic (ideally close to the location of a static camera for comparison) 
+    
+* Location and id
 
 * Sampling period: 1 minute (preferred) to 10 minutes
 
