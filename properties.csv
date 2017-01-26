@@ -1,2 +1,3 @@
 locationID,stationID,locationName,lon,lat,filePattern,filePrefix,imageFormat,fileLocation
-2,290_A_a,Twente,6.89,52.276944,na*me_yyyymmddhhmm.jpg,EHTW,jpg,~/efs/test
+NL3,CW1-1,Cabauw,4.927,51.971,na*me_yyyymmddhhmm.jpg,CW1-1,jpg,/nobackup/users/pagani/cabauw
+NL4,CW1-2,Cabauw,4.927,51.971,na*me_yyyymmddhhmm.jpg,CW1-2,jpg,/nobackup/users/pagani/cabauw

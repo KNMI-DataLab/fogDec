@@ -18,7 +18,7 @@ system.time({
 # basePath <- "/net/bhw420/nobackup/users/wauben/CAMERA/EHTW/"
 # output   <- "/nobackup/users/roth/processedImages/AWSTwente/"
 properties <- fread("properties.csv")
-basePath <- "/net/bhw510/nobackup/users/pagani/TwenteRect/"
+basePath <- "/net/bhw510/nobackup/users/pagani/cabauw"
 output   <- "/nobackup/users/roth/processedImages/AWSTwenteRect/"
 
 directories <- dir(basePath,
@@ -28,7 +28,7 @@ foreach(directory = iter(directories), .combine = "rbind") %do% {
   message(paste0("Directory ", directory, " is being processed."))
   filenames <- list.files(paste0(basePath, directory),
                           # pattern=glob2rx("Meetterrein_*.jpg"),
-                          pattern=glob2rx("EHTW*.jpg"),
+                          pattern=glob2rx("CW1*.jpg"),
                           full.names = TRUE)
   
   imageSummary <- foreach(file = iter(filenames), .combine = rbind) %dopar% {
