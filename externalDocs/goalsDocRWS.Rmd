@@ -1,0 +1,14 @@
+---
+title: "KNMI-RWS Automatic fog detection through camera pictures"
+author: "G.A. Pagani, M. Roth, J.W. Noteboom"
+subtitle: "Project Goals Document"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The main goal of the project is to  develop a prototype able to identify fog situation by analyzing daytime images of traffic monitoring cameras.   
+The main effort is to have a algorithm/method that has very good performance (e.g., sensitivity and specificity) in identifying fog conditions for static cameras.  
+In parallel to the main effort, research will be performed to apply/modify the algorithm for situations in which the cameras are dynamic i.e., the cameras move resulting in a sudden change of the picture scene.

@@ -1,5 +1,7 @@
 ---
 title: "KNMI-RWS Automatic fog detection through camera pictures"
+author: "G.A. Pagani, M. Roth, J.W. Noteboom"
+subtitle: "Requirements Document"
 output: html_document
 ---
 
@@ -9,38 +11,41 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Below a set of requirements is defined to select the appropriate cameras in term of location, picture properties, and sampling period.
 
-### KNMI requirement list:
+#### KNMI requirement list:
 
 * Location:  
-    + TO DO: Martin analysis of location given the MOR data (if they will ever come out of KISS)
+    + Highly Preferred: close to the locations below
     + Areas where there is a dynamic trajectory information system 
-foggyLocations
-         DS_CODE foggyDays                                  naam
- 1:      340_A_a        40              (Woensdrecht, locatie A)
- 2: 340_A_obs07t        40        (Woensdrecht, locatie obs07t) 
- 3:    275_A_20t        41                 (Deelen, locatie 20t)
- 4:      275_A_a        41             (Deelen, waarneemterrein)
- 5:      267_A_a        43                            (Stavoren)
- 6:      279_A_a        43                           (Hoogeveen)
- 7:   240_A_ISMU        44            (Schiphol, locatie Muiden)
- 8: 275_A_obs02t        45              (Deelen, locatie obs20t)
- 9:    280_A_23t        45                  (Eelde, locatie 23t)
-10:      215_A_a        46 (Voorschoten, barometer en PW-sensor)
-11:      290_A_a        56                  (Twenthe, locatie A)
+
+foggyLocations   
+
+DS_CODE |foggyDays in 2016 |                                Location name
+-----------------|----------|------------------------------------
+ 1:      340_A_a |      40  |            (Woensdrecht, locatie A)
+ 2: 340_A_obs07t |      40  |      (Woensdrecht, locatie obs07t) 
+ 3:    275_A_20t |      41  |(Deelen, locatie 20t)
+ 4:      275_A_a |      41  |           (Deelen, waarneemterrein)
+ 5:      267_A_a |      43  |                          (Stavoren)
+ 6:      279_A_a |      43  |                         (Hoogeveen)
+ 7:   240_A_ISMU |      44  |          (Schiphol, locatie Muiden)
+ 8: 275_A_obs02t |      45  |            (Deelen, locatie obs20t)
+ 9:    280_A_23t |      45  |                (Eelde, locatie 23t)
+10:      215_A_a |      46  |(Voorschoten, barometer en PW-sensor)
+11:      290_A_a |      56  |                (Twenthe, locatie A)
 
 * Pictures of at least 320x240 pixels
-* No labels written in the pictures (e.g., labels of time or camera ID)
+* Highly preferred: NO labels written in the pictures (e.g., labels of time or camera ID)
 * Camera categories of interest:
     + belonging to Gladheid Meld Systeem
     + static
     + dynamic (ideally close to the location of a static camera for comparison) 
     
-* Location and id
+* Location (latitude and longitude) and id (unique identifier of the camera)
 
 * Sampling period: 1 minute (preferred) to 10 minutes
 
-* Filename convention: cameraID_YYYYMMDD_HHmm.jpg  
-    + cameraID should not contain underscore "_"  
-    + YYYYMMDD_HHmm are Year Month Day Hour(24hour format) minute
+* Highly preferred: filename convention as cameraID_YYYYMMDD_HHmm.jpg  
+    + cameraID should NOT contain underscore "_"  
+    + YYYYMMDD_HHmm are YYYY=Year MM=Month DD=Day HH=Hour(24hour format) mm=minute
 
 
