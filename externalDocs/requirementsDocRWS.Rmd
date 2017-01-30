@@ -15,7 +15,9 @@ Below a set of requirements is defined to select the appropriate cameras in term
 
 #### KNMI requirement list:
 
-* Close to the following places:
+* We are interested in the the following areas, either because of the risk of
+  fog is relatively high (e.g. Deelen) or because the area has a double use
+  (e.g. Eindhoven).:
     + Schiphol
     + Muiden
     + Houten (if there are fixed cameras)
@@ -25,6 +27,7 @@ Below a set of requirements is defined to select the appropriate cameras in term
     + Deelen
     + Rotterdam
     + Eindhoven
+  For each area we would like to have 10-15 different pictures, if possible.
 
 * Pictures of at least 320x240 pixels
 * Highly preferred: NO labels written in the pictures (e.g., labels of time or camera ID)
