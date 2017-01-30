@@ -23,6 +23,8 @@ Below a set of requirements is defined to select the appropriate cameras in term
     + Woensdrecht 
     + Voorschoten
     + Deelen
+    + Rotterdam
+    + Eindhoven
 
 * Pictures of at least 320x240 pixels
 * Highly preferred: NO labels written in the pictures (e.g., labels of time or camera ID)
