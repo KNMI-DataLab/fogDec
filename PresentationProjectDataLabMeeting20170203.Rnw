@@ -17,9 +17,9 @@
 % ---------------
 \graphicspath{{figure/}}
 
-\title[Fog detection]{Experiences of fog detection using cameras at KNMI}
-\subtitle{Working meeting with RWS}
-\date{January 16, 2017}
+\title[Fog detection]{DataLab project: fog detection using cameras}
+\subtitle{KNMI DataLab Meeting}
+\date{February 3, 2017}
 \author[Pagani, Roth, Wauben]{G.A. Pagani, M. Roth\\ and W. Wauben}
 %\author[M. Roth (\MYhref{mailto:roth@knmi.nl}{roth@knmi.nl})]{Martin Roth\texorpdfstring{\\[2mm] \scriptsize \href{mailto:roth@knmi.nl}{roth@knmi.nl}\\[4mm] {\scriptsize Joint work with A. Buishand and G. Jongbloed}}{}}
 
@@ -92,16 +92,16 @@ library(ggmap)
 
 \begin{frame}{Purpose, Scope, Benefits}
 \begin{itemize}
-\item Purpose: use cameras to identify fog conditions to issue safety hazards
-\item Scope: daylight fog identification from static cameras using image analysis
-\item Benefits:
+\item \textbf{Purpose:} use cameras to identify fog conditions to issue safety hazards
+\item \textbf{Scope:} daylight fog identification from static cameras using image analysis
+\item \textbf{Benefits:}
 \begin{itemize}
-\item Society: 
+\item \textit{Society: }
 \begin{itemize}
 \item human lives
 \item economic
 \end{itemize}
-\item KNMI:
+\item \textit{KNMI:}
 \begin{itemize}
 \item better widespread observations of fog conditions
 \item feed the fog observations in KNMI models (re-analysis) $\Rightarrow$ better fog modeling/predictions
@@ -133,13 +133,11 @@ filenames <- list.files(path,
 
 \begin{frame}{DataLab skills and tooling/technologies used}
 
-Maturing more knowledge and confidence in ML techniques.
-
 \begin{columns}
 \column{0.65\textwidth}
 \begin{itemize}
 \item{Maturing more knowledge and confidence in ML techniques}
-\item{Confluence pfoject repository}
+\item{Confluence project repository}
 \item{Project/task management: Trello}
 \item{Heavy use of parallel computation in R}
 \item{Parallel cluster on clouds providers}
@@ -175,19 +173,22 @@ Maturing more knowledge and confidence in ML techniques.
 
 %Present a slide with the status and progress of the project  (e.g. list successes and obstacles).
 \begin{frame}{Project status}
-% \begin{itemize}
-% \item {Successes:}
-% \begin{itemize}
-% \item{ Analyzed images of 1.5 years De Bilt - good results}
-% \item {Analyzed images of 1.5 years Twente - so and so results}
-% \item {Built an archive for images in Cabauw and Scotland Traffic (3 months)}
-% \item {Successful interaction RWS: collaboration project (end 2016 - full 2017)}
-% \end{itemize}
-% 
-% \item {Obstacles:}
-% \begin{itemize}
-% \end{itemize}
-% \end{itemize}
+\begin{itemize}
+\item \textbf{Successes:}
+\begin{itemize}
+\item{ Analyzed images of 1.5 years De Bilt - good results}
+\item {Analyzed images of 1.5 years Twente - so and so results}
+\item {Built an archive for images in Cabauw and Scotland Traffic (3 months)}
+\item {Successful interaction RWS: collaboration project (end 2016 - full 2017)}
+\end{itemize}
+
+\item \textbf{Obstacles:}
+\begin{itemize}
+\item{Access to camera images: privacy issues}
+\item{More data needed to thoroughly test algorithms}
+\item{Limited time for the project by the PIs}
+\end{itemize}
+\end{itemize}
 \end{frame}
 
 
@@ -897,6 +898,36 @@ testTwenteNoRain <- noRainDataTwente[year==2016, .(dateTime, meanEdge, changePoi
 
 
 
+
+%6.	Present a slide with outreach activities (presentations, events, contacts, opportunities).
+
+
+
+\begin{frame}{Outreach}
+\begin{itemize}
+\item{Conferences/articles:}
+\begin{itemize}
+\item{Accepted paper at WMO Technical Conference on Meteorological and Environmental Instruments and Methods of Observation --
+TECO-2016}
+\item{Accepted abstract at  European Geosciences Union General Assembly 2017 - EGU-2017}
+\end{itemize}
+\item{Opportunities:}
+\begin{itemize}
+\item{RWS: meetings concerning project collaboration}
+\end{itemize}
+\item{Contacts:}
+\begin{itemize}
+\item{Privacy officers: KNMI and IenM}
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+
+
+
+
+
+
 <<MokkupData, include=FALSE, cache=TRUE>>=
 shp = "inst/extdata/Snelwegen/NDWApril2016WGS84/NDW_April_2016_WGS84.shp"
 datNDW <- readOGR(shp, layer = "NDW_April_2016_WGS84")
@@ -928,31 +959,31 @@ datNDW[, visibility := sample(c("clear", "light fog", "dense fog"), 1, prob = c(
 datNDW[, visibility := factor(visibility, levels = c("clear", "light fog", "dense fog"))]
 @
 
-\begin{frame}
- \begin{textblock*}{6cm}(1.0cm,1.2cm)
-   <<AmsterdamMap, echo=FALSE, warning=FALSE, fig.height=10>>=
-   ggmap(mapAmsterdam) + 
-     geom_path(aes(x = long, y = lat, group = group, col = visibility),
-               data = datNDW, lwd = 2) +
-     scale_color_manual(values = c("green", "orange", "red")) +
-     theme(legend.position="bottom")
-   @
- \end{textblock*}
- \begin{textblock*}{5cm}(7.4cm,2.4cm)
-   \includegraphics[width=4cm]{Road-in-Fog.jpg}
-  % \begin{tikzpicture}
-   % \node[anchor=south west, inner sep=0](image) at (0,0) {\includegraphics[width=4cm]{Road-in-Fog.jpg}}
-   % \node (destination) at (-4, 3)
-   % \path[->, red] (destination) edge (anchor);
-  % \end{tikzpicture}
-  
-   \includegraphics[width=4cm]{Foggy_Road.jpg}
- \end{textblock*}
-\end{frame}
+%' \begin{frame}
+%'  \begin{textblock*}{6cm}(1.0cm,1.2cm)
+%'    <<AmsterdamMap, echo=FALSE, warning=FALSE, fig.height=10>>=
+%'    ggmap(mapAmsterdam) + 
+%'      geom_path(aes(x = long, y = lat, group = group, col = visibility),
+%'                data = datNDW, lwd = 2) +
+%'      scale_color_manual(values = c("green", "orange", "red")) +
+%'      theme(legend.position="bottom")
+%'    @
+%'  \end{textblock*}
+%'  \begin{textblock*}{5cm}(7.4cm,2.4cm)
+%'    \includegraphics[width=4cm]{Road-in-Fog.jpg}
+%'   % \begin{tikzpicture}
+%'    % \node[anchor=south west, inner sep=0](image) at (0,0) {\includegraphics[width=4cm]{Road-in-Fog.jpg}}
+%'    % \node (destination) at (-4, 3)
+%'    % \path[->, red] (destination) edge (anchor);
+%'   % \end{tikzpicture}
+%'   
+%'    \includegraphics[width=4cm]{Foggy_Road.jpg}
+%'  \end{textblock*}
+%' \end{frame}
 
-\begin{frame}{Fog warning without new infrastructure?}
+\begin{frame}{Next Steps: fog warning without new infrastructure?}
 
-\begin{textblock*}{5cm}(1cm,2.5cm)
+\begin{textblock*}{5cm}(1cm,2.75cm)
 \includegraphics[width=4cm]{figure/AvailableCameras}
 \end{textblock*}
 
@@ -969,8 +1000,16 @@ ggmap(mapNL) +
 
 
 
+%7. Finish with a slide that present your next steps and a possible request for sponsoring (leaptime, hours) by the steering committee (KNMI).
 
-
+\begin{frame}{Next Steps}
+ \begin{itemize}
+\item{RWS-KNMI collaboration project}
+\item{Work on images from RWS camera network: further algorithm test/improvement}
+\item{2017 sponsoring in RWS framework}
+\item {\textbf{\color{red}{Required more dedicated resources (FTEs) for ``quantum leap'' and RWS working prototype}}}
+\end{itemize}
+\end{frame}
 
 
 
@@ -1046,24 +1085,24 @@ ggmap(mapNL) +
 # testClean[MOR < 5000 & predMOR > 9.65, .N] / testClean[predMOR > 9.65, .N]
 @
 
-\begin{frame}{Next steps}
-
- \begin{block}{More testing \alert{$\Rightarrow$} need more representative images}
- \end{block}
- 
- \begin{block}{More research into features and different ML algorithms}
- \end{block}
- 
- \begin{block}{Use multiple cameras (spatio-temporal model)}
- \end{block}
- 
- % \begin{block}{Next directions}
- % \begin{itemize}
- %  \item use additional features, e.g. wind or dew point temperature
- %  \item use clustering for unsupervised learning
- % \end{itemize}
- % \end{block}
-\end{frame}
+% \begin{frame}{Next steps}
+% 
+%  \begin{block}{More testing \alert{$\Rightarrow$} need more representative images}
+%  \end{block}
+%  
+%  \begin{block}{More research into features and different ML algorithms}
+%  \end{block}
+%  
+%  \begin{block}{Use multiple cameras (spatio-temporal model)}
+%  \end{block}
+%  
+%  % \begin{block}{Next directions}
+%  % \begin{itemize}
+%  %  \item use additional features, e.g. wind or dew point temperature
+%  %  \item use clustering for unsupervised learning
+%  % \end{itemize}
+%  % \end{block}
+% \end{frame}
 
 \appendix
 
@@ -1079,7 +1118,7 @@ ggmap(mapNL) +
 \begin{footnotesize}
 \item{Mean Edges: for finding the boundaries of objects within images. It works by detecting discontinuities in the image (e.g., foreground and background elements).}
 \item{Mean Brightness: perception of a source of radiating/reflecting light.}
-\item{Mean Saturation: is a measure of the purity of the color. The purest (most saturated) color is achieved by using just one wavelength, less pure come from a combination at different wavelegths.}
+\item{Mean Saturation: is a measure of the purity of the color. The purest (most saturated) color is achieved by using just one wavelength, less pure come from a combination at different wavelengths.}
 \item{Mean HUE: perception of a source of being similar to one of the perceived colors: red, yellow, green, and blue, or to a combination of two of them.}
 \item{Fractal Dimension: self similarity in filling space.}
 \item{Transmission smoothness: transmission of the darkchannel of the image (smoothed indicator).}
@@ -1150,7 +1189,7 @@ ggmap(mapNL) +
   \end{table}
   
   \begin{itemize}
-\item {Metereological features are not selected except air temperature}
+\item {Meteorological features are not selected except air temperature}
 \item{Sensitivity: 0.6500000}
 \item{Specificity: 0.976115}
 
