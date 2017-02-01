@@ -87,6 +87,7 @@ library(ggmap)
   \item May form and dissipate suddenly
   \item Often only a local phenomenon
   \item Not easy to accurately forecast
+  \item Satellites are not pointing to NL 24/7
  \end{itemize}
 \end{frame}
 
@@ -270,7 +271,8 @@ ggplot(imageSummary, aes(x = log(MOR), y = meanEdge)) + geom_point()
 % \end{frame}
 
 
-\begin{frame}{Machine Learning: De Bilt classification tree\footnote{in the following daily conditions only}}
+\begin{frame}{Machine Learning: De Bilt classification tree} 
+%\footnote{in the following daily conditions only}}
 <<Classification, include=FALSE>>=
 load("results/deBiltResults2015.RData")
 imageSummary[, dayIsEven := mday(dateOnly) %% 2]
@@ -505,7 +507,7 @@ ggplot(podfar, aes(visibility, value, fill=year)) + geom_bar(position="dodge", s
 %image is very clear.
  \includegraphics[width=5cm]{EHTW_201508231400.jpg}
  \begin{itemize}
-  \item wide angle view
+  \item fish-eye lens
   \item only a few edges in the range of 50--250\,m
   \item fully unprotected camera
  \end{itemize}
@@ -650,29 +652,81 @@ fogTree <- rpart(foggy ~ meanEdge + changePoint + meanBrightness, trainTwente, c
 % 
 % Based on image features and meteo features (air temperature, dew point, wind speed, relative humidity)
 % 
- <<ClassificationTwenteMeteo, echo=FALSE>>=
+%'  <<ClassificationTwenteMeteo, echo=FALSE>>=
+%' 
+%'  noRainDataTwente <- dataTwente[precipitationDurationElec<600 & windSpeed<3.5,]
+%' 
+%'  #noRainDataTwente <- noRainDataTwente[day!=23 & month!=08 & year!=2015,]
+%'  
+%'  removedFoggyRainOrHighWind <- dataTwente[foggy==TRUE, .N] - noRainDataTwente[foggy==TRUE, .N]
+%'  datesOfFoggyRainOrHighWind <- dataTwente[dateTime%in%setdiff(dataTwente[foggy==TRUE]$dateTime,noRainDataTwente[foggy==TRUE]$dateTime)]$dateTime
+%' 
+%' trainTwenteNoRain <- noRainDataTwente[year==2015, .(dateTime, meanEdge, changePoint, smoothness, meanHue, meanSaturation, meanBrightness, MOR, foggy, day, month, hour, windSpeed, relHumidity, airTemperature, dewPoint, precipitationIntElec, precipitationIntPWS, precipitationDurationElec, precipitationDurationPWS, rain) ]
+%' 
+%' testTwenteNoRain <- noRainDataTwente[year==2016, .(dateTime, meanEdge, changePoint, smoothness, meanHue, meanSaturation, meanBrightness, MOR, foggy, day, month, hour, windSpeed, relHumidity, airTemperature, dewPoint, precipitationIntElec, precipitationIntPWS, precipitationDurationElec, precipitationDurationPWS, rain) ]
+%'  
+%'  fogTreeNoRain <- rpart(foggy ~ meanEdge + changePoint + meanBrightness +
+%'                                   relHumidity + windSpeed + airTemperature + dewPoint + precipitationIntElec + 
+%'                                   precipitationIntPWS + precipitationDurationElec + precipitationDurationPWS, 
+%'                                   trainTwenteNoRain , control = rpart.control(cp = 0.015))
+%' 
+%'  @
 
- noRainDataTwente <- dataTwente[precipitationDurationElec<600 & windSpeed<3.5,]
-
- #noRainDataTwente <- noRainDataTwente[day!=23 & month!=08 & year!=2015,]
+% <<ClassificationTreeTwenteMeteo, echo=FALSE, fig.height=4>>=
+% fancyRpartPlot(fogTreeNoRain, sub="")
+%@
  
- removedFoggyRainOrHighWind <- dataTwente[foggy==TRUE, .N] - noRainDataTwente[foggy==TRUE, .N]
- datesOfFoggyRainOrHighWind <- dataTwente[dateTime%in%setdiff(dataTwente[foggy==TRUE]$dateTime,noRainDataTwente[foggy==TRUE]$dateTime)]$dateTime
-
-trainTwenteNoRain <- noRainDataTwente[year==2015, .(dateTime, meanEdge, changePoint, smoothness, meanHue, meanSaturation, meanBrightness, MOR, foggy, day, month, hour, windSpeed, relHumidity, airTemperature, dewPoint, precipitationIntElec, precipitationIntPWS, precipitationDurationElec, precipitationDurationPWS, rain) ]
-
-testTwenteNoRain <- noRainDataTwente[year==2016, .(dateTime, meanEdge, changePoint, smoothness, meanHue, meanSaturation, meanBrightness, MOR, foggy, day, month, hour, windSpeed, relHumidity, airTemperature, dewPoint, precipitationIntElec, precipitationIntPWS, precipitationDurationElec, precipitationDurationPWS, rain) ]
  
- fogTreeNoRain <- rpart(foggy ~ meanEdge + changePoint + meanBrightness +
-                                  relHumidity + windSpeed + airTemperature + dewPoint + precipitationIntElec + 
-                                  precipitationIntPWS + precipitationDurationElec + precipitationDurationPWS, 
-                                  trainTwenteNoRain , control = rpart.control(cp = 0.015))
+ \begin{columns}
+ \column{0.5\textwidth}
+ \textbf{\textit{Image-only features}}
+%   \begin{footnotesize}
+% 
+%  \begin{table}
+%     %\setlength{\extrarowheight}{2pt}
+%     \begin{tabular}{cc|c|c|}
+%        & \multicolumn{1}{c}{} & \multicolumn{2}{c}{Reference}\\
+%        & \multicolumn{1}{c}{} & \multicolumn{1}{c}{FALSE}  & \multicolumn{1}{c}{TRUE} \\\cline{3-4}
+%        \multirow{2}*{Prediction}  & FALSE & 15736  & 34 \\\cline{3-4}
+%       & TRUE & 38 &6 \\\cline{3-4}
+%     \end{tabular}
+%   \end{table}
+%    \end{footnotesize}
 
- @
+  
+   \begin{itemize}
+\item {Issues mentioned above play a role in the false positive/negative}
+\item{Sensitivity: 0.1500000}
+\item{Specificity: 0.9975910}
 
- <<ClassificationTreeTwenteMeteo, echo=FALSE, fig.height=4>>=
- fancyRpartPlot(fogTreeNoRain, sub="")
-@
+% 
+\end{itemize}
+ 
+ 
+ \column{0.5\textwidth}
+  \textbf{\textit{Image and meteo features}}
+
+%  \begin{footnotesize}
+%  \begin{table}
+%     %\setlength{\extrarowheight}{2pt}
+%     \begin{tabular}{cc|c|c|}
+%        & \multicolumn{1}{c}{} & \multicolumn{2}{c}{Reference}\\
+%        & \multicolumn{1}{c}{} & \multicolumn{1}{c}{FALSE}  & \multicolumn{1}{c}{TRUE} \\\cline{3-4}
+%        \multirow{2}*{Prediction}  & FALSE & 6743  & 14 \\\cline{3-4}
+%       & TRUE & 165 & 26 \\\cline{3-4}
+%     \end{tabular}
+%   \end{table}
+%   \end{footnotesize}
+  
+  \begin{itemize}
+  \item{Filtered out continuous rain conditions and wind speed $\geq$ 3.5 m/s}
+\item {Meteorological features are not selected except air temperature}
+\item{Sensitivity: 0.6500000}
+\item{Specificity: 0.976115}
+\end{itemize}
+ 
+ 
+\end{columns} 
  
 \end{frame}
 % 
@@ -918,6 +972,7 @@ TECO-2016}
 \item{Contacts:}
 \begin{itemize}
 \item{Privacy officers: KNMI and IenM}
+\item{Port Authority Rotterdam}
 \end{itemize}
 \end{itemize}
 \end{frame}
