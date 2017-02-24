@@ -1,16 +1,12 @@
-require("RPostgreSQL")
-require("RJSONIO")
+library(DBI)
+library(jsonlite)
 
+dbConfig <- fromJSON("config.json")
 
-dbConfig<-readJSONStream("config.json")
-
-# loads the PostgreSQL driver
-drv <- dbDriver("PostgreSQL")
-# creates a connection to the postgres database
-# note that "con" will be used later in each connection to the database
-connectionSetup <- dbConnect(drv, dbname = "FOGDB",
-                 host = dbConfig[["host"]], port = 5432,
-                 user = dbConfig[["user"]], password = dbConfig[["pw"]])
+connectionSetup <- dbConnect(RPostgreSQL::PostgreSQL(),
+                dbname = "FOGDB",
+                host = dbConfig[["host"]], port = 5432,
+                user = dbConfig[["user"]], password = dbConfig[["pw"]])
 
 
 
@@ -84,7 +80,7 @@ tableImages <- dbGetQuery(connectionSetup, "CREATE TABLE images (
                                             PRIMARY KEY(camera_id, time_id));")
                           
 
-
+dbDisconnect(connectionSetup)
 
 
 
