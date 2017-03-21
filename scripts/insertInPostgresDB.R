@@ -82,3 +82,4 @@ dbWriteTable(con, "image_features", tmp, append = TRUE, row.names = FALSE, match
 
 allfeatures <- as.data.table(dbReadTable(con, "image_features"))
 
+tmp <- as.data.table(dbGetQuery(con, "SELECT * FROM image_features WHERE extract(year from timestamp) = 2016 AND extract(month from timestamp) = 10 AND extract(day from timestamp) = 10;"))
