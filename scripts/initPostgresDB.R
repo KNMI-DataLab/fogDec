@@ -10,40 +10,57 @@ connectionSetup <- dbConnect(RPostgreSQL::PostgreSQL(),
 
 
 
-tableTimeProperties <- dbGetQuery(connectionSetup, "CREATE TABLE time_properties (
-                                                    time_id integer NOT NULL,
-                                                    year integer, 
-                                                    month integer, 
-                                                    day integer, 
-                                                    hour integer, 
-                                                    minute integer,
-                                                    PRIMARY KEY(time_id));")
+# tableTimeProperties <- dbGetQuery(connectionSetup, "CREATE TABLE time_properties (
+#                                                     time_id integer NOT NULL,
+#                                                     year integer, 
+#                                                     month integer, 
+#                                                     day integer, 
+#                                                     hour integer, 
+#                                                     minute integer,
+#                                                     PRIMARY KEY(time_id));")
 
 tableLocations <- dbGetQuery(connectionSetup, "CREATE TABLE locations (
-                                               location_id integer NOT NULL,
+                                               location_id SERIAL,
                                                location_description varchar,
                                                longitude double precision, 
                                                latitude double precision,
                                                PRIMARY KEY(location_id));")
 
 tableCameras <- dbGetQuery(connectionSetup, "CREATE TABLE cameras (
-                                             camera_id integer NOT NULL,
+                                             camera_id SERIAL,
                                              location_id integer references locations(location_id),
                                              camera_description varchar,
                                              camera_name varchar,
                                              PRIMARY KEY (camera_id));")
 
+tableDayPhases <- dbGetQuery(connectionSetup, "CREATE TABLE day_phases (
+                                              day_phase_id integer NOT NULL,
+                                              day_phase_description varchar,  
+                                              PRIMARY KEY(day_phase_id));")
+
+tableImages <- dbGetQuery(connectionSetup, "CREATE TABLE images (
+                                            image_id SERIAL,
+                                            camera_id integer NOT NULL references cameras(camera_id),
+                                            time_id timestamp NOT NULL,
+                                            filepath varchar,
+                                            day_phase integer NOT NULL references day_phases(day_phase_id),
+                                            PRIMARY KEY(image_id));")
+
 
 tableAnnotation <- dbGetQuery(connectionSetup, "CREATE TABLE manual_annotations (
-                                                camera_id integer NOT NULL,
-                                                time_id integer NOT NULL references time_properties(time_id),
+                                                annotation_id SERIAL,
+                                                camera_id integer NOT NULL references cameras(camera_id),
+                                                time_id timestamp NOT NULL,
+                                                image_id integer NOT NULL references images(image_id),
                                                 visibility_qualitative varchar,
                                                 annotation varchar,
-                                                PRIMARY KEY(camera_id, time_id));")
+                                                PRIMARY KEY(image_id));")
 
 tableImageFeatures <- dbGetQuery(connectionSetup, "CREATE TABLE image_features (
+                                                  feature_id SERIAL,
                                                   camera_id integer NOT NULL references cameras(camera_id), 
-                                                  time_id integer NOT NULL references time_properties(time_id), 
+                                                  time_id timestamp NOT NULL,
+                                                  image_id integer NOT NULL references images(image_id),
                                                   mean_edge double precision, 
                                                   change_point double precision, 
                                                   smoothness double precision, 
@@ -51,33 +68,23 @@ tableImageFeatures <- dbGetQuery(connectionSetup, "CREATE TABLE image_features (
                                                   mean_hue double precision, 
                                                   mean_saturation double precision, 
                                                   mean_brightness double precision,       
-                                                  PRIMARY KEY(camera_id, time_id));")
+                                                  PRIMARY KEY(image_id));")
 
-tableMeteoFeatures <- dbGetQuery(connectionSetup, "CREATE TABLE meteo_features (
+tableMeteoFeaturesStations <- dbGetQuery(connectionSetup, "CREATE TABLE meteo_features_stations (
+                                                  meteo_feature_id SERIAL,
                                                   location_id integer NOT NULL references locations(location_id), 
-                                                  time_id integer NOT NULL references time_properties(time_id), 
+                                                  time_id timestamp NOT NULL,
+                                                  image_id integer NOT NULL references images(image_id),
                                                   wind_speed double precision, 
                                                   rel_humidity double precision, 
                                                   air_temp double precision, 
                                                   dew_point double precision,                                                         
                                                   mor_visibility double precision,
-                                                  PRIMARY KEY(location_id, time_id));")
+                                                  PRIMARY KEY(image_id));")
 
-tableDayPhases <- dbGetQuery(connectionSetup, "CREATE TABLE day_phases (
-                                              location_id integer NOT NULL references time_properties(time_id),
-                                              year integer NOT NULL, 
-                                              day integer NOT NULL,
-                                              morning_twilight boolean,
-                                              evening_twilight boolean,
-                                              daylight boolean, 
-                                              night boolean,  
-                                              PRIMARY KEY(location_id, year, day));")
 
-tableImages <- dbGetQuery(connectionSetup, "CREATE TABLE images (
-                                            camera_id integer NOT NULL references cameras(camera_id),
-                                            time_id integer NOT NULL references time_properties(time_id),
-                                            filepath varchar,
-                                            PRIMARY KEY(camera_id, time_id));")
+
+
                           
 
 dbDisconnect(connectionSetup)
