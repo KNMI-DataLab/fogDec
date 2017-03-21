@@ -42,7 +42,7 @@ tableDayPhases <- dbGetQuery(connectionSetup, "CREATE TABLE day_phases (
 tableImages <- dbGetQuery(connectionSetup, "CREATE TABLE images (
                                             image_id SERIAL,
                                             camera_id integer NOT NULL references cameras(camera_id),
-                                            time_id timestamp NOT NULL,
+                                            timestamp timestamp NOT NULL,
                                             filepath varchar,
                                             day_phase integer NOT NULL references day_phases(day_phase_id),
                                             PRIMARY KEY(image_id));")
@@ -51,7 +51,7 @@ tableImages <- dbGetQuery(connectionSetup, "CREATE TABLE images (
 tableAnnotation <- dbGetQuery(connectionSetup, "CREATE TABLE manual_annotations (
                                                 annotation_id SERIAL,
                                                 camera_id integer NOT NULL references cameras(camera_id),
-                                                time_id timestamp NOT NULL,
+                                                timestamp timestamp NOT NULL,
                                                 image_id integer NOT NULL references images(image_id),
                                                 visibility_qualitative varchar,
                                                 annotation varchar,
@@ -60,7 +60,7 @@ tableAnnotation <- dbGetQuery(connectionSetup, "CREATE TABLE manual_annotations 
 tableImageFeatures <- dbGetQuery(connectionSetup, "CREATE TABLE image_features (
                                                   feature_id SERIAL,
                                                   camera_id integer NOT NULL references cameras(camera_id), 
-                                                  time_id timestamp NOT NULL,
+                                                  timestamp timestamp NOT NULL,
                                                   image_id integer NOT NULL references images(image_id),
                                                   mean_edge double precision, 
                                                   change_point double precision, 
@@ -74,7 +74,7 @@ tableImageFeatures <- dbGetQuery(connectionSetup, "CREATE TABLE image_features (
 tableMeteoFeaturesStations <- dbGetQuery(connectionSetup, "CREATE TABLE meteo_features_stations (
                                                   meteo_feature_id SERIAL,
                                                   location_id integer NOT NULL references locations(location_id), 
-                                                  time_id timestamp NOT NULL,
+                                                  timestamp timestamp NOT NULL,
                                                   image_id integer NOT NULL references images(image_id),
                                                   wind_speed double precision, 
                                                   rel_humidity double precision, 
