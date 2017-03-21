@@ -24,6 +24,7 @@ tableLocations <- dbGetQuery(connectionSetup, "CREATE TABLE locations (
                                                location_description varchar,
                                                longitude double precision, 
                                                latitude double precision,
+                                               unique(longitude, latitude),
                                                PRIMARY KEY(location_id));")
 
 tableCameras <- dbGetQuery(connectionSetup, "CREATE TABLE cameras (
