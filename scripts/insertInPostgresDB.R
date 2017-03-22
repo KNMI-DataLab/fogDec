@@ -170,6 +170,9 @@ dbWriteTable(con, "image_features", tmp, append = TRUE, row.names = FALSE, match
 imageFeatures <- as.data.table(dbReadTable(con, "image_features"))
 
 
+dbDisconnect(con)
+
+
 
 
 
