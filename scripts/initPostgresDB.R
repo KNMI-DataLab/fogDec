@@ -75,13 +75,13 @@ tableMeteoFeaturesStations <- dbGetQuery(connectionSetup, "CREATE TABLE meteo_fe
                                                   meteo_feature_id SERIAL,
                                                   location_id integer NOT NULL references locations(location_id), 
                                                   timestamp timestamp NOT NULL,
-                                                  image_id integer NOT NULL references images(image_id),
                                                   wind_speed double precision, 
                                                   rel_humidity double precision, 
                                                   air_temp double precision, 
                                                   dew_point double precision,                                                         
                                                   mor_visibility double precision,
-                                                  PRIMARY KEY(image_id));")
+                                                  unique(location_id, timestamp),
+                                                  PRIMARY KEY(meteo_feature_id));")
 
 
 
