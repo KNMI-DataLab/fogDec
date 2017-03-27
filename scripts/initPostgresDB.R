@@ -5,7 +5,7 @@ dbConfig <- fromJSON("config.json")
 
 connectionSetup <- dbConnect(RPostgreSQL::PostgreSQL(),
                 dbname = "FOGDB",
-                host = dbConfig[["host"]], port = 5432, # use 22022 within KNMI
+                host = dbConfig[["host"]], port = 22022, # use 22022 within KNMI, default would be 5432. At the moment set to 22022
                 user = dbConfig[["user"]], password = dbConfig[["pw"]])
 
 
