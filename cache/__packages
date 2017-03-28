@@ -6,3 +6,8 @@ magrittr
 imager
 visDec
 ggplot2
+rpart
+rattle
+sp
+rgdal
+ggmap

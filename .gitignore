@@ -15,3 +15,6 @@ PresentationProject.snm
 PresentationProject.synctex.gz
 PresentationProject.tex
 PresentationProject.toc
+config.json
+*.o
+*.so

@@ -1,0 +1,25 @@
+Natural Hazard and society
+NH9.8
+Geohazards and Infrastructures
+
+Critical infrastructures such as transportation systems, telecommunications networks, pipelines, and reservoirs are at risk of geohazards (e.g., landslides, earthquakes, floods) in many urban and rural areas worldwide. A key to safe and affordable operations of these types of infrastructure is an in-depth knowledge of their exposure and vulnerability to geologic hazards and the impact of damage experienced either locally or across the network. Fundamental understanding of hazard and risk involves (i) systematic identification and mapping of potential infrastructure exposure, (ii) integrated assessment of impact as result of damage, repair and/or mitigation, (iii) indirect losses from infrastructure disruption, (iv) consideration of interactions between hazards and/or cascades of hazards. This session welcomes contributions with a focus on geohazards risk assessment for critical infrastructures, and compilation of databases to record impact and elements at risk. We also encourage abstracts addressing the development and application of tools for cost modeling. The session is dedicated to contributions with national, regional, and local perspective and intends to bring together experts from science and practice as well as young scientists. We encourage poster submissions, and foresee a lively poster session couple with oral talks, and will, if appropriate, have an associated splinter discussion session.
+
+
+
+######################################################################################################################################################################################
+Title: Automatic fog detection for infrastructure safety by using camera images.
+
+Authors: G.A. Pagani*, M. Roth*, W. Wauben*
+
+*R&D Observations and Data Technology
+Royal Netherlands Meteorological Institute (KNMI) 
+P.O. Box 201, 3730 AE De Bilt, The Netherlands 
+email: {pagani, roth, wauben}@knmi.nl 
+
+
+
+Fog is a big threat for transportation infrastructures, this meteorological phenomenon reduces considerably the visibility. Therefore it causes a considerable impact in the performance of terrestrial, maritime, and aerial transportation networks. The impact can be from mild resulting in delays, to more serious consequences resulting in unavailability of the infrastructure, to the most dangerous situations causing loss of lives. 
+Visibility is traditionally measured manually by using landmarks at known distances and inspecting the visibility (or not) of the landmark. Nowadays, distributed cameras can allow to inspect more locations from one remote monitoring center, however the main idea is still the inspection of the presence of landmarks by an operator judging the scenery. Cameras are more and more deployed for monitoring and security reasons in cities and for assessing the access and use of infrastructures. In addition to this primary use of cameras, we consider cameras as a set of potential remote sensors to automatically identify low visibility conditions. 
+The approach that we follow is to use modern machine learning technology to determine fog conditions and have an estimation of the visibility. To achieve this goal we base our approach in the extraction of a set of features from the camera images such as the number of edges, the brightness, transmission of the image dark channel, the fractal dimension. In addition to these image-only parameters, we also consider meteorological variables such as wind speed, temperature, relative humidity, and dew point as additional features to feed the machine learning model. 
+The results on a training and test set consisting 10-minute sampled images of two KNMI locations for a period of 1.5 years show promising results (in terms of accuracy and type I and II errors) by using decision trees methods to classify the high fog conditions (visibility below 250 meters). To achieve the goal of automatic monitoring of infrastructures we are extending the approach to images of traffic-monitoring cameras along highways. This is a first step to reach a solution that is closer to an operational solution for automatic fog alarm signaling and public infrastructure safety.
+
