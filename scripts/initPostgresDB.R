@@ -85,6 +85,12 @@ tableMeteoFeaturesStations <- dbGetQuery(connectionSetup, "CREATE TABLE meteo_fe
 
 
 
+viewImagesMeteoMor <- dbGetQuery(connectionSetup, "CREATE VIEW meteo_images AS
+                                                   SELECT images.image_id, images.filepath, images.timestamp, images.day_phase, cameras.location_id, cameras.camera_id, meteo_features_stations.mor_visibility
+                                                   FROM cameras, images, meteo_features_stations
+                                                   WHERE images.camera_id=cameras.camera_id AND cameras.location_id = meteo_features_stations.location_id AND images.timestamp = meteo_features_stations.timestamp;")
+
+
 
                           
 
