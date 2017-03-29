@@ -1,0 +1,1259 @@
+\documentclass[10pt,fleqn]{beamer}
+
+\usepackage{lmodern}
+\usepackage{knmiBeamer}
+\usepackage{multirow}
+\usepackage[skins]{tcolorbox}
+
+\Engelstrue     % For English slides 
+\renewcommand{\titleFigure}{figure/fogCover.jpg}
+
+\usepackage{tikz}
+\usepackage{verbatim}
+\usetikzlibrary{arrows, shapes}
+
+% ---------------
+% Graphics folder
+% ---------------
+\graphicspath{{figure/}}
+
+\title[Fog detection]{DataLab project: fog detection using cameras}
+\subtitle{KNMI DataLab Meeting}
+\date{February 3, 2017}
+\author[Pagani, Roth, Wauben]{G.A. Pagani, M. Roth\\ and W. Wauben}
+%\author[M. Roth (\MYhref{mailto:roth@knmi.nl}{roth@knmi.nl})]{Martin Roth\texorpdfstring{\\[2mm] \scriptsize \href{mailto:roth@knmi.nl}{roth@knmi.nl}\\[4mm] {\scriptsize Joint work with A. Buishand and G. Jongbloed}}{}}
+
+\begin{document}
+\tikzstyle{every picture}+=[remember picture]
+
+
+<< Libraries, include=FALSE>>=
+library(data.table)
+library(imager)
+library(visDec)
+library(ggplot2)
+library(rpart)
+library(rattle)
+library(rgdal)
+library(ggmap)
+@
+
+\begin{frame}
+ \titlepage
+\end{frame}
+
+% \begin{frame}{Outline}
+%  \begin{itemize}
+%   \item Motivation for Fog
+%   \item Zubin's work
+%   \item Edge detection
+%   \item Idea and SWI
+%   \item Dehaze algorithm
+%   \item Results so far
+%   \item Cameras and sensors
+%  \end{itemize}
+% \end{frame}
+
+
+% 1.	You will get 10 MINUTES only
+% 2.	You can choose to present in English or Dutch (also for slides) 
+% 3.	Start with a slide that present: title, purpose and scope, potential (KNMI) benefits, DataLab capability and deliverables of the project (briefly!).
+% Note1: specifically mention the potential benefits for KNMI. Besides business benefits, there can be societal, science/knowledge and technology/infrastructuur benefits.
+% Note2: indicate at capability whether KNMI DataLab is capable to support the project (idea) with the right skills, data and tooling.     
+% 4.	Present a slide with the status and progress of the project  (e.g. list successes and obstacles).
+% 5.	Present some 2-3 detail slides(s) about the project (e.g. background, approach, activities etc).
+% 6.	Present a slide with outreach activities (presentations, events, contacts, opportunities).
+% 7.	Finish with a slide that present your next steps and a possible request for sponsoring (leaptime, hours) by the steering committee (KNMI).
+
+
+
+
+
+
+
+
+
+
+\begin{frame}{Fog as hazard}
+ \begin{textblock*}{5cm}(7.4cm,2.4cm)
+  \includegraphics[width=5cm]{Accident.jpeg}
+ \end{textblock*}
+ \begin{textblock*}{5cm}(7.4cm,5.5cm)
+  \includegraphics[width=5cm]{airplane.jpg}
+ \end{textblock*}
+\begin{itemize}
+  \item Substantial impact on air,\\ marine, and road traffic
+  \item Loss of life comparable to that of\\ tornadoes or even winter storms\footnote{Gultepe, I. et al. (2007): Fog research: A review of past achievements and future perspectives. \emph{Pure and Applied Geophysics}, \textbf{164}, 1121--1159.}
+  \item May form and dissipate suddenly
+  \item Often only a local phenomenon
+  \item Not easy to accurately forecast
+  \item Satellites are not pointing to NL 24/7
+ \end{itemize}
+\end{frame}
+
+\begin{frame}{Purpose, Scope, Benefits}
+\begin{itemize}
+\item \textbf{Purpose:} use cameras to identify fog conditions to issue safety hazards
+\item \textbf{Scope:} daylight fog identification from static cameras using image analysis
+\item \textbf{Benefits:}
+\begin{itemize}
+\item \textit{Society: }
+\begin{itemize}
+\item human lives
+\item economic
+\end{itemize}
+\item \textit{KNMI:}
+\begin{itemize}
+\item better widespread observations of fog conditions
+\item feed the fog observations in KNMI models (re-analysis) $\Rightarrow$ better fog modeling/predictions
+\end{itemize}
+\end{itemize}
+
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Availability of sensors and traffic cameras}
+ \begin{textblock*}{5cm}(1.2cm,3.0cm)
+  \includegraphics[width=5cm]{SensorPlacement.png}
+ \end{textblock*}
+ \begin{textblock*}{5cm}(7.0cm,3.7cm)
+  \includegraphics[width=5cm]{CameraPlacement.jpg}
+ \end{textblock*}
+\end{frame}
+
+
+
+<< ExamplePictures, include=FALSE, cache=FALSE>>=
+path <- system.file("extdata/Meetterrein", package="visDec")
+filenames <- list.files(path,
+                        pattern=glob2rx("Meetterrein_201510*.jpg"),
+                        full.names=TRUE)
+@
+
+
+
+\begin{frame}{DataLab skills and tooling/technologies used}
+
+\begin{columns}
+\column{0.65\textwidth}
+\begin{itemize}
+\item{Maturing more knowledge and confidence in ML techniques}
+\item{Confluence project repository}
+\item{Project/task management: Trello}
+\item{Heavy use of parallel computation in R}
+\item{Parallel cluster on clouds providers}
+\item{GitHub repository for versioning}
+\item{Storage of the image features in Apache HBase}
+% \begin{itemize}
+% \item{Open source nonSQL DB technology}
+% \item{Based on the heritage of Google BigTable}
+% \item{Horizontal scaling to handle billions of rows}
+% \end{itemize}
+\end{itemize}
+
+\column{0.45\textwidth}
+%\hspace{2cm}
+\includegraphics[height=2cm]{figure/R_logo}\\
+\vspace{0.2cm}
+\includegraphics[width=4cm]{figure/aws}\\
+\vspace{0.2cm}
+\includegraphics[width=4.5cm]{figure/hbase}
+\end{columns}
+
+\begin{textblock*}{2cm}(10.2cm,2.5cm)
+ \includegraphics[width=2cm]{figure/Git_logo}
+\end{textblock*}
+
+\begin{textblock*}{2cm}(10.5cm,4cm)
+ \includegraphics[width=2cm]{figure/trello}
+\end{textblock*}
+
+
+\end{frame}
+
+
+%Present a slide with the status and progress of the project  (e.g. list successes and obstacles).
+\begin{frame}{Project status}
+\begin{itemize}
+\item \textbf{Successes:}
+\begin{itemize}
+\item{ Analyzed images of 1.5 years De Bilt - good results}
+\item {Analyzed images of 1.5 years Twente - so and so results}
+\item {Built an archive for images in Cabauw and Scotland Traffic (3 months)}
+\item {Successful interaction RWS: collaboration project (end 2016 - full 2017)}
+\end{itemize}
+
+\item \textbf{Obstacles:}
+\begin{itemize}
+\item{Access to camera images: privacy issues}
+\item{More data needed to thoroughly test algorithms}
+\item{Limited time for the project by the PIs}
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+
+
+\begin{frame}{Machine learning approach}
+\vspace*{-5mm}
+Example elaboration and feature: edge detection
+<<LandmarkPlotClear, cache=TRUE, echo=FALSE, fig.height=4.2, fig.width=8.4>>=
+im <- subim(load.image("figure/Meetterrein_20150703_0320.jpg"), y > 16)
+
+
+old_par <- par(mfrow=c(1,2))
+plot(im)
+#DetectEdges(im) %>% plot
+
+#im <- subim(load.image(filenames[49]), y > 16)
+#plot(im)
+DetectEdges(im) %>% threshold(thr="98%") %>% plot()
+par(old_par)
+@ 
+ \begin{textblock*}{10cm}(1.5cm,8cm)
+  Consider the mean number of edges in the picture as feature.
+ \end{textblock*}
+\end{frame}
+
+
+<<meanEdgeRegression, include=FALSE, warning=FALSE, fig.height=2, fig.width=4>>=
+load("results/deBiltResults2015.RData")
+ggplot(imageSummary, aes(x = log(MOR), y = meanEdge)) + geom_point() 
+@
+
+% \begin{frame}{Global feature: Mean edges}\centering
+%  \begin{textblock*}{10cm}(1.5cm,8cm)
+%   Mean edges for daily conditions from June 1 to December 31 2015.
+%  \end{textblock*}
+% \end{frame}
+
+
+%' \begin{frame}{Example feature: Transmission}
+%' \vspace*{-2mm}
+%' <<TransmissionPlotClear, echo=FALSE, fig.height=3, fig.width=8.4>>=
+%' im <- subim(load.image(filenames[75]), y > 16)
+%' 
+%' darkChannel       <- GetDarkChannel(im)
+%' atmosphere        <- GetAtmosphere(im, darkChannel)
+%' transmissionClear <- GetTransmissionEstimate(im, atmosphere)
+%' 
+%' old_par <- par(mfrow=c(1,3))
+%' plot(im)
+%' as.cimg(transmissionClear) %>% plot
+%' plot(GetHorizAvgTrans(im), xlab="", ylab="")
+%' par(old_par)
+%' @
+%' 
+%' \vspace*{-5mm}
+%' <<TransmissionPlotFoggy, echo=FALSE, fig.height=3, fig.width=8.4>>=
+%' im <- subim(load.image(filenames[49]), y > 16)
+%' 
+%' darkChannel       <- GetDarkChannel(im)
+%' atmosphere        <- GetAtmosphere(im, darkChannel)
+%' transmissionFoggy <- GetTransmissionEstimate(im, atmosphere)
+%' 
+%' old_par <- par(mfrow=c(1,3))
+%' plot(im)
+%' as.cimg(transmissionFoggy) %>% plot()
+%' plot(GetHorizAvgTrans(im), xlab="", ylab="")
+%' par(old_par)
+%' @
+%' \end{frame}
+
+% \begin{frame}{Summarize idea}
+%  Use global features, e.g.
+%  \begin{itemize}
+%   \item mean edges
+%   \item change in transmission
+%   \item mean brightness 
+%   \item other features ...
+%  \end{itemize}
+% \end{frame}
+
+
+\begin{frame}{Machine Learning: De Bilt classification tree} 
+%\footnote{in the following daily conditions only}}
+<<Classification, include=FALSE>>=
+load("results/deBiltResults2015.RData")
+imageSummary[, dayIsEven := mday(dateOnly) %% 2]
+train <- imageSummary[, .(dateTime, MOR, meanEdge, changePoint, meanBrightness)]
+train <- na.omit(train)
+train[, foggy := MOR < 250]
+fogTree <- rpart(foggy ~ meanEdge + changePoint + meanBrightness, train , control = rpart.control(cp = 0.019))
+pred <- predict(fogTree, train, method="class")
+train[, pred := pred]
+@
+<<ClassificationTree, echo=FALSE, fig.height=4>>=
+fancyRpartPlot(fogTree, sub="")
+@
+\end{frame}
+
+%' << TestClassification, echo=FALSE>>=
+%' load("results/deBiltResults2016.RData")
+%' test <- imageSummary[, .(dateTime, MOR, meanEdge, changePoint, meanBrightness)]
+%' test <- na.omit(test)
+%' test[, foggy := MOR < 250]
+%' pred <- predict(fogTree, test, method="class")
+%' test[, pred := pred]
+%' @
+%' 
+%' 
+%' % 
+%' % \begin{frame}{Contingency tables}\centering
+%' %  \begin{tabular}{rrrr}\centering
+%' %    %& Probability / MOR    & $< 250$m                          &     $\geq 250$m  &  Total\\[2mm]
+%' %     Probability / MOR    & $< 250$m                          &     $\geq 250$m  &  Total\\[2mm]
+%' %   \textbf{2015} \qquad  $> 0.5$       & \Sexpr{train[MOR < 250 & pred > 0.5, .N]}  & \Sexpr{train[MOR >= 250 & pred > 0.5, .N]} & \Sexpr{train[pred > 0.5, .N]} \\
+%' %   $\leq 0.5$    & \Sexpr{train[MOR < 250 & pred <= 0.5, .N]}  & \Sexpr{train[MOR >= 250 & pred <= 0.5, .N]} & \Sexpr{train[pred <= 0.5, .N]} \\
+%' %   Total         & \Sexpr{train[MOR < 250, .N]}      & \Sexpr{train[MOR >= 250, .N]} & \Sexpr{train[, .N]} \\[5mm]
+%' %   %Probability / MOR    & $< 250$m                          &     $ \geq 250$m  & Total\\
+%' %   \textbf{2016} \qquad  $> 0.5$       & \Sexpr{test[MOR < 250 & pred > 0.5, .N]}  & \Sexpr{test[MOR >= 250 & pred > 0.5, .N]} & \Sexpr{test[pred > 0.5, .N]} \\
+%' %   $\leq 0.5$    & \Sexpr{test[MOR < 250 & pred <= 0.5, .N]}  & \Sexpr{test[MOR >= 250 & pred <= 0.5, .N]} & \Sexpr{test[pred <= 0.5, .N]} \\
+%' %   Total         & \Sexpr{test[MOR < 250, .N]}      & \Sexpr{test[MOR >= 250, .N]} & \Sexpr{test[, .N]}
+%' %  \end{tabular}
+%' %  %From the 9 missed events 2 occur after sunset and 7 in the morning of November 2, the MOR for the following picture is 25 meters.
+%' %  % \only<2>{\includegraphics[width=5cm]{Meetterrein_20151102_0740.jpg}}
+%' % %\end{frame}
+%' % 
+%' % %\begin{frame}{Contingency table 2016}\centering
+%' %  % \uncover<3>{\begin{tabular}{lrrr}
+%' %  %  Probability / MOR    & $< 250$m                          &     $ \geq 250$m  & Total\\
+%' %  %  $> 0.5$       & \Sexpr{test[MOR < 250 & pred > 0.5, .N]}  & \bf{\Sexpr{test[MOR >= 250 & pred > 0.5, .N]}} & \Sexpr{test[pred > 0.5, .N]} \\
+%' %  %  $\leq 0.5$    & \Sexpr{test[MOR < 250 & pred <= 0.5, .N]}  & \Sexpr{test[MOR >= 250 & pred <= 0.5, .N]} & \Sexpr{test[pred <= 0.5, .N]} \\
+%' %  %  Total         & \Sexpr{test[MOR < 250, .N]}      & \Sexpr{test[MOR >= 250, .N]} & \Sexpr{test[, .N]}
+%' %  % \end{tabular}}
+%' %  
+%' %  %From the 16 false alarms only 3 remain when we look at MOR$\geq 500$ meters.
+%' %  %\includegraphics[width=5cm]{Meetterrein_20160123_0940.jpg}
+%' % \end{frame}
+%' 
+%' 
+%' <<MultiLinearRegression, include=FALSE>>=
+%' mlm <- lm(log(MOR) ~ meanEdge + changePoint + meanBrightness, train) 
+%' round(mlm$coefficients, 3)
+%' predReg <- predict(mlm, train)
+%' train[, predMOR := predReg]
+%' @
+%' 
+%' %' \begin{frame}{Regression}
+%' %' $$log(MOR) \sim meanEdge + changePoint + meanBrightness$$
+%' %' 
+%' %' \centering
+%' %' <<UncleanPlot, warning=FALSE, echo=FALSE, fig.height=2, fig.width=3>>=
+%' %' ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point() +
+%' %'   geom_vline(xintercept = c(log(250), log(1000), log(3000), log(5000)), lty = 3) + 
+%' %'   ylab("modelled log(MOR)")
+%' %' @
+%' %' 
+%' %' There are some quite apparent features in this plot. For instance the points 
+%' %' with the very low MOR and a prediction of around 10 are mostly due to an 
+%' %' failure of the transmissometer. The values with the largest prediction on the
+%' %' other hand correspond to different sceneries in the picture (we believed the
+%' %' camera was fixed) or situations where it is already dark. The point on the lower
+%' %' right corner with a prediction below 7 corresponds again to a different scenery.
+%' %' \end{frame}
+%' 
+%' %\begin{frame}{Clean Data}
+%' <<CleanData, echo=FALSE>>=
+%' train[, id := 1:.N]
+%' #
+%' # ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point()
+%' #
+%' # train[predMOR > 12]
+%' # June 22 2015 11:10 different scenery
+%' # August 4 2015 11:00 different scenery
+%' # September 27 19:10 / 19:20 already dark 
+%' # October 20 18:00 already dark
+%' #
+%' train <- train[predMOR < 12]
+%' #
+%' # ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point()
+%' #
+%' # train[(log(MOR) < 6 & predMOR > 9)]
+%' # November 1 2015 clear view (afer foogy period / might be time issue)
+%' # November 2 2015 clear view (no fog)
+%' #
+%' train <- train[!(log(MOR) < 6 & predMOR > 9)]
+%' #
+%' # ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point()
+%' #
+%' # train[(log(MOR) > 8 & predMOR < 9)]
+%' # June 19 2015 9:20 different scenery
+%' # otherwise already dark
+%' #
+%' train <- train[!(log(MOR) > 8 & predMOR < 9)]
+%' #
+%' # ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point()
+%' #
+%' # train[(log(MOR) < 7 & predMOR > 9.5)]
+%' # June 5 2015 too late
+%' # September 23 too late
+%' # November 2 clear view
+%' # November 26 clear view
+%' #
+%' train <- train[!(log(MOR) < 7 & predMOR > 9.5)]
+%' #
+%' # ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point()
+%' #
+%' # train[(log(MOR) < 8 & predMOR > 10.2)]
+%' # June too late
+%' # July too late
+%' # November 1 until 16 clear view
+%' # November 1 17:10 already dark
+%' # November 2 29:10 clear view
+%' # November 26 8:40 clear view
+%' #
+%' train <- train[!(log(MOR) < 8 & predMOR > 10.2)]
+%' #
+%' # ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point()
+%' #
+%' # train[(log(MOR) < 10 & predMOR > 11)]
+%' # June 22 already too late
+%' # October 30 Car in the scenery
+%' #
+%' train <- train[!(log(MOR) < 10 & predMOR > 11)]
+%' #
+%' #
+%' #
+%' @
+%' %\end{frame}
+%' 
+%' 
+%' <<PODandFAR, include=FALSE>>=
+%' 
+%' fit <- lm(log(MOR) ~ splines::bs(predMOR, 3), train)
+%' fitted <- predict(fit, train)
+%' 
+%' plottingPredMOR <- c(8.3, 9.05, 9.49, 9.65)
+%' plottingFrame <- data.table(predMOR = plottingPredMOR)
+%' @
+%' 
+%' <<PODandFAR2, include=FALSE>>=
+%' train[MOR < 250 & predMOR < 8.3, .N]
+%' train[MOR < 250 & predMOR < 8.3, .N] / train[MOR < 250, .N]
+%' train[MOR > 250 & predMOR < 8.3, .N] / train[predMOR < 8.3, .N]
+%' 
+%' train[MOR < 1000 & predMOR < 9.05, .N]
+%' train[MOR < 1000 & predMOR < 9.05, .N] / train[MOR < 1000, .N]
+%' train[MOR > 1000 & predMOR < 9.05, .N] / train[predMOR < 9.05, .N]
+%' 
+%' train[MOR > 3000 & predMOR > 9.49, .N]
+%' train[MOR > 3000 & predMOR > 9.49, .N] / train[MOR > 3000, .N]
+%' train[MOR < 3000 & predMOR > 9.49, .N] / train[predMOR > 9.49, .N]
+%' 
+%' train[MOR > 5000 & predMOR > 9.65, .N]
+%' train[MOR > 5000 & predMOR > 9.65, .N] / train[MOR > 5000, .N]
+%' train[MOR < 5000 & predMOR > 9.65, .N] / train[predMOR > 9.65, .N]
+%' @
+%' 
+%' \begin{frame}{Example ML algorithm: Regression}
+%' $$log(MOR) \sim meanEdge + changePoint + meanBrightness$$
+%' <<plotRegression, echo=FALSE, fig.height=2, fig.width=3.5>>=
+%' 
+%' segments <- rbind(data.frame(x1 = 0, x2 = log(250), y1 = 8.3, y2 = 8.3, id = 1),
+%'                   data.frame(x1 = log(250), x2 = log(250), y1 = 0, y2 = 8.3, id = 2),
+%'                   data.frame(x1 = 0, x2 = log(1000), y1 = 9.05, y2 = 9.05, id = 3),
+%'                   data.frame(x1 = log(1000), x2 = log(1000), y1 = 0, y2 = 9.05, id = 4),
+%'                   data.frame(x1 = 20, x2 = log(3000), y1 = 9.49, y2 = 9.49, id = 5),
+%'                   data.frame(x1 = log(3000), x2 = log(3000), y1 = 20, y2 = 9.49, id = 6),
+%'                   data.frame(x1 = 20, x2 = log(5000), y1 = 9.65, y2 = 9.65, id = 7),
+%'                   data.frame(x1 = log(5000), x2 = log(5000), y1 = 20, y2 = 9.65, id = 8)
+%'                   )
+%' 
+%' ggplot(train, aes(x = log(MOR), y = predMOR)) + geom_point() +
+%'   geom_smooth(method="lm", formula = y ~ splines::bs(x, 3), se=FALSE) +
+%'   #geom_smooth(aes(x = MOR, y = predMOR), data = linePlotting, stat="identity", col = 2)
+%'   geom_segment(aes(x = x1, xend = x2, y = y1, yend = y2), data = segments, col = 2) +
+%'   coord_cartesian(xlim=c(4, 11), ylim = c(7,11.5)) +
+%'   ylab("modelled log(MOR)")
+%' @
+%' \end{frame}
+
+\begin{frame}{Probability of detection and false alarm ratio}%\scriptsize
+
+ <<PODandFAR3, echo=FALSE, fig.height=4>>=
+podfar <- data.table(POD  = c(89, 98, 88, 89, 97, 96, 90, 83),
+                     FAR  = c( 0.1, 18, 13, 30,  1,  1,  1,  2),
+                     Hits = c(16, 46, 28, 81, 14795, 12095, 13475, 10195))
+podfar[, Hits := NULL]
+podfar[, year := as.factor(rep(c(2015, 2016), 4))]
+visibility <- as.factor(rep(c("< 250", "< 1000", "> 3000", "> 5000"), each=2))
+podfar[, visibility := factor(visibility, levels(visibility)[c(2,1,3,4)])]
+podfar <- melt(podfar, c("year", "visibility"), variable.name = "criterion")
+ggplot(podfar, aes(visibility, value, fill=year)) + geom_bar(position="dodge", stat="identity") + facet_wrap(~criterion, nrow=2, scales = "free_y", shrink=TRUE) + ylab("%")
+@
+
+ % \begin{tabular}{lrrrrrrrr} 
+ %           & \multicolumn{2}{c}{$< 250$m}  & \multicolumn{2}{c}{$<1000$m} 
+ %           &\multicolumn{2}{c}{$\geq 3000$m} & \multicolumn{2}{c}{$\geq 5000$m} \\[2mm]
+ %           &  2015 & 2016 & 2015 & 2016 & 2015 & 2016  & 2015 & 2016 \\[2mm]
+ % POD (\%)  & 89    & 98   & 88   & 89   & 97   & 96    &  90  & 83\\
+ % FAR (\%)  & 0     & 18   & 13   & 30   & 1    & 1     &  1   & 2\\
+ % Hits (\#) & 16    & 46   & 28   & 81   & 14795&12095  &13475 & 10195 
+ % \end{tabular}
+ 
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%MODIFIED ANDREA%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Situation in Twente}\centering
+%The situation in Twente is different for two reasons, the wide angle of the
+%camera makes the horizontal averaging of the transmission rate less appropriate.
+%Moreover, even on a clear day there are only a few edges in the image (which are
+%mostly very close to the camera, i.e. from the equipment of the automatic 
+%weather station). Nevertheless, it was quite simple to detect failures of the 
+%visibility sensor using the two described features, such as during the afternoon
+%of August 23 2015, where the sensor consistently gave $MOR < 250$, although the 
+%image is very clear.
+ \includegraphics[width=5cm]{EHTW_201508231400.jpg}
+ \begin{itemize}
+  \item fish-eye lens
+  \item only a few edges in the range of 50--250\,m
+  \item fully unprotected camera
+ \end{itemize}
+\end{frame}
+
+
+% \begin{frame}{Image rectification}\centering
+% \begin{itemize}
+% \item rectification of the image and cutting helps
+% 
+% \begin{figure}
+% %\begin{subfigure}
+%   \centering
+%   \includegraphics[height=2.5cm]{inst/extdata/EHTW_201508011440.jpg}
+%   \hspace{0.1cm}
+%   \hspace{0.1cm}
+%   \includegraphics[height=2.5cm]{inst/extdata/EHTW_201508011440_Rectified.jpg}
+% %\end{subfigure}
+% \end{figure}
+% \item but reduces edges and scenery even more
+% \item[$\Rightarrow$] if possible no wide angle cameras
+% \end{itemize}
+% \end{frame}
+
+
+% \begin{frame}{Problems of this class of cameras}%\centering
+% \begin{columns}
+% \column{0.2\textwidth}
+% \includegraphics[height=2cm]{figure/wideCamera}
+% 
+% \column{0.8\textwidth}
+% \includegraphics[height=3cm]{inst/extdata/cornerCasesTwente/EHTW_201503240815.jpg} Light in the objective\\
+% \includegraphics[height=3cm]{inst/extdata/cornerCasesTwente/EHTW_201510271350.jpg} Humidity lines in the camera enclosure\\
+% 
+% 
+% \end{columns}
+% 
+% 
+% \end{frame}
+
+\begin{frame}{Weather protection}%\centering
+\begin{columns}
+\column{0.2\textwidth}
+\includegraphics[height=2cm]{figure/wideCamera}
+
+\column{0.8\textwidth}
+\includegraphics[height=3cm]{inst/extdata/cornerCasesTwente/EHTW_201506280400.jpg} \\
+\includegraphics[height=3cm]{inst/extdata/cornerCasesTwente/EHTW_201510060700.jpg} \\
+
+\end{columns}
+\begin{textblock*}{5cm}(6.2cm,3.85cm)
+Ice on the camera enclosure\\
+\vspace{2.7cm}
+Water drops on the camera enclosure
+\end{textblock*}
+
+% \only<2>{
+% \begin{textblock*}{6cm}(6.2cm,4.3cm)
+% \begin{tcolorbox}[width=6cm, left=-0.2cm, right=-0.1cm,enhanced,drop shadow southwest] %{width=5cm, left=7.2cm, top=2cm}
+% 
+%  \begin{itemize}
+%   \item[$\Rightarrow$] if possible weather protection
+%   \item[$\Rightarrow$] adding meteo information into ML helps as well (perceived visibility can be low also due to heavy rain)
+%  \end{itemize}
+%  \end{tcolorbox}
+% \end{textblock*}
+%}
+
+\end{frame}
+
+
+
+%\begin{frame}{Performance classification Twente}%\centering
+
+%Based on pure image features
+
+<<ClassificationTwente, echo=FALSE>>= 
+dataTwente <-readRDS("results/ResultsTwente2015-2016_3hSun.rds") 
+ offsetBeforeSunrise <- 0
+# #time in minutes 
+ offsetAfterSunset <- 0 
+ trainDeBilt <- imageSummary[dateTime> sunriseDateTime - offsetBeforeSunrise * 60 & dateTime < sunsetDateTime + offsetAfterSunset * 60, ] 
+dataTwente <- dataTwente[dateTime > sunriseDateTime & dateTime < sunsetDateTime, ] 
+ dataTwente[, foggy := MOR < 250] 
+ setkey(dataTwente, dateTime)
+# 
+# 
+ source("scripts/ReadMeteoData.R") 
+ windTwente <-ReadWindData("inst/extdata/Sensor/TwenteWind1-1-2015-31-08-2016.csv") 
+ setkey(windTwente, dateTime)
+# 
+# 
+humidityTwente <-ReadHumidityData("inst/extdata/Sensor/TwenteHumidity1-1-2015-31-08-2016.csv") 
+ setkey(humidityTwente, dateTime)
+# 
+# 
+ tempDewPointTwente <-ReadTempDewPointData("inst/extdata/Sensor/TwenteTemp_DewPoint1-1-2015-31-08-2016.csv")
+ setkey(tempDewPointTwente, dateTime)
+# 
+# 
+precipitationTwente <-ReadPrecipitationData("inst/extdata/Sensor/TwenteRainAll-1-2015-31-08-2016.csv")
+ precipitationTwente[, rain := FALSE] 
+rainDuration <- 400 
+ precipitationTwente[precipitationDurationPWS > rainDuration | precipitationDurationElec > rainDuration, rain:= TRUE] 
+setkey(precipitationTwente, dateTime)
+# 
+# 
+# 
+# 
+dataTwente <- SynchronizeSensorReadingsNoMORPicture(windTwente, dataTwente) 
+dataTwente <- SynchronizeSensorReadingsNoMORPicture(humidityTwente,dataTwente) 
+dataTwente <- SynchronizeSensorReadingsNoMORPicture(tempDewPointTwente, dataTwente) 
+dataTwente <- SynchronizeSensorReadingsNoMORPicture(precipitationTwente, dataTwente)
+# 
+# 
+dataTwente <- na.omit(dataTwente)
+# 
+trainTwente <- dataTwente[year==2015, .(dateTime, meanEdge, changePoint, smoothness, meanHue, meanSaturation, meanBrightness, MOR, foggy, day, month, hour, windSpeed, relHumidity, airTemperature, dewPoint, precipitationIntElec, precipitationIntPWS, precipitationDurationElec, precipitationDurationPWS, rain) ]
+# 
+testTwente <- dataTwente[year==2016, .(dateTime, meanEdge, changePoint, smoothness, meanHue, meanSaturation, meanBrightness, MOR, foggy, day, month, hour, windSpeed, relHumidity, airTemperature, dewPoint, precipitationIntElec, precipitationIntPWS, precipitationDurationElec, precipitationDurationPWS, rain) ]
+# 
+# 
+fogTree <- rpart(foggy ~ meanEdge + changePoint + meanBrightness, trainTwente, control = rpart.control(cp = 0.019))
+@
+
+<<ClassificationTreeTwente, echo=FALSE, fig.height=4>>= 
+#fancyRpartPlot(fogTree, sub="")
+@
+
+
+%\end{frame}
+
+% 
+
+% % 
+% 
+% 
+% 
+% 
+% 
+ \begin{frame} {Classification Twente with \underline{meteo features}}%\centering
+% 
+% Based on image features and meteo features (air temperature, dew point, wind speed, relative humidity)
+% 
+%'  <<ClassificationTwenteMeteo, echo=FALSE>>=
+%' 
+%'  noRainDataTwente <- dataTwente[precipitationDurationElec<600 & windSpeed<3.5,]
+%' 
+%'  #noRainDataTwente <- noRainDataTwente[day!=23 & month!=08 & year!=2015,]
+%'  
+%'  removedFoggyRainOrHighWind <- dataTwente[foggy==TRUE, .N] - noRainDataTwente[foggy==TRUE, .N]
+%'  datesOfFoggyRainOrHighWind <- dataTwente[dateTime%in%setdiff(dataTwente[foggy==TRUE]$dateTime,noRainDataTwente[foggy==TRUE]$dateTime)]$dateTime
+%' 
+%' trainTwenteNoRain <- noRainDataTwente[year==2015, .(dateTime, meanEdge, changePoint, smoothness, meanHue, meanSaturation, meanBrightness, MOR, foggy, day, month, hour, windSpeed, relHumidity, airTemperature, dewPoint, precipitationIntElec, precipitationIntPWS, precipitationDurationElec, precipitationDurationPWS, rain) ]
+%' 
+%' testTwenteNoRain <- noRainDataTwente[year==2016, .(dateTime, meanEdge, changePoint, smoothness, meanHue, meanSaturation, meanBrightness, MOR, foggy, day, month, hour, windSpeed, relHumidity, airTemperature, dewPoint, precipitationIntElec, precipitationIntPWS, precipitationDurationElec, precipitationDurationPWS, rain) ]
+%'  
+%'  fogTreeNoRain <- rpart(foggy ~ meanEdge + changePoint + meanBrightness +
+%'                                   relHumidity + windSpeed + airTemperature + dewPoint + precipitationIntElec + 
+%'                                   precipitationIntPWS + precipitationDurationElec + precipitationDurationPWS, 
+%'                                   trainTwenteNoRain , control = rpart.control(cp = 0.015))
+%' 
+%'  @
+
+% <<ClassificationTreeTwenteMeteo, echo=FALSE, fig.height=4>>=
+% fancyRpartPlot(fogTreeNoRain, sub="")
+%@
+ 
+ 
+ \begin{columns}
+ \column{0.5\textwidth}
+ \textbf{\textit{Image-only features}}
+%   \begin{footnotesize}
+% 
+%  \begin{table}
+%     %\setlength{\extrarowheight}{2pt}
+%     \begin{tabular}{cc|c|c|}
+%        & \multicolumn{1}{c}{} & \multicolumn{2}{c}{Reference}\\
+%        & \multicolumn{1}{c}{} & \multicolumn{1}{c}{FALSE}  & \multicolumn{1}{c}{TRUE} \\\cline{3-4}
+%        \multirow{2}*{Prediction}  & FALSE & 15736  & 34 \\\cline{3-4}
+%       & TRUE & 38 &6 \\\cline{3-4}
+%     \end{tabular}
+%   \end{table}
+%    \end{footnotesize}
+
+  
+   \begin{itemize}
+\item {Issues mentioned above play a role in the false positive/negative}
+\item{Sensitivity: 0.1500000}
+\item{Specificity: 0.9975910}
+
+% 
+\end{itemize}
+ 
+ 
+ \column{0.5\textwidth}
+  \textbf{\textit{Image and meteo features}}
+
+%  \begin{footnotesize}
+%  \begin{table}
+%     %\setlength{\extrarowheight}{2pt}
+%     \begin{tabular}{cc|c|c|}
+%        & \multicolumn{1}{c}{} & \multicolumn{2}{c}{Reference}\\
+%        & \multicolumn{1}{c}{} & \multicolumn{1}{c}{FALSE}  & \multicolumn{1}{c}{TRUE} \\\cline{3-4}
+%        \multirow{2}*{Prediction}  & FALSE & 6743  & 14 \\\cline{3-4}
+%       & TRUE & 165 & 26 \\\cline{3-4}
+%     \end{tabular}
+%   \end{table}
+%   \end{footnotesize}
+  
+  \begin{itemize}
+  \item{Filtered out continuous rain conditions and wind speed $\geq$ 3.5 m/s}
+\item {Meteorological features are not selected except air temperature}
+\item{Sensitivity: 0.6500000}
+\item{Specificity: 0.976115}
+\end{itemize}
+ 
+ 
+\end{columns} 
+ 
+\end{frame}
+% 
+% 
+% 
+% 
+% 
+
+
+
+\begin{frame}{Experiments with Scotland Traffic cameras}
+
+
+%\begin{columns}
+%\column{0.4\textwidth}
+\begin{center}
+ \includegraphics[height=3cm]{figure/scotlandOverviewAllCut}
+\end{center}
+\vspace*{-0.2cm}
+%\includegraphics[height=3cm]{figure/scotlandOverview}
+
+%\column{0.55\textwidth}
+\begin{itemize}
+\item{300 available cameras around Scotland every 10 minutes}
+\item{Archiving images along the M90 motorway (39 cameras)}
+%\item{Analysis of a 2 cameras on the M90 for 2 months}
+\item{Challenges:}
+\begin{itemize}
+ \item{Non-supervised problem: no visibility measures directly available}
+ \item{Dynamic problem: appearing disappearing objects, changing camera alignment}
+ \item Too few foggy days (since October)
+\end{itemize}
+\end{itemize}
+%\end{columns}
+%% first results scotland scatterplot
+
+\end{frame}
+
+\begin{frame}{Example dynamic scene}
+
+\begin{columns}
+\column{0.55\textwidth}
+\begin{itemize}
+\item{ Location: M90 Junction 1A EB Slip}
+\item {Same camera three different scenes}
+\end{itemize}
+\vspace{0.5cm}
+\includegraphics[height=3.5cm]{figure/scotland709Location}
+
+
+
+\column{0.3\textwidth}
+%\hspace{2cm}
+\includegraphics[height=2.3cm]{figure/7-709-Example1.jpg}\\
+\includegraphics[height=2.3cm]{figure/7-709-Example2.jpg}\\
+\includegraphics[height=2.3cm]{figure/7-709-Example3.jpg}
+\end{columns}
+
+
+\end{frame}
+
+
+% \begin{frame}{Scotland traffic cameras: dynamic scene}
+% 
+% \begin{columns}
+% \column{0.55\textwidth}
+% \begin{itemize}
+% \item{ Location: M90 Craigbrae 2}
+% \item {Same camera three different scenes}
+% \end{itemize}
+% \vspace{0.5cm}
+% \includegraphics[height=3.5cm]{figure/scotland715Location}
+% 
+% 
+% 
+% \column{0.3\textwidth}
+% %\hspace{2cm}
+% \includegraphics[height=2.3cm]{figure/7-715-Example1.jpg}\\
+% \includegraphics[height=2.3cm]{figure/7-715-Example2.jpg}\\
+% \includegraphics[height=2.3cm]{figure/7-715-Example3.jpg}
+% \end{columns}
+% 
+% 
+% \end{frame}
+% 
+% \begin{frame}{Noise in feature space}
+% 
+% \begin{columns}
+% \column{0.55\textwidth}
+% \begin{itemize}
+% \item{Location: M90 Craigbrae 2}
+% \item{Same camera three different scenes}
+% \end{itemize}
+% \vspace{0.5cm}
+% \includegraphics[height=3.5cm]{figure/scotland715Location}
+% 
+% \column{0.3\textwidth}
+% %\hspace{2cm}
+% \includegraphics[height=2.3cm]{figure/7-715-Example1.jpg}\\
+% \includegraphics[height=2.3cm]{figure/7-715-Example2.jpg}\\
+% \includegraphics[height=2.3cm]{figure/7-715-Example3.jpg}
+% \end{columns}
+% 
+% 
+% \end{frame}
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% \begin{frame}{Impact of dynamics on features}
+% 
+% 
+% Not a clear cluster
+% 
+% <<Scotland709Exploration, echo=FALSE>>=
+% 
+% scotland709<-readRDS("results/ResultFeatures7-709.rds")
+% filtered709<-scotland709[complete.cases(scotland709),]
+% filtered709.2<-filtered709[fractalDim>2.2]
+% filtered709.3<-filtered709.2[meanEdge>=0.010]
+% foggyDay2 = filtered709.3[as.Date(dateTime)=="2016-11-21" & ((hour(dateTime)>=8 & (hour(dateTime)<=11))),] 
+% @
+% 
+% 
+% <<Scotland709ExplorationPlot, echo=FALSE, fig.height=4>>=
+% ggplot(filtered709.3, aes(x = meanEdge, fractalDim))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = meanEdge, fractalDim, label=filePath), colour="red")+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =1)+scale_colour_discrete(labels  ="Foggy image")
+% @
+% 
+% 
+% 
+% 
+% \end{frame}
+% 
+% 
+% 
+% \begin{frame}{Impact of dynamics on features}
+% 
+% 
+% Looking closer to images with similar features
+% %' <<Scotland709Exploration, echo=FALSE>>=
+% %' 
+% %' scotland709<-readRDS("results/ResultFeatures7-709.rds")
+% %' filtered709<-scotland709[complete.cases(scotland709),]
+% %' filtered709.2<-filtered709[fractalDim>2.2]
+% %' filtered709.3<-filtered709.2[meanEdge>=0.010]
+% %' foggyDay2 = filtered709.3[as.Date(dateTime)=="2016-11-21" & ((hour(dateTime)>=8 & (hour(dateTime)<=11))),] 
+% %' @
+% 
+% 
+% <<Scotland709ExplorationPlot2, echo=FALSE, fig.height=4>>=
+% ggplot(filtered709.3, aes(x = meanEdge, fractalDim))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = meanEdge, fractalDim, label=filePath), colour="red")+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =1)+scale_colour_discrete(labels  ="Foggy image")+annotate("rect",xmin = 0.014,xmax = 0.0152, ymin = 2.37,ymax = 2.38, fill = "green", alpha = 0.5)
+% @
+% 
+% 
+% 
+% 
+% \end{frame}
+% 
+% 
+% \begin{frame}{Impact of dynamics on features}
+% Looking closer to images with similar features (green box)
+% 
+% 
+% <<Scotland709ExplorationPlot3, echo=FALSE, fig.height=2.5, fig.width=8.4>>=
+% old_par <- par(mfrow=c(1,3))
+% plot(load.image("figure/scotlandAnalysis/7-709_20161121_1130.jpg"),main="Foggy Day")
+% plot(load.image("figure/scotlandAnalysis/7-709_20161201_1340.jpg"),main="Non-foggy Day")
+% plot(load.image("figure/scotlandAnalysis/7-709_20161201_1350.jpg"),main="Non-foggy Day")
+% plot(load.image("figure/scotlandAnalysis/7-709_20161201_1410.jpg"),main="Non-foggy Day")
+% plot(load.image("figure/scotlandAnalysis/7-709_20161211_1240.jpg"),main="Non-foggy Day")
+% par(old_par)
+% @
+% \end{frame}
+% 
+% 
+% \begin{frame}{Impact of dynamics on features}
+% Other feature space show bit more clustering
+% 
+% <<Scotland709ExplorationPlot4, echo=FALSE, fig.height=4>>=
+% ggplot(filtered709.3[smoothness<5,], aes(x = meanSaturation, smoothness))+geom_point(color="black")+geom_point(data=foggyDay2, aes(x = meanSaturation, smoothness, label=filePath), colour="red")+geom_text(data = foggyDay2, aes(label= dateTime, colour = "red"),check_overlap = F, size =1)+annotate("rect",xmin = 0.05,xmax = 0.125, ymin = 0,ymax = 1, fill = "green", alpha = 0.5)
+% @
+% 
+% %filtered709.3[meanSaturation<=0.16 & meanSaturation>0.05 & smoothness<1,]
+% 
+% 
+% \end{frame}
+% 
+% 
+% \begin{frame}{Impact of dynamics on features}
+% Looking closer to images with similar features (green box)
+% 
+% 
+% <<Scotland709ExplorationPlot5, echo=FALSE, fig.height=2.5, fig.width=8.4>>=
+% old_par <- par(mfrow=c(1,3))
+% plot(load.image("figure/scotlandAnalysis/7-709_20161121_1140.jpg"),main="Foggy Day (more of the same day are selected)")
+% plot(load.image("figure/scotlandAnalysis/7-709_20161207_1310.jpg"),main="Mist?")
+% plot(load.image("figure/scotlandAnalysis/7-709_20161207_1340.jpg"),main="Mist?")
+% plot(load.image("figure/scotlandAnalysis/7-709_20161213_0910.jpg"),main="Mist?")
+% plot(load.image("figure/scotlandAnalysis/7-709_20161213_1000.jpg"),main="Non-foggy Day")
+% plot(load.image("figure/scotlandAnalysis/7-709_20161213_1040.jpg"),main="Mist?")
+% 
+% par(old_par)
+% @
+% \end{frame}
+
+
+
+
+
+
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%MODIFIED ANDREA END%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%6.	Present a slide with outreach activities (presentations, events, contacts, opportunities).
+
+
+
+\begin{frame}{Outreach}
+\begin{itemize}
+\item{Conferences/articles:}
+\begin{itemize}
+\item{Accepted paper at WMO Technical Conference on Meteorological and Environmental Instruments and Methods of Observation --
+TECO-2016}
+\item{Accepted abstract at  European Geosciences Union General Assembly 2017 - EGU-2017}
+\end{itemize}
+\item{Opportunities:}
+\begin{itemize}
+\item{RWS: meetings concerning project collaboration}
+\end{itemize}
+\item{Contacts:}
+\begin{itemize}
+\item{Privacy officers: KNMI and IenM}
+\item{Port Authority Rotterdam}
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+
+
+
+
+
+
+<<MokkupData, include=FALSE, cache=TRUE>>=
+shp = "inst/extdata/Snelwegen/NDWApril2016WGS84/NDW_April_2016_WGS84.shp"
+datNDW <- readOGR(shp, layer = "NDW_April_2016_WGS84")
+
+datNDW <- datNDW[datNDW$HECTO_LTTR == "#", ]
+
+districts <- c("MN District Zuid",
+               "WNN District Zuid", "WNN District Noord",
+               "WNZ District Noord",
+               "ON District Zuid")
+
+rows <- (datNDW$DISTRNAAM %in% districts) | 
+  (datNDW$WPSNAAMNEN == "GRONINGEN"          & datNDW$WEGNUMMER %in% c("007", "028")) |
+  (datNDW$WPSNAAMNEN == "ZWOLLE"             & datNDW$WEGNUMMER == "028") |
+  (datNDW$DISTRNAAM  == "ZN District Midden" & datNDW$WEGNUMMER %in% c("058")) |
+  (datNDW$WPSNAAMNEN == "EINDHOVEN"          & datNDW$WEGNUMMER == "002") |
+  (datNDW$WPSNAAMNEN == "'S-HERTOGENBOSCH"   & datNDW$WEGNUMMER == "002")
+
+datNDW <- datNDW[rows, ]
+
+mapNL        <- get_map(c(lon = 5.5, lat = 52.5), zoom = 8)
+mapAmsterdam <- get_map("Amsterdam", zoom = 11)
+@
+
+<<AssignFog, include=FALSE, depends='MokkupData'>>=
+datNDW <- data.table(fortify(datNDW))
+datNDW[, visibility := sample(c("clear", "light fog", "dense fog"), 1, prob = c(0.85, 0.10, 0.05)), by = group]
+
+datNDW[, visibility := factor(visibility, levels = c("clear", "light fog", "dense fog"))]
+@
+
+%' \begin{frame}
+%'  \begin{textblock*}{6cm}(1.0cm,1.2cm)
+%'    <<AmsterdamMap, echo=FALSE, warning=FALSE, fig.height=10>>=
+%'    ggmap(mapAmsterdam) + 
+%'      geom_path(aes(x = long, y = lat, group = group, col = visibility),
+%'                data = datNDW, lwd = 2) +
+%'      scale_color_manual(values = c("green", "orange", "red")) +
+%'      theme(legend.position="bottom")
+%'    @
+%'  \end{textblock*}
+%'  \begin{textblock*}{5cm}(7.4cm,2.4cm)
+%'    \includegraphics[width=4cm]{Road-in-Fog.jpg}
+%'   % \begin{tikzpicture}
+%'    % \node[anchor=south west, inner sep=0](image) at (0,0) {\includegraphics[width=4cm]{Road-in-Fog.jpg}}
+%'    % \node (destination) at (-4, 3)
+%'    % \path[->, red] (destination) edge (anchor);
+%'   % \end{tikzpicture}
+%'   
+%'    \includegraphics[width=4cm]{Foggy_Road.jpg}
+%'  \end{textblock*}
+%' \end{frame}
+
+\begin{frame}{Next Steps: fog warning without new infrastructure?}
+
+\begin{textblock*}{5cm}(1cm,2.75cm)
+\includegraphics[width=4cm]{figure/AvailableCameras}
+\end{textblock*}
+
+\begin{textblock*}{5cm}(6cm,2cm)
+<<NLMap, echo=FALSE, warning=FALSE, fig.height=10>>=
+ggmap(mapNL) + 
+  geom_path(aes(x = long, y = lat, group = group, col = visibility),
+            data = datNDW, lwd = 2) +
+  scale_color_manual(values = c("green", "orange", "red")) +
+  theme(legend.position="bottom")
+@
+\end{textblock*}
+\end{frame}
+
+
+
+%7. Finish with a slide that present your next steps and a possible request for sponsoring (leaptime, hours) by the steering committee (KNMI).
+
+\begin{frame}{Next Steps}
+ \begin{itemize}
+\item{RWS-KNMI collaboration project}
+\item{Work on images from RWS camera network: further algorithm test/improvement}
+\item{2017 sponsoring in RWS framework}
+\item {\textbf{\color{red}{Required more dedicated resources (FTEs) for ``quantum leap'' and RWS working prototype}}}
+\end{itemize}
+\end{frame}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% \begin{frame}{Validation plot}
+% Focusing on prominent regions in the plot, we could also identify several cases
+% where there is clearly an adaptation of the camera taking place and that
+% sometimes the different scenery is not only present for one picture but for an
+% extended period of time.
+% 
+% The next plot shows the modelled log(MOR) for the validation set. The 
+
+<<plotRegressionValidation, include=FALSE, warning=FALSE, fig.height=2, fig.width=4>>=
+#
+#predReg <- predict(mlm, test)
+#test[, predMOR := predReg]
+
+#testClean <- test[hour(dateTime) < 20]
+#testClean <- testClean[!(predMOR < 8.5 & log(MOR) > 7.8)] ## too dark
+
+# testClean[predMOR > 12 & log(MOR) > 9]
+# April 4 12:30 different scenery
+# April 21 9:40 different scenery
+#
+#testClean <- testClean[!(predMOR > 12 & log(MOR) > 9)]
+
+# testClean[predMOR > 11 & log(MOR) < 9]
+# January 16 heavy rain
+# February 14 heavy rain
+# April 8 already dark
+# April 26 heavy rain
+# June 23 heavy rain
+
+
+
+#ggplot(testClean, aes(x = log(MOR), y = predMOR)) + geom_point() +
+   # geom_smooth(method="lm", formula = y ~ splines::bs(x, 3), se=FALSE, data = train) + 
+   # geom_segment(aes(x = x1, xend = x2, y = y1, yend = y2), data = segments, col = 2) +
+    ##geom_vline(xintercept = c(log(250), log(1000), log(3000), log(5000)), lty = 3) + 
+    ##geom_hline(yintercept = plottingPredMOR, lty = 3, col = 2) +
+   # coord_cartesian(xlim=c(4, 11), ylim = c(7,13.5)) +
+   # ylab("modelled log(MOR)")
+@
+% \end{frame}
+
+<<PODandFARTest, include=FALSE>>=
+
+# testClean[MOR < 250 & predMOR < 8.3, .N]
+# testClean[MOR < 250 & predMOR < 8.3, .N] / testClean[MOR < 250, .N]
+# testClean[MOR > 250 & predMOR < 8.3, .N] / testClean[predMOR < 8.3, .N]
+# 
+# testClean[MOR < 1000 & predMOR < 9.05, .N]
+# testClean[MOR < 1000 & predMOR < 9.05, .N] / testClean[MOR < 1000, .N]
+# testClean[MOR > 1000 & predMOR < 9.05, .N] / testClean[predMOR < 9.05, .N]
+# 
+# testClean[MOR > 3000 & predMOR > 9.49, .N]
+# testClean[MOR > 3000 & predMOR > 9.49, .N] / testClean[MOR > 3000, .N]
+# testClean[MOR < 3000 & predMOR > 9.49, .N] / testClean[predMOR > 9.49, .N]
+# 
+# testClean[MOR > 5000 & predMOR > 9.65, .N]
+# testClean[MOR > 5000 & predMOR > 9.65, .N] / testClean[MOR > 5000, .N]
+# testClean[MOR < 5000 & predMOR > 9.65, .N] / testClean[predMOR > 9.65, .N]
+@
+
+% \begin{frame}{Next steps}
+% 
+%  \begin{block}{More testing \alert{$\Rightarrow$} need more representative images}
+%  \end{block}
+%  
+%  \begin{block}{More research into features and different ML algorithms}
+%  \end{block}
+%  
+%  \begin{block}{Use multiple cameras (spatio-temporal model)}
+%  \end{block}
+%  
+%  % \begin{block}{Next directions}
+%  % \begin{itemize}
+%  %  \item use additional features, e.g. wind or dew point temperature
+%  %  \item use clustering for unsupervised learning
+%  % \end{itemize}
+%  % \end{block}
+% \end{frame}
+
+\appendix
+
+
+
+\begin{frame}{Back-up slides}
+\end{frame}
+
+\begin{frame}{Features extracted from images}
+
+
+\begin{itemize}
+\begin{footnotesize}
+\item{Mean Edges: for finding the boundaries of objects within images. It works by detecting discontinuities in the image (e.g., foreground and background elements).}
+\item{Mean Brightness: perception of a source of radiating/reflecting light.}
+\item{Mean Saturation: is a measure of the purity of the color. The purest (most saturated) color is achieved by using just one wavelength, less pure come from a combination at different wavelengths.}
+\item{Mean HUE: perception of a source of being similar to one of the perceived colors: red, yellow, green, and blue, or to a combination of two of them.}
+\item{Fractal Dimension: self similarity in filling space.}
+\item{Transmission smoothness: transmission of the darkchannel of the image (smoothed indicator).}
+\item{Transmission changepoint: horizontal point where the transmission of the dark channel is subject to change.}
+\end{footnotesize}
+\end{itemize}
+
+
+
+
+
+\end{frame}
+
+
+
+
+
+\begin{frame}{Confusion Table image features only}\centering
+% 
+\begin{itemize}
+\item {Picture-only features test set (8 months of observations)}
+
+% 
+\end{itemize}
+\begin{table}
+    %\setlength{\extrarowheight}{2pt}
+    \begin{tabular}{cc|c|c|}
+       & \multicolumn{1}{c}{} & \multicolumn{2}{c}{Reference}\\
+       & \multicolumn{1}{c}{} & \multicolumn{1}{c}{FALSE}  & \multicolumn{1}{c}{TRUE} \\\cline{3-4}
+       \multirow{2}*{Prediction}  & FALSE & 15736  & 34 \\\cline{3-4}
+      & TRUE & 38 &6 \\\cline{3-4}
+    \end{tabular}
+  \end{table}
+  
+  \begin{itemize}
+\item {Issues mentioned above play a role in the false positive/negative}
+\item{Sensitivity: 0.1500000}
+\item{Specificity: 0.9975910}
+
+% 
+\end{itemize}
+  
+% % Original
+% % ##
+% % ## Reference
+% % ## Prediction FALSE TRUE
+% % ## FALSE 15736 34
+% % ## TRUE 38 6
+% 
+% 
+ \end{frame}
+
+\begin{frame}{Confusion Table with meteo features}\centering
+% 
+\begin{itemize}
+\item {Picture and meteo features test set (8 months of observations)}
+\item{Filtered out continuous rain conditions and wind speed $\geq$ 3.5 m/s}
+% 
+\end{itemize}
+\begin{table}
+    %\setlength{\extrarowheight}{2pt}
+    \begin{tabular}{cc|c|c|}
+       & \multicolumn{1}{c}{} & \multicolumn{2}{c}{Reference}\\
+       & \multicolumn{1}{c}{} & \multicolumn{1}{c}{FALSE}  & \multicolumn{1}{c}{TRUE} \\\cline{3-4}
+       \multirow{2}*{Prediction}  & FALSE & 6743  & 14 \\\cline{3-4}
+      & TRUE & 165 & 26 \\\cline{3-4}
+    \end{tabular}
+  \end{table}
+  
+  \begin{itemize}
+\item {Meteorological features are not selected except air temperature}
+\item{Sensitivity: 0.6500000}
+\item{Specificity: 0.976115}
+
+
+% 
+\end{itemize}
+ 
+ \end{frame}
+
+
+
+\end{document}

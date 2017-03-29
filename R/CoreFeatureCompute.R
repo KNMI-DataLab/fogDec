@@ -1,26 +1,28 @@
-#' Computes the features of the images
-#' @param filePath String of the file location
-#' @import data.table
-#' @export
-ReturnFeatures <- function(filePath) {
-  if(grepl("Meetterrein",filePath) == TRUE){
-    im <- subim(load.image(filePath), y > 16) #cut the upper black band of DeBilt
-  } else {
-    im <- load.image(filePath)
-  }
-  #check if the image is a RGB or grayscale (converted to grayscale when dark by GIMP rectification)
-  if(dim(im)[4] == 1){
-    im<-add.colour(im, TRUE)
-  }
-  imT <- RGBtoHSV(im)
-  transmission <- GetHorizAvgTrans(im)
-  list(meanEdge = DetectMeanEdges(im, 3),
-       changePoint = TransmissionChangepoint(transmission),
-       smoothness = TransmissionSmoothness(transmission),
-       meanHue = mean(channel(imT, 1)),
-       meanSaturation = mean(channel(imT, 2)),
-       meanBrightness = mean(channel(imT, 3)) )
-}
+# #' Computes the features of the images
+# #' @param filePath String of the file location
+# #' @import data.table
+# #' @export
+# ReturnFeatures <- function(filePath) {
+#   if(grepl("Meetterrein",filePath) == TRUE){
+#     im <- subim(load.image(filePath), y > 16) #cut the upper black band of DeBilt
+#   } else {
+#     im <- load.image(filePath)
+#   }
+#   #check if the image is a RGB or grayscale (converted to grayscale when dark by GIMP rectification)
+#   if(dim(im)[4] == 1){
+#     im<-add.colour(im, TRUE)
+#   }
+#   imT <- RGBtoHSV(im)
+#   transmission <- GetHorizAvgTrans(im)
+#   list(meanEdge = DetectMeanEdges(im, 3),
+#        changePoint = TransmissionChangepoint(transmission),
+#        smoothness = TransmissionSmoothness(transmission),
+#        fractaldim = GetFractalDim(transmission),
+#        fractalDim = GetFractalDim(im),
+#        meanHue = mean(channel(imT, 1)),
+#        meanSaturation = mean(channel(imT, 2)),
+#        meanBrightness = mean(channel(imT, 3)) )
+# }
 
 
 #' Saves the features of the images
@@ -29,17 +31,22 @@ ReturnFeatures <- function(filePath) {
 #' @import data.table
 #' @export
 featureExtraction <- function(propertiesLocationsVect) {
-   propertiesLocations$fileLocation <- propertiesLocationsVect[9]
-   print(propertiesLocations$fileLocation)
-   propertiesLocations$imagePrefix <- propertiesLocationsVect[7]
-   propertiesLocations$imageFormat <- propertiesLocationsVect[8]
-   propertiesLocations$filePattern <- propertiesLocationsVect[6]
-   propertiesLocations$stationID <- propertiesLocationsVect[2]
-   propertiesLocations<-data.table(propertiesLocations)
-   print(str(propertiesLocations))
+  cat(paste0(propertiesLocationsVect[1],"\n"), file="mylog.txt", append=TRUE)
+  propertiesLocations<-data.table(
+   fileLocation = propertiesLocationsVect[9],
+   filePrefix = propertiesLocationsVect[7],
+   imageFormat = propertiesLocationsVect[8],
+   filePattern = propertiesLocationsVect[6],
+   stationID = propertiesLocationsVect[2],
+   lon = as.numeric(propertiesLocationsVect[4]),
+   lat = as.numeric(propertiesLocationsVect[5]),
+   locationID = propertiesLocationsVect[1]
+  )
+   #propertiesLocations<-data.table(propertiesLocations)
+   #print(str(propertiesLocations))
   
   filenames <- list.files(propertiesLocations$fileLocation, recursive = T,
-                          pattern=paste0(propertiesLocations$imagePrefix, ".*.", 
+                          pattern=paste0(propertiesLocations$filePrefix, ".*.", 
                                          propertiesLocations$imageFormat, "$"),
                           full.names=TRUE)
   
@@ -49,26 +56,45 @@ featureExtraction <- function(propertiesLocationsVect) {
     fogDec::FileNameParser(file, propertiesLocations$filePattern)
   }
   
+  setkey(imageSummary, filePrefix, dateTime)
   
-  minutesBeforeSunrise <- 180
-  minutesAfterSunset <- 180
+  imageSummary <- merge(imageSummary, propertiesLocations,
+                        by.x = "filePrefix", by.y = "filePrefix")
   
-  daylightImages <- FilterDayLightHours(imageSummary, properties, minutesBeforeSunrise, minutesAfterSunset)
-  
-  
-  featureNames <- c("meanEdge", "changePoint", "smoothness",
-                    "meanHue", "meanSaturation", "meanBrightness")
+  daylightImages <- imageSummary[IsDayLightImage(dateTime, lon, lat), ]
   
   
+  #minutesBeforeSunrise <- 180
+  #minutesAfterSunset <- 180
   
-  daylightImages[, id := 1:.N]
+  #daylightImages <- FilterDayLightHours(imageSummary, properties, minutesBeforeSunrise, minutesAfterSunset)
+  
+  
+  invisible(daylightImages[, id := 1:.N])
   setkey(daylightImages, id)
   
+  
   ##This is run in parallel and this is the most compute-intense part 
-  imageSummary <- foreach(id = iter(daylightImages[, id]), .packages = c('data.table','visDec'), .combine = rbind) %dopar% {
-    tmp <- daylightImages[id, ]
-    tmp[, eval(featureNames) := fogDec:::ReturnFeatures(filePath), by = dateTime]
+  imageFeatures <- foreach(id = iter(daylightImages[, id]), .combine = rbind) %dopar% {
+    cutPoint <- 0
+    if ((daylightImages$locationID == "UK21" || daylightImages$locationID == "UK11") == TRUE) {
+      cutPoint <- 39
+    }
+    
+    ##WE HAVE TO FIND A SOLUTION FOR THE ARGUMENTS TO THIS NEW IMAGE FEATURE FUNCTION,
+    ##IT DOEASN'T LIKE VARIABLES
+    #print(paste0("elaboration:", daylightImages[id, filePath]))
+    cat(paste0(daylightImages[id, filePath],"\n"), file="mylog.txt", append=TRUE)
+    daylightImages[id, visDec::ImageFeatures(filePath, y > 39)]
+    #
   }
+  
+  
+  setkey(daylightImages, filePath)
+  setkey(imageFeatures, filePath)
+  
+  imageSummary <- merge(daylightImages, imageFeatures)
+  
   
   saveRDS(imageSummary, file = paste0("ResultFeatures", propertiesLocations$stationID, ".rds"))
   

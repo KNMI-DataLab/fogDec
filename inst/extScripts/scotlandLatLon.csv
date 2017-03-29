@@ -1,0 +1,40 @@
+locationID,stationID,locationName,lon,lat,filePattern,imagePrefix,imageFormat,fileLocation
+UK1,7_737,A823 at M90,-3.40456323,56.0456782167,na*me_yyyymmddhhmm.jpg,7_737,jpg,~/efs/scotland
+UK2,7_725,M90 A823 Slip,-3.40029317413,56.0461311132,na*me_yyyymmddhhmm.jpg,7_725,jpg,~/efs/scotland
+UK3,7_321,M90 Admiralty,-3.40897408821,56.0332367154,na*me_yyyymmddhhmm.jpg,7_321,jpg,~/efs/scotland
+UK4,7_719,M90 Admiralty 1,-3.40680574157,56.038482126,na*me_yyyymmddhhmm.jpg,7_719,jpg,~/efs/scotland
+UK5,7_720,M90 Admiralty 2,-3.40680574157,56.038482126,na*me_yyyymmddhhmm.jpg,7_720,jpg,~/efs/scotland
+UK6,7_713,M90 Almondhill,-3.39699290841,55.9650099347,na*me_yyyymmddhhmm.jpg,7_713,jpg,~/efs/scotland
+UK7,7_1011,M90 Arlary,-3.39727226925,56.2354446397,na*me_yyyymmddhhmm.jpg,7_1011,jpg,~/efs/scotland
+UK8,7_726,M90 Balbougie,-3.3905108267,56.050447027,na*me_yyyymmddhhmm.jpg,7_726,jpg,~/efs/scotland
+UK9,7_728,M90 Calais Muir,-3.38697909732,56.0634350138,na*me_yyyymmddhhmm.jpg,7_728,jpg,~/efs/scotland
+UK10,7_714,M90 Craigbrae 1,-3.38812369656,55.9701062242,na*me_yyyymmddhhmm.jpg,7_714,jpg,~/efs/scotland
+UK11,7_715,M90 Craigbrae 2,-3.38812369656,55.9701062242,na*me_yyyymmddhhmm.jpg,7_715,jpg,~/efs/scotland
+UK12,7_727,M90 Duloch,-3.38737223117,56.0547055912,na*me_yyyymmddhhmm.jpg,7_727,jpg,~/efs/scotland
+UK13,7_320,M90 Dunf Wynd,-3.40826064917,56.0237829662,na*me_yyyymmddhhmm.jpg,7_320,jpg,~/efs/scotland
+UK14,7_957,M90 Friarton Bridge,-3.40655920753,56.3830302455,na*me_yyyymmddhhmm.jpg,7_957,jpg,~/efs/scotland
+UK15,4_475_cam2,M90 Glenfarg North,-3.390222062,56.2901996748,na*me_yyyymmddhhmm.jpg,4_475_cam2,jpg,~/efs/scotland
+UK16,4_475_cam1,M90 Glenfarg South,-3.390222062,56.2901996748,na*me_yyyymmddhhmm.jpg,4_475_cam1,jpg,~/efs/scotland
+UK17,7_733,M90 Halbeath 2,-3.40171082428,56.0860919295,na*me_yyyymmddhhmm.jpg,7_733,jpg,~/efs/scotland
+UK18,7_326,M90 Halbeath(S),-3.39258645144,56.0777397954,na*me_yyyymmddhhmm.jpg,7_326,jpg,~/efs/scotland
+UK19,7_711,M90 Humbie Farm 1,-3.40868065356,55.9639243839,na*me_yyyymmddhhmm.jpg,7_711,jpg,~/efs/scotland
+UK20,7_712,M90 Humbie Farm 2,-3.40868065356,55.9639243839,na*me_yyyymmddhhmm.jpg,7_712,jpg,~/efs/scotland
+UK21,7_709,M90 Junction 1A EB Slip,-3.41708734646,55.9572414242,na*me_yyyymmddhhmm.jpg,7_709,jpg,~/efs/scotland
+UK22,7_708,M90 Junction 1A North,-3.41820013517,55.956572659,na*me_yyyymmddhhmm.jpg,7_708,jpg,~/efs/scotland
+UK23,7_730,M90 Junction 2A 1,-3.39022201006,56.0754391903,na*me_yyyymmddhhmm.jpg,7_730,jpg,~/efs/scotland
+UK24,7_731,M90 Junction 2A 2,-3.39022201006,56.0754391903,na*me_yyyymmddhhmm.jpg,7_731,jpg,~/efs/scotland
+UK25,4_2152_cam1,M90 Kelty North,-3.3911246455,56.1249932225,na*me_yyyymmddhhmm.jpg,4_2152_cam1,jpg,~/efs/scotland
+UK26,4_2152_cam2,M90 Kelty South,-3.3911246455,56.1249932225,na*me_yyyymmddhhmm.jpg,4_2152_cam2,jpg,~/efs/scotland
+UK27,7_734,M90 Kingseat,-3.40185222046,56.091310937,na*me_yyyymmddhhmm.jpg,7_734,jpg,~/efs/scotland
+UK28,7_710,M90 Kirklands,-3.41587606957,55.9596006345,na*me_yyyymmddhhmm.jpg,7_710,jpg,~/efs/scotland
+UK29,7_322,M90 Masterton 1,-3.40503042885,56.0439566411,na*me_yyyymmddhhmm.jpg,7_322,jpg,~/efs/scotland
+UK30,7_722,M90 Masterton 2,-3.40458900386,56.0437370273,na*me_yyyymmddhhmm.jpg,7_722,jpg,~/efs/scotland
+UK31,7_723,M90 MiddleBank 1,-3.40307576792,56.0453896322,na*me_yyyymmddhhmm.jpg,7_723,jpg,~/efs/scotland
+UK32,7_724,M90 MiddleBank 2,-3.40307576792,56.0453896322,na*me_yyyymmddhhmm.jpg,7_724,jpg,~/efs/scotland
+UK33,7_716,M90 Naval Yard,-3.38250870822,55.9744016099,na*me_yyyymmddhhmm.jpg,7_716,jpg,~/efs/scotland
+UK34,7_323,M90 Pitreavie,-3.39107341488,56.0500183615,na*me_yyyymmddhhmm.jpg,7_323,jpg,~/efs/scotland
+UK35,7_721,M90 Rosyth,-3.40674567118,56.0408011061,na*me_yyyymmddhhmm.jpg,7_721,jpg,~/efs/scotland
+UK36,7_732,M90 Sandybank,-3.39503975595,56.0798236981,na*me_yyyymmddhhmm.jpg,7_732,jpg,~/efs/scotland
+UK37,7_332,M90 Scotstoun Interchange,-3.38461377137,55.9786012536,na*me_yyyymmddhhmm.jpg,7_332,jpg,~/efs/scotland
+UK38,7_319,M90 Well Dean,-3.40504563776,56.0192010067,na*me_yyyymmddhhmm.jpg,7_319,jpg,~/efs/scotland
+UK39,7_729,M90 Woodlee,-3.38762445899,56.0702208525,na*me_yyyymmddhhmm.jpg,7_729,jpg,~/efs/scotland

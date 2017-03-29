@@ -1,3 +1,5 @@
 locationID,stationID,locationName,lon,lat,filePattern,filePrefix,imageFormat,fileLocation
 NL3,CW1-1,Cabauw,4.927,51.971,na*me_yyyymmddhhmm.jpg,CW1-1,jpg,/nobackup/users/pagani/cabauw
 NL4,CW1-2,Cabauw,4.927,51.971,na*me_yyyymmddhhmm.jpg,CW1-2,jpg,/nobackup/users/pagani/cabauw
+UK21,7-709,M90 Junction 1A EB Slip,-3.41708734646,55.9572414242,na*me_yyyymmdd_hhmm.jpg,7-709,jpg,/nobackup/users/pagani/scotland
+UK11,7-715,M90 Craigbrae 2,-3.38812369656,55.9701062242,na*me_yyyymmdd_hhmm.jpg,7-715,jpg,/nobackup/users/pagani/scotland
