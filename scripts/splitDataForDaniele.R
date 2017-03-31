@@ -43,3 +43,27 @@ fogTest[, .N, by = .(vis_class, location_id)]
 
 fogTest[, .N, by = .(vis_class, location_id)][, N] / fogTrain[, .N, by = .(vis_class, location_id)][, N]
 
+fogTrain[, basename := basename(filepath)]
+fogTest[, basename := basename(filepath)]
+
+folder <- "~/Desktop/Daniel/Training/"
+
+# fogTrain[1, filepath]
+
+# file.copy(fogTrain[1, filepath], paste0(folder, "test.jpg"))
+
+fogTrain[, file.copy(filepath, paste0(folder, basename))]
+fogTrain[, filepath := NULL]
+saveRDS(fogTrain, file = "~/Desktop/Daniel/Training/ImageDescription.rds")
+write.csv(fogTrain, file = "~/Desktop/Daniel/Training/ImageDescription.csv", row.names = FALSE, col.names = TRUE)
+
+folder <- "~/Desktop/Daniel/Testing/"
+
+# fogTrain[1, filepath]
+
+# file.copy(fogTrain[1, filepath], paste0(folder, "test.jpg"))
+
+fogTest[, file.copy(filepath, paste0(folder, basename))]
+fogTest[, filepath := NULL]
+saveRDS(fogTest, file = "~/Desktop/Daniel/Testing/ImageDescription.rds")
+write.csv(fogTest, file = "~/Desktop/Daniel/Testing/ImageDescription.csv", row.names = FALSE, col.names = TRUE)
