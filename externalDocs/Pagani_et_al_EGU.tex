@@ -52,10 +52,10 @@
 % ------- POSTER HEADER --------
 
 % Poster title
-\title{Automatic fog detection for infrastructure safety by using camera images.}
+\title{Automatic fog detection for public safety by using camera images}
 
 % Author
-\author{Andrea Pagani\affil{1}, Martin Roth\affil{1}, and Wiel Wauben\affil{1}. Contact: \email{pagani@knmi.nl}}
+\author{Giuliano Andrea Pagani\affil{1}, Martin Roth\affil{1}, and Wiel Wauben\affil{1}. Contact: \email{pagani@knmi.nl}}
 
 % Affiliations
 \affiliations{\affil{1}R\&D Department of Observations and Data-Technology, Royal Netherlands Meteorological Institute. PO Box 201, 3730 AE De Bilt, The Netherlands.%
@@ -74,24 +74,60 @@
 \maketitle
 
 \begin{abstract}
-This document shows the standard for making KNMI-style posters using \latex. It contains three columns in which the user can type the body text and insert figures and equations. The fonts, styles, sizes, paragraphs, etc, are all fixed according to the definitions of the studio, so please leave them unaffected! Some tips about how to use this file effectively are given. %Furthermore, it is shown how to generate a pdf file which can easily be handled by the studio for printing.
+Visibility is traditionally measured manually by meteorological observers using landmarks at known distances in
+the vicinity of the observation site. Nowadays, distributed cameras facilitate inspection of more locations from one
+remote monitoring center. The main idea is, however, still deriving the visibility or presence of fog by an operator
+judging the scenery and the presence of landmarks. Visibility sensors are also used, but they are rather costly and
+require regular maintenance. Moreover, observers, and in particular sensors, give only visibility information that is
+representative for a limited area. 
+Cameras are more and more deployed for surveillance and security reasons in cities and for monitoring traffic along
+main transportation ways. In addition to this primary use of cameras, we consider cameras as potential sensors to
+automatically identify low visibility conditions. 
+The approach that we follow is to use machine learning techniques
+to determine the presence of fog and/or to make an estimation of the visibility. 
+%For that purpose a set of features
+%are extracted from the camera images such as the number of edges, brightness, transmission of the image dark
+%channel, fractal dimension. In addition to these image features, we also consider meteorological variables such
+%as wind speed, temperature, relative humidity, and dew point as additional features to feed the machine learning
+%model. %Furthermore, it is shown how to generate a pdf file which can easily be handled by the studio for printing.
 \end{abstract}
 
 \bcols %% Start columns
 
 \section*{Motivation}
-This is Version \fileversion of the KNMI-style poster made in \latex. This example poster describes how the poster is made up and gives some details about how to insert pictures, work with columns and (the lack of) floats.
-Using the Rijksoverheid fonts requires \textbf{compiling with XeLaTeX} typesetting.
+Fog and reduced visibility have considerable impact on the performance of road, maritime, and aeronautical transportation
+networks. The impact ranges from minor delays to more serious congestions or unavailability of the
+infrastructure and can even lead to damage or loss of lives~\cite{gultepe07}.
 
 \vspace{20pt plus 10pt minus 5pt}
 \begin{minipage}[b]{\columnwidth}
 	\begin{center}
 	\includegraphics[width=1.0\columnwidth]{Accident}
-	\captionof{figure}{Imaginary part of the refractive index of ice and water as a function of wavelength.}
+	\captionof{figure}{Traffic accident caused by dense fog conditions.}
 	\label{figAccident}
 	\end{center}
 \end{minipage}
 \vspace{-1em}
+
+\subsection*{Key facts:}
+\begin{itemize}
+  \item May form and dissipate suddenly.
+  \item Often only a local phenomenon.
+\end{itemize}
+
+\subsection*{Why current technology is not enough:}
+\begin{itemize}
+\item Satellites are not constantly observing areas of interest.
+\item Weather stations observe a limited area.
+\item Forecast of fog conditions is complex.
+\end{itemize}
+
+\subsection*{Idea:}
+Use camera deployed for surveillance and security reasons in cities and for monitoring traffic along
+main transportation ways as potential sensors to
+automatically identify low visibility conditions.
+
+
 
 \section*{Approach}
 \subsection*{General}
