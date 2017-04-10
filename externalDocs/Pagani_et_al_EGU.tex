@@ -101,10 +101,10 @@ Fog and reduced visibility have considerable impact on the performance of road, 
 networks. The impact ranges from minor delays to more serious congestions or unavailability of the
 infrastructure and can even lead to damage or loss of lives~\cite{gultepe07}.
 
-\vspace{-1cm}
+%\vspace{-0.5cm}
 \begin{minipage}[b]{\columnwidth}
 	\begin{center}
-	\includegraphics[width=1.0\columnwidth]{Accident}
+	\includegraphics[width=0.9\columnwidth]{Accident}
 	\captionof{figure}{Traffic accident caused by dense fog conditions.}
 	\label{figAccident}
 	\end{center}
@@ -150,9 +150,27 @@ automatically identify low visibility conditions.
 \end{minipage}
 
 \section*{Approach}
-\subsection*{General}
-This standard poster is made of three columns for portrait and four in landscape. Column width and separation distances are 220mm and 20mm for portrait and 245mm and 22mm for landscape. Columns are simply started with \verb|\bcol| and ended with \verb|\ecol|. Ending and restarting within the page is no problem!
-Just keep in mind that within the document environment almost all \latex stuff is possible.
+\subsection*{From Pictures to Machine Learning}
+Pictures are translated to a set of quantities capturing their properties (\textbf{features}).\newline
+The meteorological transmissionmeter sensor provide ground truth for the visibility conditions in the measurement field (\textbf{supervised} problem).
+\tetxtit{Restrictions}:
+\begin{itemize}
+\item Static cameras
+\item Daylight conditions
+\item Period: 3/2015 - present
+\end{itemize}
+
+\subsection*{Features}
+\begin{itemize}
+\item{Mean Edges: for finding the boundaries of objects within images. It works by detecting discontinuities in the image (e.g., foreground and background elements).}
+\item{Mean Brightness: perception of a source of radiating/reflecting light.}
+\item{Mean Saturation: is a measure of the purity of the color. The purest (most saturated) color is achieved by using just one wavelength, less pure come from a combination at different wavelegths.}
+\item{Mean HUE: perception of a source of being similar to one of the perceived colors: red, yellow, green, and blue, or to a combination of two of them.}
+\item{Fractal Dimension: self similarity in filling space.}
+\item{Transmission smoothness: transmission of the darkchannel of the image (smoothed indicator).}
+\item{Transmission changepoint: horizontal point where the transmission of the dark channel is subject to change.}
+\end{itemize}
+
 
 \subsection*{Sections and subsections}
 Sections and subsections can be used both with numbering (e.g., \verb|\section|) or without numbering (e.g.,\verb|\section*|).
@@ -223,14 +241,7 @@ It is possible to make a figure and tables span multiple columns. If you need it
 
 Figure \ref{2col-fig} shows a two column figure. By making the \verb|minipage| two column wide, you extend the area to next column. However, floating and text overflow are not automated, so it is up to you to add a \verb|\columnbreak| and an empty \verb|minipage|.
 
-\section*{Equations}
-Ow yeah, just add equations like we are used to it! \verb|amsmath| and \verb|amssymb| are already included.
-Equation \ref{eq:example} gives an example of a formula, the acoustic-wave equation in a moving atmosphere,
-\begin{equation}
-	c^{2}\nabla^{2} \varphi - \left( \partial_{t} + \bold{w} \cdot \nabla \right)^{2} \varphi = 0
-\label{eq:example}
-\end{equation}
-The math font inhere is different from the default \tex font to better match the Rijksoverheid sans and serif fonts.
+
 
 \section*{Follow up - Open Questions?}
 The compiled \latex document directly generates an A0 pdf. However, you do can directly print it out on a scaled paper format, for example, A4 or A3, using one of the colour printers.
