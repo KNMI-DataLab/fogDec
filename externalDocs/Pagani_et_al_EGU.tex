@@ -99,7 +99,7 @@ to determine the presence of fog and/or to make an estimation of the visibility.
 \section*{Motivation}
 Fog and reduced visibility have considerable impact on the performance of road, maritime, and aeronautical transportation
 networks. The impact ranges from minor delays to more serious congestions or unavailability of the
-infrastructure and can even lead to damage or loss of lives~\cite{gultepe07}.
+infrastructure and can even lead to damage or loss of lives~\cite{gultepe2007fog}.
 
 %\vspace{-0.5cm}
 \begin{minipage}[b]{\columnwidth}
@@ -232,39 +232,6 @@ Or set other styles like \textit{italic}, \textbf{bold}, \underline{underline}, 
 Figures and tables need to be placed within a \verb|minipage| environment to keep all elements together and enable easy positioning.
 However, leave out the default \latex wrapper environments \verb|figure| and \verb|table| as floats are messed up in the column environment.
 
-\subsection*{Figures}
-
-Preferred figure formats are vectors (e.g., PDF or EPS) for proper color handling (cmyk) and scaling when printing. It is best to size the figure by relative scaling with respect to the column width, e.g., \verb|width=1.0\columnwidth|.
-Captions are added to figures by appending \verb|\captionof{figure}{...}| after the \verb|\includegraphics| line. Figures \ref{fig1} shows an example.
-
-\subsection*{Tables}
-Table \ref{table} demonstrates how tables can be added within a columns, or even spanning multiple ones. It only uses the \verb|tabular| environment. A caption can be added using \verb|\captionof{table}{...}|. 
-
-\subsection*{Multi column figures and tables}
-It is possible to make a figure and tables span multiple columns. If you need it as wide as the entire page, just place it outside the \verb|\bcols| and \verb|\ecols| commands. Need the full-page figure in the middle of the page? Just make \verb|\bcols| and \verb|\ecols| environments before and after it!
-
-%%%%%%%%%%%
-% Fix text overflow for two column figure !!!
-%%%%%%%%%%%
-\pushdown
-\begin{minipage}[b]{\columnwidth}
-\end{minipage}
-%%%%%%%%%%%
-
-\columnbreak
-
-% Figure
-\vspace{20pt plus 10pt minus 5pt}
-% \begin{minipage}[b]{\columnwidth}
-% 	\begin{center}
-% 	\includegraphics[width=1.0\columnwidth]{fig1}
-% 	\captionof{figure}{Imaginary part of the refractive index of ice and water as a function of wavelength.}
-% 	\label{fig1}
-% 	\end{center}
-% \end{minipage}
-\vspace{-1em}
-
-Figure \ref{2col-fig} shows a two column figure. By making the \verb|minipage| two column wide, you extend the area to next column. However, floating and text overflow are not automated, so it is up to you to add a \verb|\columnbreak| and an empty \verb|minipage|.
 
 
 
@@ -306,18 +273,15 @@ Score & +90 & (+96.8\%) & +75 & (+98.7\%)  & +48 & (+218.2\%) \\
 % 	\end{center}
 % \end{center}\end{minipage}
 
-\section*{Conclusion}
-This standard poster offers the possibility of using \latex for making a KNMI-style poster. The procedure is simple because the layout of the poster is contained within this document. It is suggested not to change the layout, but you are free to tweak the \latex code within the defined page area to fit your needs. Bugs and questions related to this \latex style package? Contact Pieter Smets, \email{smets@knmi.nl}, room A3.06.
 
 \pushdown
 
-\begin{fminipage}{\columnwidth}
-\textit{%
-\noindent This is an edition from the KNMI in \\
-cooperation with
-} %
-% \begin{center}\includegraphics[width=.7\columnwidth,clip,trim=0 .4cm 0 .2cm]{TU}\end{center}%
-\end{fminipage}
+
+\bibliographystyle{IEEEtran}
+
+
+\bibliography{biblio}
+
 
 \ecols %% End columns 
 
