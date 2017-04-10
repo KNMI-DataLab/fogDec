@@ -1,0 +1,331 @@
+% !TeX program = xelatex
+\documentclass[]{article}
+
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{csquotes}
+\usepackage{caption}
+%\usepackage{xcolor}
+\usepackage{mdframed}
+\usepackage{subfig}
+\usepackage{wrapfig}
+
+\usepackage[T1]{fontenc}
+\usepackage{blindtext}
+\usepackage{microtype}
+%\usepackage[outdir=./]{epstopdf}
+\usepackage[backend=bibtex,bibencoding=ascii,style=authoryear,sorting=none]{biblatex}
+\usepackage{tcolorbox}
+%Colorbox
+
+%\addbibresource{usr/people/dirksen/Documents/Bibtex/library.bib}
+%\bibliography{/usr/people/dirksen/Documents/Bibtex/library}
+
+%\usepackage[style=nature,backend=bibtex,doi=true,url=true]{biblatex}
+% \bibliography{/usr/people/dirksen/Documents/Bibtex/Radiation}
+% \addbibresource{usr/people/dirksen/Documents/Bibtex/library.bib}
+
+% ------- Packages and Settings --------
+ 
+% GENERAL 
+
+%
+% Load KNMI poster package
+%
+% 	Options:
+%
+%	portrait* | landscape		set poster orientation
+%	cmyk* | rgb		 	set pdf colour mode
+% 	english* | dutch			set KNMI logo language
+% 	epslogo* | pdflogo		set KNMI logo format
+% 	disablefonts			disable all custom fonts (and the need for XeLaTeX)
+% 	path			 		specify path to �KNMIposter� (default = current directory)
+% 	fixfooter			 	fix footer spacing (required for some Tex/Postscript versions)
+% 	debug			 	enable geometry showframe
+%
+% * = default
+%
+\usepackage[landscape]{KNMIposter}
+
+% USER PACKAGES
+% Define path for figures -- for safety, keep the last /
+\graphicspath{{/usr/people/dirksen/reports/solar_irradiance/fig/}}
+
+% Define path of the bibtex
+%\addbibresource{/usr/people/dirksen/Documents/Bibtex/library.bib}
+
+% Assist LaTeX in hyphenation
+%\hyphenation{Rey-nold}
+%\hyphenation{Ra-ma-swa-my}
+
+% ------- POSTER HEADER --------
+
+% Poster title
+\title{Analysis of satellite-derived solar irradiance over the Netherlands}
+
+% Author
+\author{Marieke Dirksen\affil{1}, Jan Fokke Meirink\affil{1}, and Raymond Sluiter\affil{1}. Contact: \email{dirksen@knmi.nl}}
+
+% Affiliations
+\affiliations{\affil{1} Royal Netherlands Meteorological Institute (KNMI). PO Box 201, 3730 AE De Bilt, The Netherlands. %
+}
+
+% You can either add the contact information in the author line (poster top, large),
+% or in the affiliations (poster bottom, footnote size).
+
+% Some additional space for acknowledgements, url's, ... 
+%\acknowledge{I would like to thank all of you!}
+
+
+% ------- Document start --------
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Measurements from geostationary satellites allow the retrieval of surface solar irradiance homogeneously over large areas, thereby providing essential information for the solar energy sector. Here, the SICCS solar irradiance data record derived from 12 years of Meteosat Second Generation satellite measurements is analysed with a focus on the Netherlands, where the spatial resolution is about 6 by 3 km2. Extensive validation of the SICCS data with pyranometer observations is performed, indicating a bias of approximately 3 W/m2 and RMSE of 11 W/m2 for daily data. Long term averages and seasonal variations of solar irradiance show regional patterns related to the surface type (e.g., coastal waters, forests, cities). The inter-annual variability over the time frame of the data record is quantified. Methods to merge satellite and surface observations into an optimized data record are explored. %Furthermore, it is shown how to generate a pdf file which can easily be handled by the studio for printing.
+\end{abstract}
+
+\bcols %% Start columns
+
+\section*{Introduction}
+
+High resolution solar irradiance is important in many field area's such as meteorology and climatology. In the Netherlands 32 stations measure radiation (Fig. \ref{fig:KNMIstations}). Interpolation with the ground based stations results in a smooth pattern for the Netherlands (Fig. \ref{fig:keddistsea})). The goal of this research is to compare the measurements with the satellite product SICCS. Moreover, we aim at integrating the two product. 
+
+\vspace{1em}
+\begin{minipage}[b]{\columnwidth}
+	\begin{center}
+		\begin{minipage}[b]{0.45\columnwidth}
+			\centering
+\includegraphics[width=0.9\textwidth]{GroundStationsKNMI}
+\captionof{figure}{Overview of the ground based meteorological stations of the KNMI. 32 stations measure radiation.}
+\label{fig:KNMIstations}
+		\end{minipage}
+		\hspace{0.5cm}
+		\begin{minipage}[b]{0.45\columnwidth}
+			\centering
+\includegraphics[width=1\textwidth]{ked_distshore_clim12year_mean}
+\captionof{figure}{Long term averaged gridded radiation for the time period of 1981-2010, using ground observations.}
+\label{fig:keddistsea}
+		\end{minipage}
+	\end{center}
+\end{minipage}
+
+
+
+
+
+Previous studies used the satellite irradiance product to derive long term averages and climatology (Ref. \cite{Huld2012}). The SICCS dataset we use is, with $99.2\%$, almost complete.
+
+\begin{tcolorbox}[colback=red!5!white,colframe=red!75!black,title=Differences between SICCS and ground observations]
+\vspace{1em}
+\begin{minipage}[b]{\columnwidth}
+	\begin{center}
+		\includegraphics[width=1\columnwidth]{difference_time}
+		\captionof{figure}{Differences between ground observations and SICCS. With a mean difference of 2.7 $W/m^2$ SICCS is slightly higher, sd = 11 $W/m^2$}
+		\label{fig:difftime}
+	\end{center}
+\end{minipage}
+\end{tcolorbox}
+
+
+%\begin{mdframed}[backgroundcolor=red!5!white]
+\section*{Methods}
+\subsection*{Ground Observations}
+The ground based solar irradiance observations originate from Automatic Weather Stations (AWS), a total of 32 Pyranometers measure radiation in the Netherlands. The instruments can have a calibration uncertainty up to 10 $W/m^2$. 
+
+\subsection*{Satellite Product}
+At KNMI the surface solar radiation from satellites is estimated by the surface insolation under clear and cloudy skies (SICCS). SICCS is a physics based and emperically adjusted algorithm (Ref. \cite{Greuell2013}). 
+
+\vspace{20pt plus 10pt minus 5pt}
+\begin{minipage}[b]{\columnwidth}
+	\begin{center}
+		\begin{minipage}[b]{0.45\columnwidth}
+			\centering
+			\includegraphics[width=\textwidth]{MSG_Auto22}
+			\captionof{figure}{MSG satellite from which SICCS is derived.}
+			\label{fig:figure1}
+		\end{minipage}
+		\hspace{0.5cm}
+		\begin{minipage}[b]{0.45\columnwidth}
+			\centering
+			\includegraphics[width=\textwidth]{pyranometer_field}
+			\captionof{figure}{Ground-based measurement device: pyranometer.}
+			\label{fig:figure2}
+		\end{minipage}
+	\end{center}
+\end{minipage}
+
+SICCS considers the following variables: Solar zenith angle (SZA), Cloud optical thickness (COT), Cloud phase, Aerosol optical thickness (AOT) at 500m, Angstrom exponent ($A_{EXP}$), Aerosol single scattering albedo (SSA), surface elevation, Visible and near-infrared surface albedo and, Integrated water vapor (IWV).
+
+
+\subsection*{Kriging}
+The observations are interpolated with universal kriging. As trend SICCS is used. Kriging was used for long term averages, quarterly averages and daily mean radiation. Figures \ref{fig:snow},\ref{fig:SICCSsnow} and \ref{fig:KEDsnow} show an exceptional situation with a snow cover over the northern half of the Netherlands. 
+
+\vspace{20pt plus 10pt minus 5pt}
+\begin{minipage}[b]{\columnwidth}
+	\begin{center}
+		
+		\begin{minipage}[b]{0.28\columnwidth}
+			\centering
+			\includegraphics[width=1\textwidth]{snowcover20060306}
+			\captionof{figure}{Snow cover on 2005-03-06.}
+			\label{fig:snow}
+		\end{minipage}
+		\hspace{0.5cm}
+		\begin{minipage}[b]{0.28\columnwidth}
+			\centering
+			\includegraphics[width=1\textwidth]{siccs2005-03-06}
+			\captionof{figure}{SICCS and ground observations on 2005-03-06.}
+			\label{fig:SICCSsnow}
+		\end{minipage}
+		\hspace{0.5cm}
+		\begin{minipage}[b]{0.28\columnwidth}
+			\centering
+			\includegraphics[width=1\textwidth]{kriging_prediction2005-03-06}
+			\captionof{figure}{Kriging interpolation with SICCS as trend.}
+			\label{fig:KEDsnow}
+		\end{minipage}
+	\end{center}
+\end{minipage}
+
+%\end{mdframed}
+%\pushdown
+
+
+
+\section*{Results}
+
+\begin{tcolorbox}[colback=red!5!white,colframe=red!75!black,title=Climatology from 2004-2016]
+\begin{minipage}[b]{\columnwidth}
+	\begin{center}
+		\begin{minipage}[b]{0.45\columnwidth}
+			\centering
+			\includegraphics[width=1\textwidth]{siccs_clim12year_mean}
+			\captionof{figure}{Radiation climatology from SICCS. A southwest-northeast gradient can be observed. $R^2=0.49$}
+			\label{fig:SICCS12yr}
+		\end{minipage}
+		\hspace{0.5cm}
+		\begin{minipage}[b]{0.45\columnwidth}
+			\centering
+			\includegraphics[width=1\textwidth]{ked_siccs_clim12year_mean}
+			\captionof{figure}{Radiation climatology using kriging interpolation with SICCS as trend. $R^2=0.70$}
+			\label{fig:KEDsiccs12yr}
+		\end{minipage}
+	\end{center}
+\end{minipage}
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=red!5!white,colframe=red!75!black,title=Quarters mean radiation using Kriging with SICCS as trend]
+%\subsection*{Quarters}
+\begin{minipage}[b]{\columnwidth}
+	\begin{center}
+		\begin{minipage}[b]{0.45\columnwidth}
+			\centering
+			\includegraphics[width=1\textwidth]{seasons_mean_Q1}
+			\captionof{figure}{Radiation during the first quarter. Kriging interpolation with SICCS as trend. $R^2=0.78$}
+			\label{fig:Q1}
+		\end{minipage}
+		\hspace{0.5cm}
+		\begin{minipage}[b]{0.45\columnwidth}
+			\centering
+			\includegraphics[width=1\textwidth]{seasons_mean_Q2}
+			\captionof{figure}{Radiation during the second quarter. Kriging interpolation with SICCS as trend.$R^2=0.72$}
+			\label{fig:Q2}
+		\end{minipage}
+	\end{center}
+\end{minipage}
+
+\begin{minipage}[b]{\columnwidth}
+	\begin{center}
+		\begin{minipage}[b]{0.45\columnwidth}
+			\centering
+			\includegraphics[width=1\textwidth]{seasons_mean_Q3}
+			\captionof{figure}{Radiation during the thirth quarter. Kriging interpolation with SICCS as trend. $R^2=0.63$}
+			\label{fig:Q3}
+		\end{minipage}
+		\hspace{0.5cm}
+		\begin{minipage}[b]{0.45\columnwidth}
+			\centering
+			\includegraphics[width=1\textwidth]{seasons_mean_Q4}
+			\captionof{figure}{Radiation during the fourth quarter. Kriging interpolation with SICCS as trend. $R^2=0.89$}
+			\label{fig:Q4}
+		\end{minipage}
+	\end{center}
+\end{minipage}
+\end{tcolorbox}
+
+
+%\begin{mdframed}[backgroundcolor=red!5!white]
+\section*{Discussion and Conclusion}
+\begin{itemize}
+
+\item \textbf{ Solar irradiance from ground observations and SICCS are comparable (Fig. \ref{fig:difftime}).}
+
+\item \textbf{The spatial resolution from Kriging with SICCS as trend (Fig. \ref{fig:KEDsiccs12yr}) is higher than the interpolation from ground-based stations (Fig. \ref{fig:keddistsea}).} 
+
+\item \textbf{Above sea there are no stations to verify SICCS.}  
+
+\item \textbf{In case of snow cover and cirrus clouds the measurement circumstances are such that a large difference between the two products arises (Fig. \ref{fig:SICCSsnow} and Fig. \ref{fig:KEDsnow}).}  
+
+\end{itemize}
+
+\vspace{20pt plus 10pt minus 5pt}
+\begin{minipage}[b]{\columnwidth}
+	%
+	\captionof{table}{Statistical summary of the results: the long term climatology, quarters and daily interpolations. Comparing the 2 different interpolation methods and SICCS with the ground observations.}
+	\begin{center}
+		\begin{tabular}{l  r  | r  | r | r | r |r }
+			
+			
+			\hline
+			& \multicolumn{2}{c|}{Climatology} & \multicolumn{2}{c|}{Quarters} & \multicolumn{2}{c}{Day} \\
+			\hline
+			& {$R^2$} &  {$RMSE$} &  {$R^2$} &  {$RMSE$} &  {$R^2$} &  {$RMSE$} \\
+			\cline{1-4}
+			
+			\hline
+			Kriging Ground stations 	& 0.47	& 2.3  	& 0.61	& 2.4		& 0.61	& 10.7 \\
+			SICCS 					& 0.49 	& 3.5 	& 0.67 	& 3.6 		& 0.74 	& 9.9 	\\
+			%\hline
+			KED with SICCS trend 				& 0.70 	& 1.7 	& 0.75 	& 1.9	  	& 0.77 	& 7.0 	\\ %waar
+			\hline
+		\end{tabular}
+	\end{center}
+	\label{table}
+	%
+\end{minipage}
+
+\vspace{20pt plus 10pt minus 5pt}
+\begin{tcolorbox}[colback=red!5!white,colframe=red!75!black,title=RMSE variation with time]
+	\vspace{1em}
+	\begin{minipage}[b]{\columnwidth}
+		\begin{center}
+			\includegraphics[width=0.8\columnwidth]{RMSE_time2004-10-07_2007-02-22}
+			\captionof{figure}{RMSE for each day: in green SICCS, in blue Kriging interpolation, in red Kriging interpolation with SICCS trend. }
+			\label{fig:RMSEtime}
+		\end{center}
+	\end{minipage}
+\end{tcolorbox}
+
+
+%\section*{Future Research}
+%\begin{itemize}
+%	\item \textbf{Sources and magnitude of measurement/instrument error.}
+%	\item \textbf{Bias correction satellite data with ground stations.}
+%	\item \textbf{Improvement of albedo input for SICCS.}
+%\end{itemize}
+
+%\end{mdframed}
+
+%Smaller references, size of the footnotes
+\renewcommand*{\bibfont}{\footnotesize}
+\printbibliography
+\pushdown
+
+
+\ecols %% End columns 
+
+
+
+\end{document}

@@ -1,0 +1,222 @@
+% !TeX program = xelatex
+\documentclass{article}
+
+% ------- Packages and Settings --------
+ 
+% GENERAL 
+
+%
+% Load KNMI poster package
+%
+% 	Options:
+%
+%	portrait* | landscape		set poster orientation
+%	cmyk* | rgb		 	set pdf colour mode
+% 	english* | dutch			set KNMI logo language
+% 	epslogo* | pdflogo		set KNMI logo format
+% 	disablefonts			disable all custom fonts (and the need for XeLaTeX)
+% 	path			 		specify path to ?KNMIposter? (default = current directory)
+% 	fixfooter			 	fix footer spacing (required for some Tex/Postscript versions)
+% 	debug			 	enable geometry showframe
+%
+% * = default
+%
+\usepackage[landscape]{KNMIposter}
+
+
+% USER PACKAGES
+% language
+\usepackage[english]{babel}
+
+% Define path for figures -- for safety, keep the last /
+\graphicspath{{example_figures/}}
+
+% Assist LaTeX in hyphenation
+\hyphenation{Rey-nold}
+\hyphenation{Ra-ma-swa-my}
+
+
+% USER PACKAGES
+% language
+\usepackage[english]{babel}
+
+% Define path for figures -- for safety, keep the last /
+\graphicspath{{Example_figures/}}
+
+% Assist LaTeX in hyphenation
+\hyphenation{Rey-nold}
+\hyphenation{Ra-ma-swa-my}
+
+
+
+% ------- POSTER HEADER --------
+
+% Poster title
+\title{The new KNMI branding poster layout in a simple \latex package}
+
+% Author
+\author{Pieter Smets\affil{1,2}, A Colleague\affil{1}, and Another One\affil{2}. Contact: \email{smets@knmi.nl}}
+
+% Affiliations
+\affiliations{\affil{1}R\&D Department of Seismology and Acoustics, Royal Netherlands Meteorological Institute. PO Box 201, 3730 AE De Bilt, The Netherlands. \affil{2}Geoscience and Engineering, Delft University of Technology.%
+}
+
+% You can either add the contact information in the author line (poster top, large),
+% or in the affiliations (poster bottom, footnote size).
+
+% Some additional space for acknowledgements, url's, ... 
+\acknowledge{I would like to thank all of you!}
+
+
+% ------- Document start --------
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This document shows the standard for making KNMI-style posters using \latex. It contains three columns in which the user can type the body text and insert figures and equations. The fonts, styles, sizes, paragraphs, etc, are all fixed according to the definitions of the studio, so please leave them unaffected! Some tips about how to use this file effectively are given. %Furthermore, it is shown how to generate a pdf file which can easily be handled by the studio for printing.
+\end{abstract}
+
+\bcols %% Start columns
+
+\section*{Introduction}
+This is Version \fileversion of the KNMI-style poster made in \latex. This example poster describes how the poster is made up and gives some details about how to insert pictures, work with columns and (the lack of) floats.
+Using the Rijksoverheid fonts requires \textbf{compiling with XeLaTeX} typesetting.
+
+\section*{Layout}
+\subsection*{General}
+This standard poster is made of three columns for portrait and four in landscape. Column width and separation distances are 220mm and 20mm for portrait and 245mm and 22mm for landscape. Columns are simply started with \verb|\bcol| and ended with \verb|\ecol|. Ending and restarting within the page is no problem!
+Just keep in mind that within the document environment almost all \latex stuff is possible.
+
+\subsection*{Sections and subsections}
+Sections and subsections can be used both with numbering (e.g., \verb|\section|) or without numbering (e.g.,\verb|\section*|).
+
+\subsection*{Typesetting}
+Font and typesetting are included in the package for A0 posters. Just make use of the default \latex commands. Need to change the text-size?
+{\tiny tiny}, 
+{\scriptsize scriptsize}, 
+{\footnotesize footnotesize}, 
+{\small small}, 
+{\normalsize normalsize}, 
+{\large large}, 
+{\Large Large}, 
+{\LARGE LARGE},
+{\huge huge}, 
+{\Huge Huge}.
+Or set other styles like \textit{italic}, \textbf{bold}, \underline{underline}, \textsc{small caps}.
+
+\pushdown % similar to vfil (=vfill, but fixed for the column floats)
+
+% Figure exactly 2 columns width
+\vspace{20pt plus 10pt minus 5pt}
+\begin{minipage}[b]{\twocolwidth}
+	\begin{center}
+	\includegraphics[width=\twocolwidth]{fig3}
+	\captionof{figure}{A figure spanning two columns.}
+	\label{2col-fig}
+	\end{center}
+\end{minipage}
+
+\columnbreak % force jump to next column
+
+\section*{Figures and tables}
+Figures and tables need to be placed within a \verb|minipage| environment to keep all elements together and enable easy positioning.
+However, leave out the default \latex wrapper environments \verb|figure| and \verb|table| as floats are messed up in the column environment.
+
+\subsection*{Figures}
+
+Preferred figure formats are vectors (e.g., PDF or EPS) for proper color handling (cmyk) and scaling when printing. It is best to size the figure by relative scaling with respect to the column width, e.g., \verb|width=1.0\columnwidth|.
+Captions are added to figures by appending \verb|\captionof{figure}{...}| after the \verb|\includegraphics| line. Figures \ref{fig1} shows an example.
+
+\subsection*{Tables}
+Table \ref{table} demonstrates how tables can be added within a columns, or even spanning multiple ones. It only uses the \verb|tabular| environment. A caption can be added using \verb|\captionof{table}{...}|. 
+
+\subsection*{Multi column figures and tables}
+It is possible to make a figure and tables span multiple columns. If you need it as wide as the entire page, just place it outside the \verb|\bcols| and \verb|\ecols| commands. Need the full-page figure in the middle of the page? Just make \verb|\bcols| and \verb|\ecols| environments before and after it!
+
+%%%%%%%%%%%
+% Fix text overflow for two column figure !!!
+%%%%%%%%%%%
+\pushdown
+\begin{minipage}[b]{\columnwidth}
+\end{minipage}
+%%%%%%%%%%%
+
+\columnbreak
+
+% Figure
+\vspace{20pt plus 10pt minus 5pt}
+\begin{minipage}[b]{\columnwidth}
+	\begin{center}
+	\includegraphics[width=1.0\columnwidth]{fig1}
+	\captionof{figure}{Imaginary part of the refractive index of ice and water as a function of wavelength.}
+	\label{fig1}
+	\end{center}
+\end{minipage}
+\vspace{-1em}
+
+Figure \ref{2col-fig} shows a two column figure. By making the \verb|minipage| two column wide, you extend the area to next column. However, floating and text overflow are not automated, so it is up to you to add a \verb|\columnbreak| and an empty \verb|minipage|.
+
+\section*{Equations}
+Ow yeah, just add equations like we are used to it! \verb|amsmath| and \verb|amssymb| are already included.
+Equation \ref{eq:example} gives an example of a formula, the acoustic-wave equation in a moving atmosphere,
+\begin{equation}
+	c^{2}\nabla^{2} \varphi - \left( \partial_{t} + \bold{w} \cdot \nabla \right)^{2} \varphi = 0
+\label{eq:example}
+\end{equation}
+The math font inhere is different from the default \tex font to better match the Rijksoverheid sans and serif fonts.
+
+\section*{Printing}
+The compiled \latex document directly generates an A0 pdf. However, you do can directly print it out on a scaled paper format, for example, A4 or A3, using one of the colour printers.
+To have the poster printed on full size (4 times A4, or A0) by the studio, is only a matter of providing them your compiled pdf.
+
+% Table
+\vspace{20pt plus 10pt minus 5pt}
+\begin{minipage}[b]{\columnwidth}
+%
+\captionof{table}{A demonstration of how to add a table and caption to the poster, showing some waveform characteristics: trace velocity ($c_{\text{app}}$) and bearing deviation ($\Delta\phi$) compared individually as well as combined (all).}
+\begin{center}
+\begin{tabular}{l r r | r r | r r}
+\hline
+& \multicolumn{2}{c}{$c_{\text{app}}$} &  \multicolumn{2}{|c}{$\Delta\phi$} &  \multicolumn{2}{|c}{all} \\
+\cline{2-7}
+& \multicolumn{6}{c}{hits (percentage)} \\
+\hline
+Analysis 	& 93	&(26.0\%) & 76 & (21.2\%) &  22 & (6.1\%) \\
+Ensemble & 183 &(51.1\%) & 151 & (42.2\%)  & 70 & (19.6\%) \\
+%\hline
+Score & +90 & (+96.8\%) & +75 & (+98.7\%)  & +48 & (+218.2\%) \\
+\hline
+\end{tabular}
+\end{center}
+\label{table}
+%
+\end{minipage}
+
+
+% Figure
+\vspace{20pt plus 10pt minus 5pt}
+\begin{minipage}[b]{\columnwidth}\begin{center}
+	\begin{center}
+	\includegraphics[width=\columnwidth]{fig2}
+	\captionof{figure}{Part of an AVIRIS flight line acquired over the Pacific Ocean. Left half: a water cloud (Sc), right half: an ice cloud (Ci).}
+	\label{fig2}
+	\end{center}
+\end{center}\end{minipage}
+
+\section*{Conclusion}
+This standard poster offers the possibility of using \latex for making a KNMI-style poster. The procedure is simple because the layout of the poster is contained within this document. It is suggested not to change the layout, but you are free to tweak the \latex code within the defined page area to fit your needs. Bugs and questions related to this \latex style package? Contact Pieter Smets, \email{smets@knmi.nl}, room A3.06.
+
+\pushdown
+
+\begin{fminipage}{\columnwidth}
+\textit{%
+\noindent This is an edition from the KNMI in \\
+cooperation with
+} %
+\begin{center}\includegraphics[width=.7\columnwidth,clip,trim=0 .4cm 0 .2cm]{TU}\end{center}%
+\end{fminipage}
+
+\ecols %% End columns 
+
+\end{document}

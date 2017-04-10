@@ -1,0 +1,570 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% LaTeX2e style file for KNMI A0 poster
+%
+% Useage: 
+%	\usepackage[portrait]{poster}
+%
+% 	Options:
+%
+%	portrait* | landscape		set poster orientation
+%	cmyk* | rgb		 	set pdf colour mode
+% 	english* | dutch		set KNMI logo language
+% 	epslogo* | pdflogo		set KNMI logo format
+% 	disablefonts			disable all custom fonts (and the need for XeLaTeX)
+% 	path			 	specify path to KNMIposter (default = current directory)
+% 	debug			 	enable geometry showframe
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\NeedsTeXFormat{LaTeX2e}
+
+\def\filedate{2016/06/13}
+\def\fileversion{v1.1}
+
+\ProvidesPackage{KNMIposter}[\filedate\space\fileversion\space KNMI poster template]
+
+
+%% check if all required packages are available
+%% some others are checked later (font specific)
+\RequirePackage{ifpdf,ifluatex,ifxetex,ifthen,kvoptions}
+\RequirePackage{geometry,xparse,caption,hyperref,xspace}
+\RequirePackage{amsmath,amssymb,calc,graphicx,fancyhdr,multicol}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%    PACKAGE IO     %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{kvoptions,ifthen}
+
+\DeclareBoolOption[false]{landscape}
+\DeclareComplementaryOption{portrait}{landscape}
+%
+\DeclareBoolOption[false]{rgb}
+\DeclareComplementaryOption{cmyk}{rgb}
+%
+\DeclareBoolOption[false]{pdflogo}
+\DeclareComplementaryOption{epslogo}{pdflogo}
+%
+\DeclareBoolOption[false]{dutch}
+\DeclareComplementaryOption{english}{dutch}
+%
+\DeclareBoolOption[false]{disablefonts}
+%
+\DeclareStringOption[KNMIposter]{path}
+%
+\DeclareBoolOption[false]{fixfooter}
+%
+\DeclareBoolOption[false]{debug}
+
+% process io
+\ProcessKeyvalOptions{KNMIposter}
+
+
+% define logo version
+\newcommand{\KNMILogo}{RO_IM_KNMI_Logo_2_301U_pos}
+\ifKNMIposter@dutch
+	\g@addto@macro\KNMILogo{_nl}
+\else
+	\g@addto@macro\KNMILogo{_en}
+\fi
+\ifKNMIposter@landscape%
+	\g@addto@macro\KNMILogo{_landscape}
+\else%
+	\g@addto@macro\KNMILogo{_portrait}
+\fi
+\ifKNMIposter@pdflogo
+	\newcommand{\KNMILogoExt}{.pdf}
+\else
+	\newcommand{\KNMILogoExt}{.eps}
+\fi
+
+% print home location
+\typeout{}
+\typeout{***********************************************}
+\typeout{}
+\typeout{KNMI LaTeX poster package}
+\typeout{}
+\typeout{******}
+\typeout{}
+\typeout{Compile with XeLaTeX to enable Rijksoverheid fonts.}
+\typeout{}
+\typeout{KNMIposter directories:}
+\typeout{  --> home: \KNMIposter@path}
+\typeout{  --> font: \KNMIposter@path/fonts/}
+\typeout{  --> logo: \KNMIposter@path/logo/}
+\typeout{KNMI logo: \KNMILogo\KNMILogoExt}
+\typeout{}
+\typeout{***********************************************}
+\typeout{}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%  PACKAGE CHECK    %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{ifxetex,ifpdf,ifluatex}
+
+\ifxetex
+	\typeout{Compiler = XeTeX}
+\else
+	\ifthenelse{ \boolean{KNMIposter@disablefonts} }%
+	{
+		\PackageWarning{KNMIposter}{Rijksoverheid fonts ignored.}
+	}{
+		\PackageError{KNMIposter}{XeLaTeX compiler required!}
+	}
+\fi
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% PACKAGE INCLUSION %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% AMS packages for special symbols, etc
+\usepackage{amsmath,amssymb}
+
+%% This package gives you coloured text and various other simple
+%% graphics hacks.  For details, see documentation in 
+%% in /usr/local/teTeX/texmf/doc/generic/pstricks/*
+%\usepackage{pstricks}
+
+%% The textpos package is necessary to position textblocks at arbitary 
+%% places on the page.  Use showboxes option to show outlines of textboxes.
+%\usepackage[absolute]{textpos}
+% \usepackage[absolute,showboxes]{textpos}
+
+\usepackage{calc}
+
+%% Package to include graphics.
+\usepackage{graphicx}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%    Font Magic     %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ifKNMIposter@disablefonts
+	\RequirePackage{helvet}
+	\usepackage{helvet}
+	\renewcommand{\rmdefault}{phv}
+	\renewcommand{\sfdefault}{phv}
+	% easy fix for ignore fonts option
+	\newcommand{\RijksoverheidSansText}{}
+	\newcommand{\RijksoverheidSansHeading}{}
+	\newcommand{\RijksoverheidSerif}{}
+\else
+	\RequirePackage{fontspec,unicode-math}
+	\usepackage{fontspec}
+
+	% RijksoverheidSans_2_0, regular
+	\newfontfamily\RijksoverheidSansText[
+		Path = \KNMIposter@path/fonts/,
+		Extension = .otf,
+		BoldFont = RijksoverheidSansText-Bold_2_0,
+		ItalicFont = RijksoverheidSansText-Italic_2_0,
+		BoldItalicFont  = RijksoverheidSansText-BoldItalic_2_0
+	]{RijksoverheidSansText-Regular_2_0}
+
+	% RijksoverheidSans_2_0, heading
+	\newfontfamily\RijksoverheidSansHeading[
+		Path = \KNMIposter@path/fonts/,
+		Extension = .otf,
+		BoldFont = RijksoverheidSansHeading-Bold_2_0,
+		ItalicFont = RijksoverheidSansHeading-Italic_2_0,
+		BoldItalicFont  = RijksoverheidSansHeading-Bold_2_0
+	]{RijksoverheidSansHeading-Regular_2_0}
+
+	% RijksoverheidSerif_2_0
+	\newfontfamily\RijksoverheidSerif[
+		Path = \KNMIposter@path/fonts/,
+		Extension = .otf,
+		BoldFont = RijksoverheidSerif-Bold_2_0,
+		ItalicFont = RijksoverheidSerif-Italic_2_0,
+		BoldItalicFont  = RijksoverheidSerif-BoldItalic_2_0
+	]{RijksoverheidSerif-Regular_2_0}
+	\setmainfont[
+		Path = \KNMIposter@path/fonts/,
+		Extension = .otf,
+		BoldFont = RijksoverheidSerif-Bold_2_0,
+		ItalicFont = RijksoverheidSerif-Italic_2_0,
+		BoldItalicFont  = RijksoverheidSerif-BoldItalic_2_0
+	]{RijksoverheidSerif-Regular_2_0}
+	% Set math font
+	\usepackage{unicode-math}
+	\setmathfont[
+		Path = \KNMIposter@path/fonts/,
+	       	Extension = .ttf
+	]{CambriaMath}
+\fi
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%      xcolor       %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% These colors are tried and tested for titles and headers. Don't
+%% over use color!
+
+% RGB
+\ifKNMIposter@rgb
+	\usepackage[RGB]{xcolor}
+	\definecolor{black}{RGB}{0,0,0}
+	\definecolor{red}{RGB}{213,43,30}
+	\definecolor{lightblue}{RGB}{143,202,231}
+	\definecolor{skyblue}{RGB}{0,123,199}
+	\definecolor{yellow}{RGB}{249,225,30}
+% cmyk
+\else
+	\usepackage[dvipdfx,fixinclude,cmyk]{xcolor}
+	\definecolor{black}{cmyk}{0.30,0.30,0.30,1.00}
+	\definecolor{red}{cmyk}{0.00,0.96,1.00,0.00}
+	\definecolor{lightblue}{cmyk}{0.45,1.00,0.00,1.00}
+	\definecolor{skyblue}{cmyk}{1.00,0.00,0.00,0.00}
+	\definecolor{yellow}{cmyk}{0.00,0.00,0.90,0.00}
+\fi
+
+
+%% Load shadow box package
+%\usepackage{shadow}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% GLOBAL LAYOUT OPTIONS %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% This loads font sizes in style file a0size
+%\usepackage{a0size}
+\usepackage{geometry}
+
+%% Set paper size
+%% Depending on the conference, the posterboard size may be different.
+%% This template was based on an ISO standard A0, which is in use everywhere
+%% except for the United States.  A0 paper is  46.81 in x 33.11 in.
+%% Depending on the posterboard size and the printer, you may need to 
+%% change the widths and margins here.  Text width and height are set
+%% in terms of paper width and height -- you can change margins here.
+
+\geometry{
+	paper=a0paper,
+	layoutsize = {840mm,1188mm},
+	bindingoffset= 0mm,
+	centering
+}
+
+\ifKNMIposter@debug
+	\geometry{showframe}
+\fi
+
+
+\ifKNMIposter@landscape
+	\geometry{landscape}
+\else
+	\geometry{portrait}
+\fi
+
+%% Margins
+\ifKNMIposter@landscape
+	\setlength{\hoffset}{44.6mm}
+	\setlength{\textwidth}{1048mm}
+	\setlength{\oddsidemargin}{0mm}
+	\setlength{\evensidemargin}{0mm}
+	\setlength{\marginparsep}{0mm}
+	\setlength{\marginparwidth}{0mm}
+
+	\setlength{\voffset}{-1in}
+	\setlength{\headheight}{111mm}
+	\setlength{\headsep}{0mm}
+	\setlength{\topmargin}{0mm}
+	\setlength{\topskip}{0mm}
+	\setlength{\textheight}{650mm}
+	\setlength{\footskip}{25mm}
+\else
+	\setlength{\hoffset}{44.6mm}
+	\setlength{\textwidth}{700mm}
+	\setlength{\oddsidemargin}{0mm}
+	\setlength{\evensidemargin}{0mm}
+	\setlength{\marginparsep}{0mm}
+	\setlength{\marginparwidth}{0mm}
+
+	\setlength{\voffset}{-1in}
+	\setlength{\headheight}{148.0mm}
+	\setlength{\headsep}{0mm}
+	\setlength{\topmargin}{0mm}
+	\setlength{\topskip}{0mm}
+	\setlength{\textheight}{960mm}
+	\setlength{\footskip}{25mm}
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%       FONT SIZE       %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Default font sizes
+\renewcommand{\tiny}{\fontsize{12pt}{17pt}\selectfont}
+\renewcommand{\scriptsize}{\fontsize{16.8pt}{23.8pt}\selectfont}   
+\renewcommand{\footnotesize}{\fontsize{19.2pt}{27.2pt}\selectfont}
+\renewcommand{\small}{\fontsize{21.6pt}{30.6pt}\selectfont}
+\renewcommand{\normalsize}{\fontsize{24pt}{34pt}\selectfont}
+\renewcommand{\large}{\fontsize{28.8pt}{40.8pt}\selectfont}
+\renewcommand{\Large}{\fontsize{34.56pt}{48.96pt}\selectfont}
+\renewcommand{\LARGE}{\fontsize{41.47pt}{58.75pt}\selectfont}
+\renewcommand{\huge}{\fontsize{49.77pt}{70.52pt}\selectfont}
+\renewcommand{\Huge}{\fontsize{59.71pt}{84.59pt}\selectfont}
+
+% Custom font sizes
+\newcommand{\SizeAuthor}{\fontsize{40pt}{80pt}\selectfont}
+\newcommand{\SizeTitle}{\fontsize{100pt}{110pt}\selectfont}
+\newcommand{\SizeAbstract}{\fontsize{30pt}{34pt}\selectfont}
+\newcommand{\SizeSection}{\fontsize{40pt}{34pt}\selectfont}
+\newcommand{\SizeSubsection}{\fontsize{24pt}{34pt}\selectfont}
+\newcommand{\SizeCaption}{\fontsize{22pt}{27.54pt}\selectfont}
+\newcommand{\SizeFootnote}{\fontsize{19.2pt}{21.76pt}\selectfont}
+
+%% Skip lengths
+\setlength{\smallskipamount}{6pt plus 2pt minus 2pt}
+\setlength{\medskipamount}{12pt plus 4pt minus 4pt}
+\setlength{\bigskipamount}{24pt plus 8pt minus 8pt}
+\setlength{\abovecaptionskip}{25pt}
+\setlength{\belowcaptionskip}{0pt}
+\setlength{\abovedisplayskip}{25pt plus 6pt minus 15 pt}
+\setlength{\abovedisplayshortskip}{0pt plus 6pt}
+\setlength{\belowdisplayshortskip}{13pt plus 7pt minus 6pt}
+\setlength{\belowdisplayskip}{\abovedisplayskip}
+
+%% Text layout parameters
+\parindent=0pt
+\parskip=0pt
+
+
+%% Adjust spacing in long displayed mathematical formulas to tighten them up
+\setlength{\abovedisplayskip}{0.75\abovedisplayskip}
+\setlength{\belowdisplayskip}{0.75\belowdisplayskip}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% three-part headers and no footers with automatic rulers.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{fancyhdr}
+
+\pagestyle{fancyplain}
+\fancyhf{} % clear header and footer
+
+\fancyhead[C]{%
+	\ifKNMIposter@landscape%
+			\ifKNMIposter@pdflogo%
+				\includegraphics[height=111mm]{\KNMIposter@path/logo/\KNMILogo.pdf}
+			\else%
+				\includegraphics[height=111mm]{\KNMIposter@path/logo/\KNMILogo.eps}
+			\fi
+	\else%
+		\ifKNMIposter@pdflogo%
+			\includegraphics[height=148mm]{\KNMIposter@path/logo/\KNMILogo.pdf}
+		\else%
+			\includegraphics[height=148mm]{\KNMIposter@path/logo/\KNMILogo.eps}
+		\fi
+	\fi%
+}
+\fancyfoot[L]{%
+	\ifKNMIposter@fixfooter%
+		\vskip5ex%
+	\fi%
+	\RijksoverheidSansText\SizeFootnote{\textit{\@affiliations\\\vspace{.3em}\@acknowledge}}%
+}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Author and affiliations
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% author package with multiple affiliations
+%\usepackage{authblk}
+%\renewcommand\Authsep{, }
+%\renewcommand\Authand{ and }
+%\renewcommand\Authands{, and }
+%
+%\renewcommand\Authfont{\itshape}
+%\renewcommand\Affilfont{\itshape\small}
+
+
+\renewcommand{\author}[1]{\@breakauthor#1\@breakauthor}
+\def\@breakauthor#1 #2\@breakauthor{%
+  \gdef\@author{#1 {#2}}%
+}
+
+\newcommand{\affiliations}[1]{%
+  \gdef\@affiliations{#1}%
+}
+%\newcommand{\contact}[1]{%
+%  \gdef\@contact{#1}%
+%}
+
+\newcommand{\acknowledge}[1]{%
+  \gdef\@acknowledge{#1}%
+}
+
+\newcommand{\affil}[1]{$\,^{\text{#1}}\,$}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Redefine titles
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% title
+\def\@maketitle{%
+  \let \footnote \thanks
+\ifKNMIposter@landscape
+	\begin{center}
+	    {\RijksoverheidSansHeading\SizeTitle \@title \par}%
+%	    \vskip 1.5em%
+	    {\lineskip 1em%
+	      \begin{tabular}[t]{l}%
+	        {\RijksoverheidSansHeading\SizeAuthor{\emph\@author}}
+	      \end{tabular}\par}%
+	\end{center}
+%    \vskip 1em%
+%    {\large \@date}%
+\else
+    {\RijksoverheidSansHeading\SizeTitle \@title \par}%
+%    \vskip 1.5em%
+    {\lineskip 1em%
+      \begin{tabular}[t]{l}%
+        {\RijksoverheidSansHeading\SizeAuthor{\emph\@author}}
+      \end{tabular}\par}%
+%    \vskip 1em%
+%    {\large \@date}%
+\fi
+  \par
+  \vskip 1.5em%
+  }
+
+% section
+\renewcommand\section{\@startsection {section}{1}{\z@}%
+                                   {-12mm \@plus -1ex \@minus -.2ex}%
+                                   {.2ex \@plus.2ex}%
+                                   {\RijksoverheidSerif\SizeSection\bfseries\color{red}}}
+% subsection
+\renewcommand\subsection{\@startsection {subsection}{1}{\z@}%
+                                   {-6mm \@plus -1ex \@minus -.2ex}%
+                                   {.2ex \@plus.2ex}%
+                                   {\RijksoverheidSerif\SizeSubsection\bfseries\color{skyblue}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Redefine abstract
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\renewenvironment{abstract}{%
+	\RijksoverheidSerif\bfseries\SizeAbstract\color{skyblue}%
+	\hfill\begin{minipage}{\textwidth}%
+}{%
+	\end{minipage}\vspace{1.0em}%
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Multicolumn
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{multicol,xparse}
+
+\setlength{\columnseprule}{0pt}
+
+
+% shortkeys for the multicolumns
+\newcommand{\pushdown}{\vfil}
+\newcommand{\ecols}{\end{multicols*}}
+
+\newlength{\onecolwidth}
+\newlength{\twocolwidth}
+\newlength{\threecolwidth}
+
+\ifKNMIposter@landscape
+	\newcommand{\bcols}{\begin{multicols*}{4}}
+	\setlength{\columnsep}{22mm}
+
+	\setlength{\onecolwidth}{(\textwidth-3\columnsep)/4}
+	\setlength{\twocolwidth}{\onecolwidth*2+\columnsep}
+	\setlength{\threecolwidth}{\onecolwidth*3+\columnsep*2}
+	\newlength{\fourcolwidth}
+	\setlength{\fourcolwidth}{\textwidth}
+\else
+	\newcommand{\bcols}{\begin{multicols*}{3}}
+	\setlength{\columnsep}{20mm}
+
+	\setlength{\onecolwidth}{(\textwidth-2\columnsep)/3}
+	\setlength{\twocolwidth}{\onecolwidth*2+\columnsep}
+	\setlength{\threecolwidth}{\textwidth}
+\fi
+\setlength{\columnwidth}{\onecolwidth}
+
+% http://tex.stackexchange.com/a/123283/5764
+\def\convertto#1#2{\strip@pt\dimexpr #2*65536/\number\dimexpr 1#1}
+
+
+\typeout{***********************************}
+\typeout{Single column width \string\columnwidth\space or \string\onecolwidth\space is \the\columnwidth}
+\typeout{Single column width \string\onecolwidth\space is \convertto{cm}{\the\onecolwidth}cm.}
+\typeout{***********************************}
+
+
+% make box for partner logo's and text
+
+\setlength{\fboxsep}{2em}
+\setlength{\fboxrule}{5pt}
+
+\newsavebox{\fminipagebox}
+\NewDocumentEnvironment{fminipage}{m O{\fboxsep}}
+ {\par\kern#2\noindent\begin{lrbox}{\fminipagebox}
+  \begin{minipage}[b]{#1-2\fboxsep-2\fboxrule}\ignorespaces}
+ {\end{minipage}\end{lrbox}%
+  {\color{skyblue}\makebox[#1]{%
+    \kern\dimexpr-\fboxsep-\fboxrule\relax
+    \fbox{\usebox{\fminipagebox}}%
+    \kern\dimexpr-\fboxsep-\fboxrule\relax
+  }\par\kern0em
+ }}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Caption
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% caption for figure in minipage
+
+%%http://www.lce.esalq.usp.br/clarice/Caption.pdf
+\DeclareCaptionFont{RijksoverheidSansText}{\RijksoverheidSansText}
+\DeclareCaptionFont{SizeCaption}{\SizeCaption}
+
+\setlength{\abovecaptionskip}{20pt} % 25pt
+\setlength{\belowcaptionskip}{12pt plus 5pt minus 3pt}
+\usepackage[font={it,SizeCaption,RijksoverheidSansText},labelfont=bf]{caption}
+
+% change the style of the caption numbering.
+\renewcommand{\thetable}{\arabic{table}}
+\renewcommand{\thefigure}{\arabic{figure}}
+%\renewcommand{\thetable}{\Alph{table}}
+%\renewcommand{\thefigure}{\Alph{figure}}
+%\renewcommand{\thesubtable}{\Roman{subtable}}
+%\renewcommand{\thesubfigure}{\arabic{subfigure}}
+
+
+\NewDocumentEnvironment{Figure}{m}
+{%
+	\vspace{20pt plus 10pt minus 5pt}
+	\begin{minipage}[b]{#1}
+}{%
+	\end{minipage}
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Href
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{hyperref}
+
+\newcommand{\email}[1]{%
+	\href{mailto:#1}{#1}%
+}
+
+\usepackage{xspace}
+\newcommand{\latex}{{\fontfamily{svf}\selectfont\LaTeX\xspace}}
+\newcommand{\tex}{{\fontfamily{svf}\selectfont\TeX\xspace}}
