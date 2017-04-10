@@ -136,7 +136,7 @@ automatically identify low visibility conditions.
 	\begin{center}
 	\includegraphics[width=\columnwidth]{CameraPlacement}
 	\captionof{figure}{Cameras monitoring highways in Amsterdam region.}
-	\label{figAccident}
+	\label{figCameras}
 	\end{center}
 	\end{minipage}
 	\hspace*{0.1cm}
@@ -144,7 +144,7 @@ automatically identify low visibility conditions.
 	\begin{center}
 	\includegraphics[width=\columnwidth]{SensorPlacement}
 	\captionof{figure}{KNMI weather stations locations.}
-	\label{figAccident}
+	\label{figSensors}
 	\end{center}
 \end{minipage}
 \end{minipage}
@@ -153,14 +153,11 @@ automatically identify low visibility conditions.
 \subsection*{From Pictures to Machine Learning}
 Pictures are translated to a set of quantities capturing their properties (\textbf{features}).\newline
 The meteorological transmissionmeter sensor provide ground truth for the visibility conditions in the measurement field (\textbf{supervised} problem).
-\tetxtit{Restrictions}:
-\begin{itemize}
-\item Static cameras
-\item Daylight conditions
-\item Period: 3/2015 - present
-\end{itemize}
+\textit{Restrictions}: i) static cameras, ii) daylight conditions, iii) period: 3/2015 - present.
 
 \subsection*{Features}
+\begin{itemize}
+\item{Image based:}
 \begin{itemize}
 \item{Mean Edges: for finding the boundaries of objects within images. It works by detecting discontinuities in the image (e.g., foreground and background elements).}
 \item{Mean Brightness: perception of a source of radiating/reflecting light.}
@@ -170,6 +167,34 @@ The meteorological transmissionmeter sensor provide ground truth for the visibil
 \item{Transmission smoothness: transmission of the darkchannel of the image (smoothed indicator).}
 \item{Transmission changepoint: horizontal point where the transmission of the dark channel is subject to change.}
 \end{itemize}
+\item{Weather info:}
+\begin{itemize}
+\item{Wind speed}
+\item{Dew point}
+\item{Humidity}
+\item{Precipitation amount}
+\end{itemize}
+\end{itemize}
+
+
+\begin{minipage}[b]{\columnwidth}
+	\begin{center}
+	\includegraphics[width=0.95\columnwidth]{edges}
+	\captionof{figure}{Edge detection.}
+	\label{figEdges}
+	\end{center}
+\end{minipage}
+
+\begin{minipage}[b]{\columnwidth}
+	\begin{center}
+	\includegraphics[width=0.95\columnwidth]{transmission}
+	\captionof{figure}{Average horizontal dark channel transmission clear (top) and foggy (bottom) day.}
+	\label{figTransmission}
+	\end{center}
+\end{minipage}
+
+
+
 
 
 \subsection*{Sections and subsections}
