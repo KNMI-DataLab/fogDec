@@ -79,9 +79,23 @@ ggplot(trainNorm, aes(x = mor_visibility, y = edges,
 ```
 
 
-```{r CloseDB}
+```{r CloseDB, include=FALSE}
 dbDisconnect(con)
 ```
 
+Based on the training set we obtain the following preliminary decision tree:
+```{r ClassificationTreeFit}
+library(rpart)
+library(rattle)
+trainNorm[, vis_class_bi := vis_class == "A"]
+fogTree <- rpart(vis_class_bi ~ edges + changepoint + hue + 
+                   saturation + brightness,
+                 trainNorm,
+                 control = rpart.control(cp = 0.01))
+```
+
+```{r ClassificationTreePlot}
+fancyRpartPlot(fogTree, sub="")
+```
 
 
