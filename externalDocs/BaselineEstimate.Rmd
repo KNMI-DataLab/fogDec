@@ -18,6 +18,8 @@ Daniel.
 library(data.table)
 library(DBI)
 library(jsonlite)
+library(dplyr)
+library(ggplot2)
 ```
 
 ```{r OpenDB}
@@ -35,7 +37,7 @@ train <- readRDS("~/Desktop/Daniel/Training/ImageDescription.rds")
 ```
 
 ```{r GetFeatureData}
-selectedFeatures <- c("mean_edge", "change_point", "fractal_dim",
+selectedFeatures <- c("mean_edge", "change_point", #"fractal_dim",
                       "mean_hue", "mean_saturation", "mean_brightness")
 sqlSelect <- "SELECT image_id, "
 sqlSelect <- paste0(sqlSelect, paste(selectedFeatures, collapse = ", "))
@@ -49,12 +51,37 @@ features <- as.data.table(dbGetQuery(con, sqlSelect))
 
 ```{r MergeTrainingWithFeatures}
 train <- merge(train, features, by = "image_id")
-head(train)
+train[, camera_id := as.factor(camera_id)]
+```
+
+```{r NormalizeFeaturesByCamera}
+
+NormalizeByMedian <- function(x) {
+  (x - median(x)) / mad(x)
+}
+
+trainNorm <- train %>% 
+  group_by(camera_id) %>%
+  mutate(edges       = NormalizeByMedian(mean_edge)) %>%
+  mutate(changepoint = NormalizeByMedian(change_point)) %>%
+  mutate(hue         = NormalizeByMedian(mean_hue)) %>%
+  mutate(saturation  = NormalizeByMedian(mean_saturation)) %>%
+  mutate(brightness  = NormalizeByMedian(mean_brightness)) %>%
+  select(camera_id, image_id, mor_visibility, vis_class,
+         edges, changepoint, hue, saturation, brightness) %>%
+  ungroup() %>% as.data.table()
+
+ggplot(trainNorm, aes(x = mor_visibility, y = edges,
+                      col = camera_id)) +
+  scale_x_log10() +
+  geom_point()
+  
 ```
 
 
 ```{r CloseDB}
 dbDisconnect(con)
 ```
+
 
 
