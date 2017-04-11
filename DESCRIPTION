@@ -18,7 +18,7 @@ Imports:
     changepoint
 License: LGPL
 LazyData: true
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1.9000
 LinkingTo: Rcpp
 Suggests: knitr,
     rmarkdown,
