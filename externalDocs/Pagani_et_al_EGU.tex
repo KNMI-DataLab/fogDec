@@ -47,6 +47,8 @@
 \hyphenation{Rey-nold}
 \hyphenation{Ra-ma-swa-my}
 
+\usepackage{tcolorbox}
+
 
 
 % ------- POSTER HEADER --------
@@ -86,7 +88,7 @@ Cameras are more and more deployed for surveillance and security reasons in citi
 main transportation ways. In addition to this primary use of cameras, we consider cameras as potential sensors to
 automatically identify low visibility conditions. 
 The approach that we follow is to use machine learning techniques
-to determine the presence of fog and/or to make an estimation of the visibility. 
+to determine the presence of fog or to make an estimation of the visibility. 
 %For that purpose a set of features
 %are extracted from the camera images such as the number of edges, brightness, transmission of the image dark
 %channel, fractal dimension. In addition to these image features, we also consider meteorological variables such
@@ -143,7 +145,7 @@ automatically identify low visibility conditions.
 \begin{minipage}[b]{0.4\columnwidth}
 	\begin{center}
 	\includegraphics[width=\columnwidth]{SensorPlacement}
-	\captionof{figure}{KNMI weather stations locations.}
+	\captionof{figure}{KNMI weather stations locations with visibility sensors.}
 	\label{figSensors}
 	\end{center}
 \end{minipage}
@@ -151,36 +153,44 @@ automatically identify low visibility conditions.
 
 \section*{Approach}
 \subsection*{From Pictures to Machine Learning}
-Pictures are translated to a set of quantities capturing their properties (\textbf{features}).\newline
-The meteorological transmissionmeter sensor provide ground truth for the visibility conditions in the measurement field (\textbf{supervised} problem).
-\textit{Restrictions}: i) static cameras, ii) daylight conditions, iii) period: 3/2015 - present.
+General properties of the images (\textbf{features}) are computed. Such properties are expected to vary with visibility conditions.\newline
+%Pictures are translated to a set of quantities capturing their properties (\textbf{features}).\newline
+The visibility measurements obtained by a nearby  forward scatter sensor is considered the reference for the visibility conditions in the measurement field (\textbf{supervised} problem).\newline
+A classifier is trained with the features extracted from the pictures and the labels as visibility class provided by the sensor.
+\vspace*{0.8cm}
 
-\subsection*{Features}
+\textit{Restrictions}: i) static cameras, ii) daylight conditions, iii) period: 3/2015 - present, iv) image sampling time: 10 minutes.
+
+%\subsection*{Features}
+\begin{tcolorbox}[colback=red!5!white,colframe=red!75!black,title=Image Features]
 \begin{itemize}
-\item{Image based:}
-\begin{itemize}
-\item{Mean Edges: for finding the boundaries of objects within images. It works by detecting discontinuities in the image (e.g., foreground and background elements).}
+\item{Mean Edges: for finding the boundaries of objects within images. 
+It works by detecting discontinuities in the image (e.g., foreground and background elements).
+}
 \item{Mean Brightness: perception of a source of radiating/reflecting light.}
-\item{Mean Saturation: is a measure of the purity of the color. The purest (most saturated) color is achieved by using just one wavelength, less pure come from a combination at different wavelegths.}
+\item{Mean Saturation: is a measure of the purity of the color. 
+The purest (most saturated) color is achieved by using just one wavelength, less pure come from a combination at different wavelengths.
+}
 \item{Mean HUE: perception of a source of being similar to one of the perceived colors: red, yellow, green, and blue, or to a combination of two of them.}
 \item{Fractal Dimension: self similarity in filling space.}
-\item{Transmission smoothness: transmission of the darkchannel of the image (smoothed indicator).}
+\item{Transmission smoothness: transmission of the dark channel of the image.}
 \item{Transmission changepoint: horizontal point where the transmission of the dark channel is subject to change.}
 \end{itemize}
-\item{Weather info:}
-\begin{itemize}
-\item{Wind speed}
-\item{Dew point}
-\item{Humidity}
-\item{Precipitation amount}
-\end{itemize}
-\end{itemize}
+%\item{Weather based:}
+%\begin{itemize}
+%\item{Wind speed}
+%\item{Dew point}
+%\item{Humidity}
+%\item{Precipitation amount}
+%\end{itemize}
+%\end{itemize}
+\end{tcolorbox}
 
 
 \begin{minipage}[b]{\columnwidth}
 	\begin{center}
 	\includegraphics[width=0.95\columnwidth]{edges}
-	\captionof{figure}{Edge detection.}
+	\captionof{figure}{Edges in images.}
 	\label{figEdges}
 	\end{center}
 \end{minipage}
@@ -188,8 +198,38 @@ The meteorological transmissionmeter sensor provide ground truth for the visibil
 \begin{minipage}[b]{\columnwidth}
 	\begin{center}
 	\includegraphics[width=0.95\columnwidth]{transmission}
-	\captionof{figure}{Average horizontal dark channel transmission clear (top) and foggy (bottom) day.}
+	\captionof{figure}{Average horizontal dark channel transmission: clear (top) and foggy (bottom) day.}
 	\label{figTransmission}
+	\end{center}
+\end{minipage}
+\vspace*{-5cm}
+
+
+\section*{Results}
+The initial goal to identify fog conditions from images has been achieved using \textbf{Decision Tree} technique. This is to be considered a first step to improve upon. We aim to identify fog in more advanced and complex dynamic scenarios.
+
+\begin{minipage}[b]{\columnwidth}
+	\begin{center}
+	\includegraphics[width=0.9\columnwidth]{ClassificationTree-1}
+	\captionof{figure}{Decision Tree results for De Bilt training set.}
+	\label{figTree}
+	\end{center}
+\end{minipage}
+For location De Bilt the result are promising in the training (March-December 2015) and the test set (January-June 2016) in terms of \textbf{Probability of Detection} and \textbf{False Alarm Ratio}.
+\begin{tcolorbox}[colback=red!5!white,colframe=red!75!black,title=Overall Project Results]
+\begin{itemize}
+\item{Partnership with governmental institution for road management.}
+\item{Access to traffic monitoring cameras on Dutch highways.}
+\item{Access to observation cameras in Dutch airports.}
+\item{Processing of images in distributed infrastructure on AWS cloud.}
+\item{Creation of a R image features processing library \url{https://github.com/MartinRoth/visDec}}
+\end{itemize}
+\end{tcolorbox}
+\begin{minipage}[b]{\columnwidth}
+	\begin{center}
+	\includegraphics[width=0.9\columnwidth]{PODandFAR3-1}
+	\captionof{figure}{POD-FAR for De Bilt training (2015) and test (2016)}
+	\label{figTree}
 	\end{center}
 \end{minipage}
 
@@ -197,70 +237,21 @@ The meteorological transmissionmeter sensor provide ground truth for the visibil
 
 
 
-\subsection*{Sections and subsections}
-Sections and subsections can be used both with numbering (e.g., \verb|\section|) or without numbering (e.g.,\verb|\section*|).
-
-\subsection*{Typesetting}
-Font and typesetting are included in the package for A0 posters. Just make use of the default \latex commands. Need to change the text-size?
-{\tiny tiny}, 
-{\scriptsize scriptsize}, 
-{\footnotesize footnotesize}, 
-{\small small}, 
-{\normalsize normalsize}, 
-{\large large}, 
-{\Large Large}, 
-{\LARGE LARGE},
-{\huge huge}, 
-{\Huge Huge}.
-Or set other styles like \textit{italic}, \textbf{bold}, \underline{underline}, \textsc{small caps}.
-
-\pushdown % similar to vfil (=vfill, but fixed for the column floats)
-
-% Figure exactly 2 columns width
-% \vspace{20pt plus 10pt minus 5pt}
-% \begin{minipage}[b]{\twocolwidth}
-% 	\begin{center}
-% 	\includegraphics[width=\twocolwidth]{fig3}
-% 	\captionof{figure}{A figure spanning two columns.}
-% 	\label{2col-fig}
-% 	\end{center}
-% \end{minipage}
-
-\columnbreak % force jump to next column
-
-\section*{Results}
-Figures and tables need to be placed within a \verb|minipage| environment to keep all elements together and enable easy positioning.
-However, leave out the default \latex wrapper environments \verb|figure| and \verb|table| as floats are messed up in the column environment.
+%\columnbreak % force jump to next column
 
 
-
-
-\section*{Follow up - Open Questions?}
-The compiled \latex document directly generates an A0 pdf. However, you do can directly print it out on a scaled paper format, for example, A4 or A3, using one of the colour printers.
-To have the poster printed on full size (4 times A4, or A0) by the studio, is only a matter of providing them your compiled pdf.
-
-% Table
-\vspace{20pt plus 10pt minus 5pt}
-\begin{minipage}[b]{\columnwidth}
-%
-\captionof{table}{A demonstration of how to add a table and caption to the poster, showing some waveform characteristics: trace velocity ($c_{\text{app}}$) and bearing deviation ($\Delta\phi$) compared individually as well as combined (all).}
-\begin{center}
-\begin{tabular}{l r r | r r | r r}
-\hline
-& \multicolumn{2}{c}{$c_{\text{app}}$} &  \multicolumn{2}{|c}{$\Delta\phi$} &  \multicolumn{2}{|c}{all} \\
-\cline{2-7}
-& \multicolumn{6}{c}{hits (percentage)} \\
-\hline
-Analysis 	& 93	&(26.0\%) & 76 & (21.2\%) &  22 & (6.1\%) \\
-Ensemble & 183 &(51.1\%) & 151 & (42.2\%)  & 70 & (19.6\%) \\
-%\hline
-Score & +90 & (+96.8\%) & +75 & (+98.7\%)  & +48 & (+218.2\%) \\
-\hline
-\end{tabular}
-\end{center}
-\label{table}
-%
-\end{minipage}
+\section*{Follow up - Open Questions}
+There are plenty of aspects we are working or planning to work on:
+\begin{enumerate}
+\item Analyze images from more locations. \newline
+Other KNMI locations with cameras have been used (weather station Twente, Cabauw). More locations are now available at airports and highways.
+\item Addition of meteorological features to image-only features.\newline
+Some initial investigations have been performed in adding meteorological conditions and having a more broad feature space.
+\item Addition of spatial and temporal relationship in the fog estimation.
+\item How to deal with dawn conditions? Can an image-based approach be used also at night?
+\item How to generalize static cameras approach to a dynamic scene? And to a totally different scene?\newline
+Master student project in collaboration with University of Amsterdam applying domain adaptation techniques~\cite{ganin2016domain} to identify a set of features from different scenes that can be used to any (new) scene.
+\end{enumerate}
 
 
 % Figure
@@ -274,7 +265,7 @@ Score & +90 & (+96.8\%) & +75 & (+98.7\%)  & +48 & (+218.2\%) \\
 % \end{center}\end{minipage}
 
 
-\pushdown
+%\pushdown
 
 
 \bibliographystyle{IEEEtran}
