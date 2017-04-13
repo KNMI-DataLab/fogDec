@@ -157,20 +157,21 @@ General properties of the images (\textbf{features}) are computed.
 Properties that are expected to vary with visibility conditions are:
 
 \begin{tcolorbox}[colback=red!5!white,colframe=red!75!black,title=Image Features]
-\begin{itemize}
-\item{Mean Edges: determining the boundaries of objects within images. 
+\begin{description}
+\item[Mean Edges:] determining the boundaries of objects within images. 
 More edges (e.g., foreground and background elements or horizon) indicate better
 visibility.
 }
-\item{Mean Brightness: perception of the luminance of sources of radiating/reflecting light.}
-\item{Mean Saturation: is a measure of the purity of the color. 
+\item[Mean Brightness:] perception of the luminance of sources of radiating/reflecting light.}
+\item[Mean Saturation:] is a measure of the purity of the color. 
 The purest (most saturated) colors are obtained in the absence of atmospheric turbidity.
 }
-\item{Mean HUE: perception of a source of being similar to one of the perceived colors: red, yellow, green, and blue, or to a combination of two of them.}
-\item{Fractal Dimension: self similarity in filling space.}
-\item{Transmission smoothness: transmission of the dark channel of the image.}
-\item{Transmission changepoint: horizontal point where the transmission of the dark channel is subject to change.}
-\end{itemize}
+\item[Mean HUE:] perception of a source of being similar to one of the perceived colors: red, yellow, green, and blue, or to a combination of two of them.}
+\item[Fractal Dimension:] self similarity in filling space.}
+\item[Transmission smoothness:] transmission of the dark channel of the image.}
+\item[Transmission changepoint:] horizontal point where the transmission of the dark channel is subject to change.}
+\item[Mean transmission:] Transmission of the dark channel of the image increases with visibility.
+\end{description}
 %\item{Weather based:}
 %\begin{itemize}
 %\item{Wind speed}
@@ -195,7 +196,7 @@ i) static cameras,
 ii) daylight conditions,
 iii) period: 3/2015 - present, 
 iv) image sampling time: 10 minutes.
-\cite{TECO}
+\cite{Wauben.Roth2016}
 
 
 
@@ -220,7 +221,10 @@ iv) image sampling time: 10 minutes.
 
 
 \section*{Results}
-The initial goal to identify fog conditions from images has been achieved using \textbf{Decision Tree} technique. This is to be considered a first step to improve upon. We aim to identify fog in more advanced and complex dynamic scenarios.
+The initial goal to identify fog conditions from images has been achieved using 
+the \textbf{Decision Tree} technique. 
+This is to be considered a first step to improve upon. 
+We aim to identify fog in more advanced and complex dynamic scenarios.
 
 \begin{minipage}[b]{\columnwidth}
 	\begin{center}
@@ -229,21 +233,27 @@ The initial goal to identify fog conditions from images has been achieved using 
 	\label{figTree}
 	\end{center}
 \end{minipage}
-For location De Bilt the result are promising in the training (March-December 2015) and the test set (January-June 2016) in terms of \textbf{Probability of Detection} and \textbf{False Alarm Ratio}.
+
+For results for location De Bilt are promising in the training 
+(March-December 2015) and the test set (January-June 2016) in terms of 
+\textbf{Probability of Detection} (POD) and \textbf{False Alarm Ratio} (FAR),
+see Figure \ref{PODFAR}.
+
 \begin{tcolorbox}[colback=red!5!white,colframe=red!75!black,title=Overall Project Results]
 \begin{itemize}
 \item{Partnership with governmental institution for road management.}
 \item{Access to traffic monitoring cameras on Dutch highways.}
 \item{Access to observation cameras in Dutch airports.}
-\item{Processing of images in distributed infrastructure on AWS cloud.}
-\item{Creation of a R image features processing library \url{https://github.com/MartinRoth/visDec}}
+\item{Processing of images in distributed infrastructure \emph{on AWS cloud}.}
+\item{R package for feature calculation\\ \url{https://github.com/MartinRoth/visDec}}
 \end{itemize}
 \end{tcolorbox}
+
 \begin{minipage}[b]{\columnwidth}
 	\begin{center}
 	\includegraphics[width=0.9\columnwidth]{PODandFAR3-1}
 	\captionof{figure}{POD-FAR for De Bilt training (2015) and test (2016)}
-	\label{figTree}
+	\label{PODFAR}
 	\end{center}
 \end{minipage}
 
@@ -258,13 +268,13 @@ For location De Bilt the result are promising in the training (March-December 20
 There are plenty of aspects we are working or planning to work on:
 \begin{enumerate}
 \item Analyze images from more locations. \newline
-Other KNMI locations with cameras have been used (weather station Twente, Cabauw). More locations are now available at airports and highways.
-\item Addition of meteorological features to image-only features.\newline
+Cameras at other KNMI locations have been used. More locations are now available at airports and highways.
+\item Usage of meteorological variables in addition to image features.\newline
 Some initial investigations have been performed in adding meteorological conditions and having a more broad feature space.
-\item Addition of spatial and temporal relationship in the fog estimation.
-\item How to deal with dawn conditions? Can an image-based approach be used also at night?
-\item How to generalize static cameras approach to a dynamic scene? And to a totally different scene?\newline
-Master student project in collaboration with University of Amsterdam applying domain adaptation techniques~\cite{ganin2016domain} to identify a set of features from different scenes that can be used to any (new) scene.
+\item Consideration of spatial and temporal relationship in the fog estimation.
+\item Using an image-based approach during dawn or even night conditions? 
+\item Generalization of static cameras approach to a dynamic and even totally different scenes? 
+\item \emph{Master student project in collaboration with University of Amsterdam applying domain adaptation techniques~\cite{ganin2016domain} to identify a set of features from different scenes that can be used to any (new) scene.}
 \end{enumerate}
 
 
