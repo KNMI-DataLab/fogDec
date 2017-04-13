@@ -85,7 +85,7 @@ Visibility sensors are also used, but they are rather costly and
 require regular maintenance. Moreover, observers, and in particular sensors, give only visibility information that is
 representative for a limited area. 
 Cameras are more and more deployed for surveillance and security reasons in cities and for monitoring traffic along
-main transportation ways. In addition to this primary use of cameras, we consider cameras as potential sensors to
+main transportation routes. In addition to this primary use of cameras, we consider cameras as potential sensors to
 automatically identify low visibility conditions. 
 The approach that we follow is to use machine learning techniques
 to determine the presence of fog or to make an estimation of the visibility. 
@@ -107,28 +107,28 @@ infrastructure and can even lead to damage or loss of lives~\cite{gultepe2007fog
 \begin{minipage}[b]{\columnwidth}
 	\begin{center}
 	\includegraphics[width=0.9\columnwidth]{Accident}
-	\captionof{figure}{Traffic accident caused by dense fog conditions.}
+	\captionof{figure}{Traffic accident caused by dense fog.}
 	\label{figAccident}
 	\end{center}
 \end{minipage}
 \vspace{-2cm}
 
-\subsection*{Key facts:}
+\subsection*{Key facts about fog:}
 \begin{itemize}
   \item May form and dissipate suddenly.
   \item Often only a local phenomenon.
 \end{itemize}
 
-\subsection*{Why current technology is not enough:}
+\subsection*{Limitations of current technology:}
 \begin{itemize}
-\item Satellites are not constantly observing areas of interest.
 \item Weather stations observe a limited area.
+\item Satellites are not constantly observing areas of interest.
 \item Forecast of fog conditions is complex.
 \end{itemize}
 
 \subsection*{Idea:}
-Use camera deployed for surveillance and security reasons in cities and for monitoring traffic along
-main transportation ways as potential sensors to
+Use cameras deployed for surveillance and security reasons in cities and for monitoring traffic along
+main transportation routes as potential sensors to
 automatically identify low visibility conditions.
 
 
@@ -145,31 +145,26 @@ automatically identify low visibility conditions.
 \begin{minipage}[b]{0.4\columnwidth}
 	\begin{center}
 	\includegraphics[width=\columnwidth]{SensorPlacement}
-	\captionof{figure}{KNMI weather stations locations with visibility sensors.}
+	\captionof{figure}{KNMI weather stations measuring visibility.}
 	\label{figSensors}
 	\end{center}
 \end{minipage}
 \end{minipage}
 
 \section*{Approach}
-\subsection*{From Pictures to Machine Learning}
-General properties of the images (\textbf{features}) are computed. Such properties are expected to vary with visibility conditions.\newline
-%Pictures are translated to a set of quantities capturing their properties (\textbf{features}).\newline
-The visibility measurements obtained by a nearby  forward scatter sensor is considered the reference for the visibility conditions in the measurement field (\textbf{supervised} problem).\newline
-A classifier is trained with the features extracted from the pictures and the labels as visibility class provided by the sensor.
-\vspace*{0.8cm}
+% \subsection*{From Images to Machine Learning}
+General properties of the images (\textbf{features}) are computed. 
+Properties that are expected to vary with visibility conditions are:
 
-\textit{Restrictions}: i) static cameras, ii) daylight conditions, iii) period: 3/2015 - present, iv) image sampling time: 10 minutes.
-
-%\subsection*{Features}
 \begin{tcolorbox}[colback=red!5!white,colframe=red!75!black,title=Image Features]
 \begin{itemize}
-\item{Mean Edges: for finding the boundaries of objects within images. 
-It works by detecting discontinuities in the image (e.g., foreground and background elements).
+\item{Mean Edges: determining the boundaries of objects within images. 
+More edges (e.g., foreground and background elements or horizon) indicate better
+visibility.
 }
-\item{Mean Brightness: perception of a source of radiating/reflecting light.}
+\item{Mean Brightness: perception of the luminance of sources of radiating/reflecting light.}
 \item{Mean Saturation: is a measure of the purity of the color. 
-The purest (most saturated) color is achieved by using just one wavelength, less pure come from a combination at different wavelengths.
+The purest (most saturated) colors are obtained in the absence of atmospheric turbidity.
 }
 \item{Mean HUE: perception of a source of being similar to one of the perceived colors: red, yellow, green, and blue, or to a combination of two of them.}
 \item{Fractal Dimension: self similarity in filling space.}
@@ -185,6 +180,23 @@ The purest (most saturated) color is achieved by using just one wavelength, less
 %\end{itemize}
 %\end{itemize}
 \end{tcolorbox}
+
+
+%Pictures are translated to a set of quantities capturing their properties (\textbf{features}).\newline
+The measurements obtained by a nearby forward scatter sensor is considered the
+reference for the visibility conditions \emph{in the measurement field}
+(\textbf{supervised} problem).\newline
+A classifier is trained with the features extracted from the images and the 
+visibility (class) provided by the sensor.
+\vspace*{0.8cm}
+
+\textit{Restrictions}: 
+i) static cameras,
+ii) daylight conditions,
+iii) period: 3/2015 - present, 
+iv) image sampling time: 10 minutes.
+
+
 
 
 \begin{minipage}[b]{\columnwidth}
