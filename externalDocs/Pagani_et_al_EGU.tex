@@ -36,9 +36,6 @@
 \hyphenation{Ra-ma-swa-my}
 
 
-% USER PACKAGES
-% language
-\usepackage[english]{babel}
 
 % Define path for figures -- for safety, keep the last /
 \graphicspath{{EGU_figures/}}
@@ -50,6 +47,11 @@
 \usepackage{tcolorbox}
 
 
+\usepackage{csquotes}
+% \usepackage[bibstyle=authoryear,citeystyle=numeric,firstinits=true]{biblatex}
+\usepackage[style=numeric,firstinits=true,sorting=none]{biblatex}
+\renewbibmacro{in:}{}
+\bibliography{biblio.bib}
 
 % ------- POSTER HEADER --------
 
@@ -76,7 +78,7 @@
 \maketitle
 
 \begin{abstract}
-\begin{multicols}{2}
+% \begin{multicols}{2}
 Visibility is traditionally measured manually by meteorological observers using landmarks at known distances in
 the vicinity of the observation site. 
 Visibility sensors are also used, but they are rather costly and
@@ -87,7 +89,7 @@ main transportation routes. In addition to this primary use of cameras, we consi
 automatically identify low visibility conditions. 
 The approach that we follow is to use machine learning techniques
 to determine the presence of fog or to make an estimation of the visibility. 
-\end{multicols}
+% \end{multicols}
 \end{abstract}
 
 \bcols %% Start columns
@@ -100,7 +102,7 @@ infrastructure and can even lead to damage or loss of lives~\cite{gultepe2007fog
 %\vspace{-0.5cm}
 \begin{minipage}[b]{\columnwidth}
 	\begin{center}
-	\includegraphics[width=0.9\columnwidth]{Accident}
+	\includegraphics[width=0.9\columnwidth]{Accident.jpeg}
 	\captionof{figure}{Traffic accident caused by dense fog.}
 	\label{figAccident}
 	\end{center}
@@ -155,15 +157,13 @@ Properties that are expected to vary with visibility conditions are:
 \item[Mean Edges:] determining the boundaries of objects within images. 
 More edges (e.g., foreground and background elements or horizon) indicate better
 visibility.
-}
-\item[Mean Brightness:] perception of the luminance of sources of radiating/reflecting light.}
+\item[Mean Brightness:] perception of the luminance of sources of radiating/reflecting light.
 \item[Mean Saturation:] is a measure of the purity of the color. 
 The purest (most saturated) colors are obtained in the absence of atmospheric turbidity.
-}
-\item[Mean HUE:] perception of a source of being similar to one of the perceived colors: red, yellow, green, and blue, or to a combination of two of them.}
-\item[Fractal Dimension:] self similarity in filling space.}
-\item[Transmission smoothness:] transmission of the dark channel of the image.}
-\item[Transmission changepoint:] horizontal point where the transmission of the dark channel is subject to change.}
+\item[Mean HUE:] perception of a source of being similar to one of the perceived colors: red, yellow, green, and blue, or to a combination of two of them.
+\item[Fractal Dimension:] self similarity in filling space.
+\item[Transmission smoothness:] transmission of the dark channel of the image.
+\item[Transmission changepoint:] horizontal point where the transmission of the dark channel is subject to change.
 \item[Mean transmission:] Transmission of the dark channel of the image increases with visibility.
 \end{description}
 %\item{Weather based:}
@@ -189,8 +189,8 @@ visibility (class) provided by the sensor.
 i) static cameras,
 ii) daylight conditions,
 iii) period: 3/2015 - present, 
-iv) image sampling time: 10 minutes.
-\cite{Wauben.Roth2016}
+iv) image sampling time: 10 minutes,
+see also \cite{Wauben.Roth2016}.
 
 
 
@@ -286,12 +286,12 @@ Some initial investigations have been performed in adding meteorological conditi
 %\pushdown
 
 
-\bibliographystyle{IEEEtran}
+% \bibliographystyle{natbib}
 
 
-\bibliography{biblio}
+\printbibliography
 
 
-\ecols %% End columns 
+\end{multicols*} %% End columns
 
 \end{document}
