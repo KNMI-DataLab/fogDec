@@ -45,13 +45,13 @@
 \hyphenation{Ra-ma-swa-my}
 
 \usepackage{tcolorbox}
-
+%\hypersetup{draft}
+\hypersetup{colorlinks=true, citecolor=red}
 
 \usepackage{csquotes}
 % \usepackage[bibstyle=authoryear,citeystyle=numeric,firstinits=true]{biblatex}
-\usepackage[style=numeric,firstinits=true,sorting=none]{biblatex}
-\renewbibmacro{in:}{}
-\bibliography{biblio.bib}
+%\usepackage[style=numeric,firstinits=true,sorting=none]{biblatex}
+%\renewbibmacro{in:}{}
 
 % ------- POSTER HEADER --------
 
@@ -59,7 +59,7 @@
 \title{Automatic fog detection for public safety by using camera images}
 
 % Author
-\author{Giuliano Andrea Pagani\affil{1}, Martin Roth\affil{1}, and Wiel Wauben\affil{1}. Contact: \email{pagani@knmi.nl}}
+\author{Giuliano Andrea Pagani\affil{1}, Martin Roth\affil{1}, and Wiel Wauben\affil{1}. Contact: pagani@knmi.nl}
 
 % Affiliations
 \affiliations{\affil{1}R\&D Department of Observations and Data-Technology, Royal Netherlands Meteorological Institute. PO Box 201, 3730 AE De Bilt, The Netherlands.%
@@ -78,7 +78,7 @@
 \maketitle
 
 \begin{abstract}
-% \begin{multicols}{2}
+\begin{multicols}{2}
 Visibility is traditionally measured manually by meteorological observers using landmarks at known distances in
 the vicinity of the observation site. 
 Visibility sensors are also used, but they are rather costly and
@@ -89,7 +89,7 @@ main transportation routes. In addition to this primary use of cameras, we consi
 automatically identify low visibility conditions. 
 The approach that we follow is to use machine learning techniques
 to determine the presence of fog or to make an estimation of the visibility. 
-% \end{multicols}
+\end{multicols}
 \end{abstract}
 
 \bcols %% Start columns
@@ -132,12 +132,13 @@ automatically identify low visibility conditions.
 \centering
 \begin{minipage}[b]{0.4\columnwidth}
 	\begin{center}
-	\includegraphics[width=\columnwidth]{CameraPlacement}
+	%\vspace*{-4mm}
+	 \includegraphics[width=\columnwidth]{CameraPlacement}\vspace*{1.4cm}
 	\captionof{figure}{Cameras monitoring highways in Amsterdam region.}
 	\label{figCameras}
 	\end{center}
 	\end{minipage}
-	\hspace*{0.1cm}
+	\hspace*{0.1cm}	
 \begin{minipage}[b]{0.4\columnwidth}
 	\begin{center}
 	\includegraphics[width=\columnwidth]{SensorPlacement}
@@ -154,16 +155,13 @@ Properties that are expected to vary with visibility conditions are:
 
 \begin{tcolorbox}[colback=red!5!white,colframe=red!75!black,title=Image Features]
 \begin{description}
-\item[Mean Edges:] determining the boundaries of objects within images. 
-More edges (e.g., foreground and background elements or horizon) indicate better
-visibility.
-\item[Mean Brightness:] perception of the luminance of sources of radiating/reflecting light.
-\item[Mean Saturation:] is a measure of the purity of the color. 
-The purest (most saturated) colors are obtained in the absence of atmospheric turbidity.
-\item[Mean HUE:] perception of a source of being similar to one of the perceived colors: red, yellow, green, and blue, or to a combination of two of them.
-\item[Fractal Dimension:] self similarity in filling space.
-\item[Transmission smoothness:] transmission of the dark channel of the image.
-\item[Transmission changepoint:] horizontal point where the transmission of the dark channel is subject to change.
+\item[Mean Edges:] More edges indicate better visibility.
+\item[Mean Brightness:] Perception of the luminance of sources of radiating/reflecting light.
+\item[Mean Saturation:] The purest (most saturated) colors are obtained in the absence of atmospheric turbidity.
+\item[Mean HUE:] Perception of a source of being similar to red, blue, green, yellow colors.
+\item[Fractal Dimension:] Self similarity of the picture~\cite{xion14}.
+\item[Transmission smoothness:] Transmission of the dark channel of the image.
+\item[Transmission changepoint:] Horizontal point where the transmission of the dark channel is subject to change.
 \item[Mean transmission:] Transmission of the dark channel of the image increases with visibility.
 \end{description}
 %\item{Weather based:}
@@ -206,19 +204,17 @@ see also \cite{Wauben.Roth2016}.
 \begin{minipage}[b]{\columnwidth}
 	\begin{center}
 	\includegraphics[width=0.95\columnwidth]{transmission}
-	\captionof{figure}{Dark channel transmission and its horizontal average in 
-	  clear (top) and foggy (bottom)\,day.}
+	\captionof{figure}{Dark channel transmission and its horizontal average on a 
+	  clear (top) and on a foggy (bottom) day.}
 	\label{figTransmission}
 	\end{center}
 \end{minipage}
-\vspace*{-5cm}
+%\vspace*{-5cm}
 
 
 \section*{Results}
-The initial goal to identify fog conditions from images has been achieved using 
-the \textbf{Decision Tree} technique. 
-This is to be considered a first step to improve upon. 
-We aim to identify fog in more advanced and complex dynamic scenarios.
+The features selected to identify fog conditions from images can be visualized in a \textbf{Decision Tree}. 
+This is an first exploratory approach and we aim to identify fog in more advanced and complex dynamic scenarios.
 
 \begin{minipage}[b]{\columnwidth}
 	\begin{center}
@@ -232,16 +228,17 @@ We aim to identify fog in more advanced and complex dynamic scenarios.
 \begin{tcolorbox}[colback=red!5!white,colframe=red!75!black,title=Overall Project Results]
 \begin{itemize}
 \item{Partnership with governmental institution for road management.}
-\item{Access to traffic monitoring cameras on Dutch highways.}
+\item{Solved privacy issues and started building image archives for analysis.}
+\item{Access to traffic monitoring cameras on Dutch highways and airports.}
 \item{Access to observation cameras in Dutch airports.}
-\item{Processing of images in distributed infrastructure \emph{on AWS cloud}.}
+\item{Processing of images in distributed infrastructure.}
 \item{R package for feature calculation\\ \url{https://github.com/MartinRoth/visDec}}
 \end{itemize}
 \end{tcolorbox}
 
 \begin{minipage}[b]{\columnwidth}
 	\begin{center}
-	\includegraphics[width=0.9\columnwidth]{PODandFAR3-1}
+	\includegraphics[width=0.85\columnwidth]{PODandFAR3-1}
 	\captionof{figure}{POD-FAR for De Bilt training (2015) and test (2016)}
 	\label{PODFAR}
 	\end{center}
@@ -252,7 +249,7 @@ For results for location De Bilt are promising in the training
 
 %\columnbreak % force jump to next column
 
-
+\vspace*{-.5cm}
 \section*{Follow up - Open Questions}
 There are plenty of aspects we are working or planning to work on:
 \begin{enumerate}
@@ -262,7 +259,7 @@ Cameras at other KNMI locations have been used. More locations are now available
 Some initial investigations have been performed in adding meteorological conditions and having a more broad feature space.
 \item Consideration of spatial and temporal relationship in the fog estimation.
 \item Using an image-based approach during dawn or even night conditions? 
-\item Generalization of static cameras approach to a dynamic and even totally different scenes? \emph{Master student project in collaboration with University of Amsterdam to test wether certain types of NN~\cite{ganin2016domain} can be used for this.}
+\item Generalization of static cameras approach to a dynamic and even totally different scenes? \emph{Master student project in collaboration with University of Amsterdam to test wether certain types of NN~\cite{ganin2016domain} can be used for this purpose.}
 \end{enumerate}
 
 
@@ -280,10 +277,14 @@ Some initial investigations have been performed in adding meteorological conditi
 %\pushdown
 
 
-% \bibliographystyle{natbib}
 
+\bibliographystyle{ieeetr}
+\vspace*{-1.2cm}
 
-\printbibliography
+\begin{footnotesize}
+\bibliography{biblio.bib}
+
+\end{footnotesize}
 
 
 \end{multicols*} %% End columns
