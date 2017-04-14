@@ -149,7 +149,7 @@ automatically identify low visibility conditions.
 \end{minipage}
 
 \section*{Approach}
-% \subsection*{From Images to Machine Learning}
+%\subsection*{From Images to Machine Learning}
 General properties of the images (\textbf{features}) are computed. 
 Properties that are expected to vary with visibility conditions are:
 
@@ -181,14 +181,16 @@ reference for the visibility conditions \emph{in the measurement field}
 (\textbf{supervised} problem).\newline
 A classifier is trained with the features extracted from the images and the 
 visibility (class) provided by the sensor.
-\vspace*{0.8cm}
+%\vspace*{0.8cm}
 
-\textit{Restrictions}: 
-i) static cameras,
-ii) daylight conditions,
-iii) period: 3/2015 - present, 
-iv) image sampling time: 10 minutes,
-see also \cite{Wauben.Roth2016}.
+\textbf{\textit{Restrictions:}}
+\begin{itemize}
+\item images coming from static cameras only
+\item images taken in daylight conditions
+\item images available in the period from 3/2015 to present
+\item image sampling time: 10 minutes
+\end{itemize}%textit{Restrictions}: 
+more information available at~\cite{Wauben.Roth2016}.
 
 
 
