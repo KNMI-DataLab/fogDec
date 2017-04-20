@@ -69,6 +69,7 @@ tableImageFeatures <- dbGetQuery(connectionSetup, "CREATE TABLE image_features (
                                                   mean_hue double precision, 
                                                   mean_saturation double precision, 
                                                   mean_brightness double precision,       
+                                                  mean_transmission double precision,
                                                   PRIMARY KEY(image_id));")
 
 tableMeteoFeaturesStations <- dbGetQuery(connectionSetup, "CREATE TABLE meteo_features_stations (
