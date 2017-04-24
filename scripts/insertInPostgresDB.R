@@ -88,33 +88,63 @@ tmp <- as.data.table(dbGetQuery(con, "SELECT * FROM image_features WHERE extract
 dbListFields(con, "meteo_features_stations")
 tmp <- as.data.table(dbReadTable(con, "meteo_features_stations"))
 
-# cabauw <- fread("~/mschijf_roth/tmp/roth_zm_348.txt")
-# cabauw[, timestamp := as.POSIXct(paste(V2, V3 %/% 100, V3 %% 100, sep = "-"), format = "%Y%m%d-%H-%M", tz = "UTC")]
+###
+### Set time zone!
+###
+Sys.setenv(TZ = "UTC")
+cabauw <- fread("~/mschijf_roth/tmp/roth_zm_348.txt")
+cabauw[, timestamp := as.POSIXct(paste(V2, V3 %/% 100, V3 %% 100, sep = "-"), format = "%Y%m%d-%H-%M", tz = "UTC")]
 # 
-# cabauw <- cabauw[, .(timestamp, MOR = V4)]
+cabauw <- cabauw[, .(timestamp, MOR = V4)]
 # 
-# tmp <- as.data.table(dbGetQuery(con, "SELECT * FROM image_features WHERE camera_id = 2"))
-# tmp2 <- merge(tmp, cabauw, by = "timestamp")
+tmp <- as.data.table(dbGetQuery(con, "SELECT * FROM image_features WHERE camera_id = 2"))
+tmp2 <- merge(tmp, cabauw, by = "timestamp")
 # 
 # tmp2 <- tmp2[, .(location_id = 3, timestamp, mor_visibility = MOR)]
 # tmp2 
 
-deBilt <- visDec:::ReadMORSensorData("~/mschijf_roth/tmp/table.csv")
-deBilt <- deBilt[, .(timestamp = dateTime, mor_visibility = TOA.MOR_10)]
-
-tmp <- as.data.table(dbGetQuery(con, "SELECT * FROM images WHERE camera_id = 1"))
-
-tmp2 <- merge(tmp, deBilt, by = "timestamp")
-tmp2 <- tmp2[, .(location_id = 1, timestamp, mor_visibility)]
+# deBilt <- visDec:::ReadMORSensorData("~/mschijf_roth/tmp/table.csv")
+# deBilt <- deBilt[, .(timestamp = dateTime, mor_visibility = TOA.MOR_10)]
+# 
+# tmp <- as.data.table(dbGetQuery(con, "SELECT * FROM images WHERE camera_id = 1"))
+# 
+# tmp2 <- merge(tmp, deBilt, by = "timestamp")
+# tmp2 <- tmp2[, .(location_id = 1, timestamp, mor_visibility)]
 
 dbWriteTable(con, "meteo_features_stations", tmp2, append = TRUE, row.names = FALSE, match.cols = TRUE)
 
+##
+## update
 
 
+tmpOld <- as.data.table(dbReadTable(con, "meteo_features_stations"))
+tmp2 <- tmp2[, .(location_id = 3, timestamp, mor_visibility = MOR)]
 
+tmpMix <- merge(tmp2, tmpOld, by = c("location_id", "timestamp"))
 
+paste("UPDATE meteo_features_stations SET mor_visibility=", 
+      tmpMix$mor_visibility.x[i], 
+      " where id=", 
+      tmpMix$meteo_feature_id[i])
 
+tmpNa <- tmpMix[is.na(mor_visibility.x), ]
 
+for (i in 1 : length(tmpMix[, meteo_feature_id])) {
+  sqlQuery <- paste0("UPDATE meteo_features_stations SET mor_visibility=", 
+        tmpMix$mor_visibility.x[i], 
+        " where meteo_feature_id=",
+        tmpMix$meteo_feature_id[i])
+  # if (i ==1) print(sqlQuery)
+  dbGetQuery(con, sqlQuery)
+}
+
+for (i in 1 : length(tmpNa[, meteo_feature_id])) {
+  sqlQuery <- paste0("DELETE FROM meteo_features_stations ",
+                     " where meteo_feature_id=",
+                     tmpNa$meteo_feature_id[i])
+  # if (i ==1) print(sqlQuery)
+  dbGetQuery(con, sqlQuery)
+}
 
 
 

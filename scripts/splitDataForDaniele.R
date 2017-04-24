@@ -67,3 +67,30 @@ fogTest[, file.copy(filepath, paste0(folder, basename))]
 fogTest[, filepath := NULL]
 saveRDS(fogTest, file = "~/Desktop/Daniel/Testing/ImageDescription.rds")
 write.csv(fogTest, file = "~/Desktop/Daniel/Testing/ImageDescription.csv", row.names = FALSE, col.names = TRUE)
+
+
+## update fogTrain and fogTest
+tmp2 <- tmp[, .(image_id, mor_visibility)]
+
+fogTrain2 <- merge(fogTrain, tmp2, by = "image_id")
+fogTrain2[, mor_visibility.x := mor_visibility.y]
+fogTrain2[, mor_visibility.y := NULL]
+setnames(fogTrain2, "mor_visibility.x", "mor_visibility")
+fogTrain2[, vis_class := cut(mor_visibility, breaks = c(0, 250, 1000, 3000, 50000), 
+                       labels = c("A", "B", "C", "D"),
+                       right = FALSE, ordered_result = TRUE)]
+
+saveRDS(fogTrain2, file = "~/Desktop/Daniel/Training/ImageDescription2.rds")
+write.csv(fogTrain2, file = "~/Desktop/Daniel/Training/ImageDescription2.csv", row.names = FALSE, col.names = TRUE)
+
+fogTest2 <- merge(fogTest, tmp2, by = "image_id")
+fogTest2[, mor_visibility.x := mor_visibility.y]
+fogTest2[, mor_visibility.y := NULL]
+setnames(fogTest2, "mor_visibility.x", "mor_visibility")
+fogTest2[, vis_class := cut(mor_visibility, breaks = c(0, 250, 1000, 3000, 50000), 
+                       labels = c("A", "B", "C", "D"),
+                       right = FALSE, ordered_result = TRUE)]
+
+saveRDS(fogTest2, file = "~/Desktop/Daniel/Testing/ImageDescription2.rds")
+write.csv(fogTest2, file = "~/Desktop/Daniel/Testing/ImageDescription2.csv", row.names = FALSE, col.names = TRUE)
+
