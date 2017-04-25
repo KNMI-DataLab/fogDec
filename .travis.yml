@@ -2,6 +2,7 @@
 
 language: r
 warnings_are_errors: true
+dist: trusty
 sudo: required
 
 r_github_packages:

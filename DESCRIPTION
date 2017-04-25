@@ -26,6 +26,5 @@ Suggests: knitr,
     doParallel,
     foreach,
     ggplot2,
-    iterators,
-    devtools
+    iterators
 VignetteBuilder: knitr
