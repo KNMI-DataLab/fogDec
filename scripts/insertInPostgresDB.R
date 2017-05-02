@@ -5,7 +5,7 @@ dbConfig <- fromJSON("config.json")
 
 con <- dbConnect(RPostgreSQL::PostgreSQL(),
                 dbname = "FOGDB",
-                host = dbConfig[["host"]], port = 22022,
+                host = dbConfig[["host"]], port = 9418,
                 user = dbConfig[["user"]], password = dbConfig[["pw"]])
 
 
