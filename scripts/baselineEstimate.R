@@ -40,11 +40,39 @@ library(MLmetrics)
 library(ROCR)
 
 imageSummary[, foggy := mor_visibility < 250]
-fogTree1 <- rpart(foggy ~ mean_edge + change_point + fractal_dim + mean_hue + mean_saturation + mean_brightness + mean_transmission, imageSummary , control = rpart.control(cp = 0.019))
+fogTree1 <- rpart(vis_class ~ mean_edge + change_point + fractal_dim + mean_hue + mean_saturation + mean_brightness + mean_transmission, imageSummary , control = rpart.control(cp = 0.019))
 
 fancyRpartPlot(fogTree1, sub="")
 
-pred <- predict(fogTree1, imageSummary, )
+pred <- predict(fogTree1, imageSummary, type = "class")
+
+
+library(caret)
+
+model <- train(
+  vis_class ~ mean_edge + change_point + mean_hue + mean_saturation + mean_brightness + mean_transmission,
+  tuneGrid = data.frame(mtry = 1:6),
+  data = imageSummary, method = "ranger",
+  trControl = trainControl(method = "cv", number = 5, verboseIter = TRUE)
+)
+
+pred2 <- predict(model, imageSummary)
+
+# > table(imageSummary$vis_class, pred2)
+# pred2
+# A    B    C    D
+# A  554    0    0    0
+# B    0  751    0    0
+# C    0    0 1489    0
+# D    0    0    0 1994
+# > table(imageSummary$vis_class, pred)
+# pred
+# A    B    C    D
+# A  345   32   98   79
+# B   89  207  178  277
+# C   42   49  752  646
+# D   17    3  221 1753
+
 predClas <- ifelse(pred > 0.3, 1, 0)
 
 truth <- as.numeric(imageSummary[, foggy])
