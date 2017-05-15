@@ -227,6 +227,55 @@ dbWriteTable(con, "image_features", tmp, append = TRUE, row.names = FALSE, match
 imageFeatures <- as.data.table(dbReadTable(con, "image_features"))
 
 
+
+
+
+
+
+##Insertion airport location info#########################################################################################################
+airportInfo <- fromJSON("camerasConf.json")
+tmp <- airportInfo$cameras$airports
+tmp <- within(tmp, rm(ipAddr, "_note"))
+tmp <- unique(tmp[,c('location','longitude', 'latitude')])
+tmp$location_description <-paste(tmp$location, "airport")
+tmp <- within(tmp, rm(location))
+dbWriteTable(con, "locations", tmp, append = TRUE, row.names = FALSE, match.cols = TRUE)
+##############################################################################################################
+locations <- as.data.table(dbReadTable(con, "locations"))
+
+
+##Insertion airport cameras info#########################################################################################################
+airportInfo <- fromJSON("camerasConf.json")
+
+locations <- as.data.table(dbReadTable(con, "locations"))
+
+tmp <- airportInfo$cameras$airports
+tmp <- within(tmp, rm(ipAddr, "_note"))
+tmp <- unique(tmp[,c('location','cameraID')])
+tmp$camera_description <- paste(tmp$location, tmp$cameraID)
+tmp$camera_name <- tmp$cameraID
+tmp <- within(tmp, rm(cameraID))
+tmp$tempKey <- paste(tmp$location, "airport")
+
+tmp <- data.table(tmp)
+
+setkey(tmp,tempKey)
+setkey(locations, location_description)
+
+tmp<-locations[tmp,]
+
+tmp[, c('longitude','latitude', 'location_description', 'location') := NULL ]
+
+dbWriteTable(con, "cameras", tmp, append = TRUE, row.names = FALSE, match.cols = TRUE)
+##############################################################################################################
+cameras <- as.data.table(dbReadTable(con, "cameras"))
+
+
+
+
+
+
+
 dbDisconnect(con)
 
 
