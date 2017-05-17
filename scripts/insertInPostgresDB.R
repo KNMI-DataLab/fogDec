@@ -252,7 +252,7 @@ locations <- as.data.table(dbReadTable(con, "locations"))
 tmp <- airportInfo$cameras$airports
 tmp <- within(tmp, rm(ipAddr, "_note"))
 tmp <- unique(tmp[,c('location','cameraID')])
-tmp$camera_description <- paste(tmp$location, tmp$cameraID)
+tmp$camera_description <- paste0(tmp$location,"-",tmp$cameraID)
 tmp$camera_name <- tmp$cameraID
 tmp <- within(tmp, rm(cameraID))
 tmp$tempKey <- paste(tmp$location, "airport")
