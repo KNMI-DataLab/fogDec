@@ -16,14 +16,6 @@ insertionDayPhase <- dbGetQuery(con, "INSERT INTO day_phases ( day_phase_id, day
                                                   (30, 'astronomical dawn'), (31, 'astronomical dusk');")
 
 
-dfScotlandLocations <- read.csv("inst/extScripts/scotlandLatLon.csv", stringsAsFactors = F)
-dfScotlandLocationsToWrite <- dfScotlandLocations[,3:5]
-colnames(dfScotlandLocationsToWrite) <- c("location_description","longitude","latitude")
-dfScotlandLocationsToWrite$location_description <- paste("UK", dfScotlandLocationsToWrite$location_description)
-dbWriteTable(con, "locations", dfScotlandLocationsToWrite, append = T)
-
-                          
-
 dbDisconnect(con)
 
 ###
@@ -269,6 +261,77 @@ tmp[, c('longitude','latitude', 'location_description', 'location') := NULL ]
 dbWriteTable(con, "cameras", tmp, append = TRUE, row.names = FALSE, match.cols = TRUE)
 ##############################################################################################################
 cameras <- as.data.table(dbReadTable(con, "cameras"))
+
+
+
+
+
+
+
+##Insertion Scotland location info#########################################################################################################
+scotlandinfo <- fromJSON("camerasConf.json")
+tmp <- scotlandinfo$cameras$SCOTLAND
+tmp <- within(tmp, rm(ipAddr, pwd, user, dir, server, cameraID))
+uniqueLines <- tmp[!duplicated(tmp[,c("longitude","latitude")]),]
+test<-tmp[duplicated(tmp[,c("longitude", "latitude")]),]
+test$newLocation<-paste0(lapply(strsplit(test$location,"-(?=[^-]+$)", perl = T), function(x) x[1]),"-shared-location")
+test<-data.table(test)
+tmp<-data.table(tmp)
+setkey(test, longitude,latitude)
+setkey(tmp, longitude,latitude)
+test2<-test[tmp,]
+test2$newLocation[is.na(test2$newLocation)]<-test2$i.location[is.na(test2$newLocation)]
+
+test2 <- within(test2, rm(i.location, location))
+#######
+test2$location_description <-paste(test2$newLocation, "scotland motorway")
+test2 <- within(test2, rm(newLocation))
+test2<-unique(test2)
+dbWriteTable(con, "locations", test2, append = TRUE, row.names = FALSE, match.cols = TRUE)
+##############################################################################################################
+locations <- as.data.table(dbReadTable(con, "locations"))
+
+
+##Insertion scotland cameras info#########################################################################################################
+scotlandInfo <- fromJSON("camerasConf.json")
+
+locations <- as.data.table(dbReadTable(con, "locations"))
+
+tmp <- scotlandInfo$cameras$SCOTLAND
+tmp <- within(tmp, rm(ipAddr, pwd, user, dir, server))
+test<-tmp[duplicated(tmp[,c("longitude", "latitude")]),]
+test$newLocation<-paste0(lapply(strsplit(test$location,"-(?=[^-]+$)", perl = T), function(x) x[1]),"-shared-location")
+test<-data.table(test)
+tmp<-data.table(tmp)
+setkey(test, longitude,latitude)
+setkey(tmp, longitude,latitude)
+test2<-test[tmp,]
+test2$newLocation[is.na(test2$newLocation)]<-test2$i.location[is.na(test2$newLocation)]
+test2<-within(test2, rm(location,cameraID, i.location))
+
+
+
+
+test2$camera_description <- paste0(test2$newLocation,"-",test2$i.cameraID)
+test2$camera_name <- test2$i.cameraID
+test2 <- within(test2, rm(i.cameraID))
+test2$tempKey <- paste(test2$newLocation, "scotland motorway")
+
+setkey(test2,tempKey)
+setkey(locations, location_description)
+
+tmp<-locations[test2,]
+
+tmp[, c('longitude','latitude', 'location_description', 'newLocation', 'i.longitude', 'i.latitude') := NULL ]
+
+dbWriteTable(con, "cameras", tmp, append = TRUE, row.names = FALSE, match.cols = TRUE)
+##############################################################################################################
+cameras <- as.data.table(dbReadTable(con, "cameras"))
+
+
+
+
+
 
 
 
