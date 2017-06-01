@@ -1,5 +1,6 @@
 library(DBI)
 library(jsonlite)
+library(data.table)
 
 dbConfig <- fromJSON("config.json")
 
