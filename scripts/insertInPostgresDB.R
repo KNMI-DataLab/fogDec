@@ -333,6 +333,51 @@ cameras <- as.data.table(dbReadTable(con, "cameras"))
 
 
 
+##Insertion RWS location info#########################################################################################################
+RWSinfo <- fromJSON("camerasConf.json")
+tmp <- RWSinfo$cameras$RWS
+tmp <- within(tmp, rm(ipAddr, '_note'))
+uniqueLines <- tmp[!duplicated(tmp[,c("longitude","latitude")]),]
+test<-tmp[duplicated(tmp[,c("longitude", "latitude")]),]
+#test$newLocation<-paste0(lapply(strsplit(test$location,"-(?=[^-]+$)", perl = T), function(x) x[1]),"-shared-location")
+#test<-data.table(test)
+tmp<-data.table(tmp)
+tmp[,location_description:=paste0(location,"-",cameraID)]
+tmp <- within(tmp,rm(cameraID,location))
+
+dbWriteTable(con, "locations", tmp, append = TRUE, row.names = FALSE, match.cols = TRUE)
+##############################################################################################################
+locations <- as.data.table(dbReadTable(con, "locations"))
+
+##Insertion RWS cameras info#########################################################################################################
+RWSInfo <- fromJSON("camerasConf.json")
+
+locations <- as.data.table(dbReadTable(con, "locations"))
+
+tmp <- RWSInfo$cameras$RWS
+tmp <- within(tmp, rm(ipAddr, "_note"))
+tmp <- unique(tmp[,c('location','cameraID')])
+tmp$camera_description <- paste0(tmp$location,"-",tmp$cameraID)
+tmp$camera_name <- tmp$cameraID
+tmp$tempKey <- paste0(tmp$location,"-",tmp$cameraID)
+tmp <- within(tmp, rm(cameraID))
+
+tmp <- data.table(tmp)
+
+setkey(tmp,tempKey)
+setkey(locations, location_description)
+
+tmp<-locations[tmp,]
+
+tmp[, c('longitude','latitude', 'location_description', 'location') := NULL ]
+
+dbWriteTable(con, "cameras", tmp, append = TRUE, row.names = FALSE, match.cols = TRUE)
+##############################################################################################################
+cameras <- as.data.table(dbReadTable(con, "cameras"))
+
+
+
+
 
 
 
