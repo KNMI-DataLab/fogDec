@@ -24,6 +24,7 @@ library(rpart)
 library(rattle)
 library(caret)
 library(ranger)
+library(class)
 ```
 
 ```{r OpenDB}
@@ -112,13 +113,13 @@ dbDisconnect(con)
 Based on the training set we obtain the following preliminary decision tree:
 ```{r ClassificationTreeFit}
 trainNorm[, vis_class_bi := vis_class == "A"]
-# fogTree <- rpart(vis_class ~ edges + changepoint + hue +
-#                    saturation + brightness,
-#                  trainNorm[camera_id==2 | camera_id==3],
-#                  control = rpart.control(cp = 0.01))
-fogTree <- ranger(vis_class ~ edges + changepoint + hue +
+fogTree <- rpart(vis_class ~ edges + changepoint + hue +
                    saturation + brightness,
-                 trainNorm[camera_id==2 | camera_id==3])
+                 trainNorm[camera_id==2 | camera_id==3],
+                 control = rpart.control(cp = 0.01))
+# fogTree <- ranger(vis_class ~ edges + changepoint + hue +
+#                    saturation + brightness,
+#                  trainNorm[camera_id==1])
 ```
 
 ```{r ClassificationTreePlot}
@@ -126,24 +127,31 @@ fogTree <- ranger(vis_class ~ edges + changepoint + hue +
 ```
 
 ```{r Training Accuracy}
-trainPred <- predict(fogTree, trainNorm[camera_id==2 | camera_id==3, ], type = "response")
-confusionMat <- confusionMatrix(trainPred$predictions, trainNorm[camera_id==2 | camera_id==3, vis_class])
+trainPred <- predict(fogTree, trainNorm[camera_id==2 | camera_id==3, ], type = "class")
+confusionMat <- confusionMatrix(trainPred, trainNorm[camera_id==2 | camera_id==3, vis_class])
 confusionMat$table
 confusionMat$overall[1]
 
-trainNorm[camera_id==2 | camera_id==3, ][which(trainPred == "D" & trainNorm[camera_id==2 | camera_id==3, vis_class] == "A"), image_id]
+# trainNorm[camera_id==2 | camera_id==3, ][which(trainPred == "D" & trainNorm[camera_id==2 | camera_id==3, vis_class] == "A"), image_id]
 ```
 
 ```{r Testing Accuracy (Source)}
-testPred <- predict(fogTree, testNorm[camera_id==2 | camera_id==3], type = "response")
-confusionMat <- confusionMatrix(testPred$predictions, testNorm[camera_id==2 | camera_id==3, vis_class])
+testPred <- predict(fogTree, testNorm[camera_id==2 | camera_id==3], type = "class")
+confusionMat <- confusionMatrix(testPred, testNorm[camera_id==2 | camera_id==3, vis_class])
 confusionMat$table
 confusionMat$overall[1]
 ```
 
 ```{r Testing Accuracy (Target)}
-testPred <- predict(fogTree, testNorm[camera_id==1], type = "response")
-confusionMat <- confusionMatrix(testPred$predictions, testNorm[camera_id==1, vis_class])
+testPred <- predict(fogTree, testNorm[camera_id==1], type = "class")
+confusionMat <- confusionMatrix(testPred, testNorm[camera_id==1, vis_class])
+confusionMat$table
+confusionMat$overall[1]
+```
+
+```{r knn}
+testPred <- knn(trainNorm[camera_id==1, .(edges, changepoint, hue, saturation, brightness)], testNorm[camera_id==1, .(edges, changepoint, hue, saturation, brightness)], trainNorm[camera_id==1, vis_class])
+confusionMat <- confusionMatrix(testPred, testNorm[camera_id==1, vis_class])
 confusionMat$table
 confusionMat$overall[1]
 ```
