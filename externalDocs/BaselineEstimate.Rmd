@@ -20,6 +20,10 @@ library(DBI)
 library(jsonlite)
 library(dplyr)
 library(ggplot2)
+library(rpart)
+library(rattle)
+library(caret)
+library(ranger)
 ```
 
 ```{r OpenDB}
@@ -27,13 +31,14 @@ dbConfig <- fromJSON("../config.json")
 
 con <- dbConnect(RPostgreSQL::PostgreSQL(),
                  dbname = "FOGDB",
-                 host = dbConfig[["host"]], port = 22022,
+                 host = dbConfig[["host"]], port = 9418,
                  user = dbConfig[["user"]], password = dbConfig[["pw"]])
 
 ```
 
-```{r ObtainTraininSet}
-train <- readRDS("~/Desktop/Daniel/Training/ImageDescription.rds")
+```{r ObtainImageData}
+train <- readRDS("~/Desktop/Daniel/Training/ImageDescription2.rds")
+test <- readRDS("~/Desktop/Daniel/Testing/ImageDescription2.rds")
 ```
 
 ```{r GetFeatureData}
@@ -46,12 +51,22 @@ sqlSelect <- paste0(sqlSelect,
                     "(", paste(train[, image_id], collapse = ", "),
                     ")")
 
-features <- as.data.table(dbGetQuery(con, sqlSelect))
+trainFeatures <- as.data.table(dbGetQuery(con, sqlSelect))
+
+sqlSelect <- "SELECT image_id, "
+sqlSelect <- paste0(sqlSelect, paste(selectedFeatures, collapse = ", "))
+sqlSelect <- paste0(sqlSelect, " FROM image_features WHERE image_id IN ")
+sqlSelect <- paste0(sqlSelect,
+                    "(", paste(test[, image_id], collapse = ", "),
+                    ")")
+testFeatures <- as.data.table(dbGetQuery(con, sqlSelect))
 ```
 
 ```{r MergeTrainingWithFeatures}
-train <- merge(train, features, by = "image_id")
+train <- merge(train, trainFeatures, by = "image_id")
 train[, camera_id := as.factor(camera_id)]
+test <- merge(test, testFeatures, by = "image_id")
+test[, camera_id := as.factor(camera_id)]
 ```
 
 ```{r NormalizeFeaturesByCamera}
@@ -71,10 +86,21 @@ trainNorm <- train %>%
          edges, changepoint, hue, saturation, brightness) %>%
   ungroup() %>% as.data.table()
 
+testNorm <- test %>% 
+  group_by(camera_id) %>%
+  mutate(edges       = NormalizeByMedian(mean_edge)) %>%
+  mutate(changepoint = NormalizeByMedian(change_point)) %>%
+  mutate(hue         = NormalizeByMedian(mean_hue)) %>%
+  mutate(saturation  = NormalizeByMedian(mean_saturation)) %>%
+  mutate(brightness  = NormalizeByMedian(mean_brightness)) %>%
+  select(camera_id, image_id, mor_visibility, vis_class,
+         edges, changepoint, hue, saturation, brightness) %>%
+  ungroup() %>% as.data.table()
+
 ggplot(trainNorm, aes(x = mor_visibility, y = edges,
                       col = camera_id)) +
   scale_x_log10() +
-  geom_point()
+  geom_point(alpha = 0.5)
   
 ```
 
@@ -85,17 +111,39 @@ dbDisconnect(con)
 
 Based on the training set we obtain the following preliminary decision tree:
 ```{r ClassificationTreeFit}
-library(rpart)
-library(rattle)
 trainNorm[, vis_class_bi := vis_class == "A"]
-fogTree <- rpart(vis_class_bi ~ edges + changepoint + hue + 
+# fogTree <- rpart(vis_class ~ edges + changepoint + hue +
+#                    saturation + brightness,
+#                  trainNorm[camera_id==2 | camera_id==3],
+#                  control = rpart.control(cp = 0.01))
+fogTree <- ranger(vis_class ~ edges + changepoint + hue +
                    saturation + brightness,
-                 trainNorm,
-                 control = rpart.control(cp = 0.01))
+                 trainNorm[camera_id==2 | camera_id==3])
 ```
 
 ```{r ClassificationTreePlot}
-fancyRpartPlot(fogTree, sub="")
+# fancyRpartPlot(fogTree, sub="")
 ```
 
+```{r Training Accuracy}
+trainPred <- predict(fogTree, trainNorm[camera_id==2 | camera_id==3, ], type = "response")
+confusionMat <- confusionMatrix(trainPred$predictions, trainNorm[camera_id==2 | camera_id==3, vis_class])
+confusionMat$table
+confusionMat$overall[1]
 
+trainNorm[camera_id==2 | camera_id==3, ][which(trainPred == "D" & trainNorm[camera_id==2 | camera_id==3, vis_class] == "A"), image_id]
+```
+
+```{r Testing Accuracy (Source)}
+testPred <- predict(fogTree, testNorm[camera_id==2 | camera_id==3], type = "response")
+confusionMat <- confusionMatrix(testPred$predictions, testNorm[camera_id==2 | camera_id==3, vis_class])
+confusionMat$table
+confusionMat$overall[1]
+```
+
+```{r Testing Accuracy (Target)}
+testPred <- predict(fogTree, testNorm[camera_id==1], type = "response")
+confusionMat <- confusionMatrix(testPred$predictions, testNorm[camera_id==1, vis_class])
+confusionMat$table
+confusionMat$overall[1]
+```
