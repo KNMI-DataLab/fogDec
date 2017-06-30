@@ -4,12 +4,11 @@ library(data.table)
 library(caret)
 
 
-
-
-
-
-buildModelForShinyApp<-function() {
+#setwd("shiny/")
+makeModelRDS<-function(){
 dbConfig <- fromJSON("../config.json")
+
+
 
 con <- dbConnect(RPostgreSQL::PostgreSQL(),
                  dbname = "FOGDB",
@@ -50,12 +49,84 @@ train[,foggy:= as.factor(foggy)]
 
 test[,foggy:=as.factor(foggy)]
 
-rf <- train(foggy~mean_edge+change_point+smoothness+fractal_dim+mean_hue+mean_saturation+mean_brightness, data=train, method="rf",na.action=na.exclude)
+rf<-randomForest(foggy~mean_edge+change_point+smoothness+fractal_dim+mean_hue+mean_saturation+mean_brightness, data=train, method="rf",na.action=na.exclude)
+
+#rf <- train(foggy~mean_edge+change_point+smoothness+fractal_dim+mean_hue+mean_saturation+mean_brightness, data=train, method="rf",na.action=na.exclude)
 
 prova<-predict(rf, test)
 confusionMatrix(prova, test$foggy,mode = "prec_recall", positive = "TRUE")
 
-return(rf)
+
+
+saveRDS(rf,"rfModel.RDS")
 }
+
+
+
+
+gatherFeaturesForImages<-function(){
+  files<-list.files("picturesForApp/", pattern = "jpg")
+  
+  dbConfig <- fromJSON("../config.json")
+  
+  
+  
+  con <- dbConnect(RPostgreSQL::PostgreSQL(),
+                   dbname = "FOGDB",
+                   host = dbConfig[["host"]], port = 9418,
+                   user = dbConfig[["user"]], password = dbConfig[["pw"]])
+  
+  
+  results<-rbindlist(lapply(files, queryMetrics, con))
+  
+  dbDisconnect(con)
+  
+  results<-data.table(results)
+  results <- within(results,rm(timestamp.y,camera_id.y))
+  setnames(results,"timestamp.x","timestamp")
+  setnames(results,"camera_id.x","camera_id")
+  
+  
+  getFileName<-function(string){
+    splits<-strsplit(string, "/")
+    out<-tail(splits,1)
+    out
+  }
+  
+  paths<-results[filepath]
+  
+  results[,filename:=getFileName(filepath)]
+  
+  #lapply(targetPicturesFeatures[,filepath],getFileName)
+  
+  
+  saveRDS(results, "targetPicturesFeatures.RDS")  
+}
+
+
+
+#quick-and-dirty method to get the features for the filenames passed
+queryMetrics<-function(fileName,con){
+  fileName<-paste0("%", fileName)
+  
+  
+  queryImagesTable <- paste0("SELECT * from images where filepath LIKE '",fileName,"';")
+  targetPicturesImagesTb <- dbGetQuery(con, queryImagesTable)
+  
+  id<-targetPicturesImagesTb$image_id
+  
+  queryFeaturesTable<- paste0("SELECT * from image_features
+WHERE image_id =",id, ";")
+  targetPicturesFeatures <- dbGetQuery(con, queryFeaturesTable)
+  
+  total <- merge(targetPicturesImagesTb, targetPicturesFeatures ,by="image_id")
+}
+
+
+
+
+
+
+
 
 

@@ -1,8 +1,8 @@
 shinyUI(fluidPage(
-  titlePanel("Uploading Files"),
+  titlePanel("Fog Detection from Camera Images"),
   sidebarLayout(
     sidebarPanel(
-      fileInput(inputId = 'files', 
+      fileInput(inputId = 'file', 
                 label = 'Select an Image',
                 multiple = TRUE,
                 accept=c('image/png', 'image/jpeg')),
