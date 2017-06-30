@@ -1,3 +1,6 @@
+library(data.table)
+library(randomForest)
+library(caret)
 shinyServer(function(input, output) {
   
   
@@ -10,11 +13,16 @@ shinyServer(function(input, output) {
   
   observeEvent(input$goButton, {
     
-    pippo<-input$file
+    selectedFile<-input$file
+    
+    selectedRow<-targetPicturesFeatures[filename==selectedFile$name]
+    
+    prova<-predict(rfModel,selectedRow)
+    
+    print(prova)
     
     
     
-    print(pippo$name)
   })
   
   

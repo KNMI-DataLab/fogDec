@@ -63,6 +63,13 @@ saveRDS(rf,"rfModel.RDS")
 
 
 
+getFileName<-function(string){
+  splits<-unlist(strsplit(string, "/"))
+  out<-tail(splits,1)
+  out
+}
+
+
 
 gatherFeaturesForImages<-function(){
   files<-list.files("picturesForApp/", pattern = "jpg")
@@ -87,15 +94,11 @@ gatherFeaturesForImages<-function(){
   setnames(results,"camera_id.x","camera_id")
   
   
-  getFileName<-function(string){
-    splits<-strsplit(string, "/")
-    out<-tail(splits,1)
-    out
-  }
+ 
   
-  paths<-results[filepath]
+  #paths<-results[,filepath]
   
-  results[,filename:=getFileName(filepath)]
+  results[,filename:=lapply(filepath, getFileName)]
   
   #lapply(targetPicturesFeatures[,filepath],getFileName)
   
