@@ -22,23 +22,42 @@
 
 library(shinydashboard)
 
+
 dashboardPage(
+  
   dashboardHeader(title = "Fog Detection from Camera Images", titleWidth = 500),
   dashboardSidebar(width = 500,  h4("The goal of this app is to illustrate 
                                     the detection of fog conditions from camera images DataLab project."),
                    h5("Select a file in the upload menu below and then click \"Analyze the image\" 
                       to have an automatic answer of the presence of fog." ),
     fluidRow(
+     shinyjs::useShinyjs(),
+      #sess <- getSession(),
+      #id <- sess$ns(id),
+      #shinyjs::toggleState('goButton'),
+      
+      #shinyjs::disable("goButton"),
      
-    fileInput(inputId = 'file', 
+    res<-fileInput(inputId = 'file', 
               label = 'Select an Image',
               multiple = TRUE,
-              accept=c('image/png', 'image/jpeg')),
-              h5(strong("....Analyze the image selected")),
-              actionButton("goButton", "Analyze the image")
+              accept=c('image/png', 'image/jpeg'))
+    #if(){
+              
+    #}
     #look here fr enable/disable buttons
     #https://stackoverflow.com/questions/40621393/disabling-buttons-in-shiny
   ),
+  
+  
+  
+  #print(output$file),
+  conditionalPanel(condition='output.pippo!=0',
+  h5(strong("Analyze the image selected")),
+  actionButton("goButton", "Analyze the image")),
+  
+  
+  
   #enable this text once the image is selected
   h6("The fog condion is considered when the visibility is less than 250m according to the reference measurement of the MOR 
      horizontal scatterometer.")

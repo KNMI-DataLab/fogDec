@@ -4,11 +4,16 @@ library(caret)
 shinyServer(function(input, output) {
   
   
-  
   rfModel <- readRDS("rfModel.RDS")
   targetPicturesFeatures<-readRDS("targetPicturesFeatures.RDS")
+  #shinyjs::useShinyjs()
+  #shinyjs::disable("goButton")
+  
+  output$pippo<-reactive({0
+    })
   
   
+  outputOptions(output, "pippo", suspendWhenHidden = FALSE)  
   
   
   observeEvent(input$goButton, {
@@ -26,6 +31,7 @@ shinyServer(function(input, output) {
   })
   
   
+  #observe({ toggle(id="goButton", condition=!is.null(input$location))})
   
   
   
@@ -35,6 +41,8 @@ shinyServer(function(input, output) {
   file <- reactive({
     file <- input$file
     file$datapath <- gsub("\\\\", "/", file$datapath)
+    output$pippo <- reactive({1
+    })
     file
   })
   
