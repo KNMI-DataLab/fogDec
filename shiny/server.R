@@ -9,11 +9,11 @@ shinyServer(function(input, output) {
   #shinyjs::useShinyjs()
   #shinyjs::disable("goButton")
   
-  output$pippo<-reactive({0
+  output$visButton<-reactive({0
     })
   
   
-  outputOptions(output, "pippo", suspendWhenHidden = FALSE)  
+  outputOptions(output, "visButton", suspendWhenHidden = FALSE)  
   
   
   observeEvent(input$goButton, {
@@ -22,9 +22,18 @@ shinyServer(function(input, output) {
     
     selectedRow<-targetPicturesFeatures[filename==selectedFile$name]
     
-    prova<-predict(rfModel,selectedRow)
+    result<-predict(rfModel,selectedRow)
     
-    print(prova)
+    if(result==FALSE){
+      output$FOG <- renderUI({
+       HTML("<strong>NO FOG</strong>")
+      })
+    }
+    else {
+      output$FOG <- renderUI({
+        HTML("<strong>FOG</strong>")
+      })
+    }
     
     
     
@@ -41,7 +50,7 @@ shinyServer(function(input, output) {
   file <- reactive({
     file <- input$file
     file$datapath <- gsub("\\\\", "/", file$datapath)
-    output$pippo <- reactive({1
+    output$visButton <- reactive({1
     })
     file
   })
