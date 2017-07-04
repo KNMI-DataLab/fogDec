@@ -31,7 +31,7 @@ dashboardPage(
                    h5("Select a file in the upload menu below and then click \"Analyze the image\" 
                       to have an automatic answer of the presence of fog." ),
     fluidRow(
-     shinyjs::useShinyjs(),
+     #shinyjs::useShinyjs(),
       #sess <- getSession(),
       #id <- sess$ns(id),
       #shinyjs::toggleState('goButton'),
