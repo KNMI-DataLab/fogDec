@@ -17,10 +17,10 @@
 % ---------------
 \graphicspath{{figure/}}
 
-\title[Fog detection]{KNMI resrearch on fog detection using cameras}
+\title[Fog detection]{KNMI research on fog detection using cameras}
 \subtitle{Meeting Port of Rotterdam}
 \date{July 11, 2017}
-\author[Pagani, Roth, Wauben]{G.A. Pagani, M. Roth\\ and W. Wauben}
+\author[Pagani, Roth, Wauben]{Andrea Pagani, Martin Roth\\ and Wiel Wauben}
 %\author[M. Roth (\MYhref{mailto:roth@knmi.nl}{roth@knmi.nl})]{Martin Roth\texorpdfstring{\\[2mm] \scriptsize \href{mailto:roth@knmi.nl}{roth@knmi.nl}\\[4mm] {\scriptsize Joint work with A. Buishand and G. Jongbloed}}{}}
 
 \begin{document}
@@ -77,7 +77,7 @@ library(ggmap)
 \begin{frame}{KNMI DataLab project: Purpose, Scope, Benefits}
 \begin{itemize}
 \item \textbf{Purpose:} use cameras to identify fog conditions to issue safety hazards
-\item \textbf{Scope:} daylight fog identification from static cameras using image analysis
+\item \textbf{Scope:} daylight fog detection from static cameras using image analysis
 \item \textbf{Benefits:}
 \begin{itemize}
 \item \textit{Society: }
@@ -134,6 +134,7 @@ filenames <- list.files(path,
 \begin{itemize}
 \item{Access to camera images: privacy issues}
 \item{More data needed to thoroughly test algorithms}
+\item{Co-location of cameras and visibility sensors for evaluation}
 \item{Generalization from one scene to another is hard}
 %\item{Limited time for the project by the PIs}
 \end{itemize}
@@ -173,7 +174,10 @@ ggplot(imageSummary, aes(x = log(MOR), y = meanEdge)) + geom_point()
 
 
 \begin{frame}{Machine Learning: De Bilt classification tree} 
-%\footnote{in the following daily conditions only}}
+\scriptsize{keys for reading a node:\\
+ fraction of fog cases in the node/sub-tree\\
+ \# of cases  \textemdash \% of total cases}
+ 
 <<Classification, include=FALSE>>=
 load("results/deBiltResults2015.RData")
 imageSummary[, dayIsEven := mday(dateOnly) %% 2]
@@ -187,6 +191,10 @@ train[, pred := pred]
 <<ClassificationTree, echo=FALSE, fig.height=4>>=
 fancyRpartPlot(fogTree, sub="")
 @
+% keys for reading a node:
+% fraction of fog cases in the node/sub-tree
+% # of cases
+% \% of total cases
 \end{frame}
 
 
@@ -212,7 +220,7 @@ fancyRpartPlot(fogTree, sub="")
 
 
 
-\begin{frame}{Weather protection}%\centering
+\begin{frame}{Examples: weather (un)protection}%\centering
 \begin{columns}
 \column{0.2\textwidth}
 \includegraphics[height=2cm]{figure/wideCamera}
@@ -300,11 +308,12 @@ Water drops on the camera enclosure
 
 \begin{frame}{Questions to Port of Rotterdam}
  \begin{itemize}
-\item{What is Port of Rotterdam doing for fog estimation?}
+\item{What is Port of Rotterdam using for fog detection?}
 \item{Has port of Rotterdam a CCTV network? More than \scriptsize{\url{https://www.portofrotterdam.com/nl/de-haven/webcams}} ?}
 \item{Interested in a camera-based fog estimation?}
 \item{Possibility for KNMI to access camera picture for research purposes?}
 \item{Does Port of Rotterdam have a picture/video archive?}
+\item{Are metedata available (e.g., location, direction, resolution, FOV, settings)?}
 \end{itemize}
 \end{frame}
 
@@ -433,7 +442,7 @@ Water drops on the camera enclosure
 
 
 
-\begin{frame}{Confusion Table image features only}\centering
+\begin{frame}{Contingency Table image features only}\centering
 % 
 \begin{itemize}
 \item {Picture-only features test set (8 months of observations)}
@@ -452,8 +461,8 @@ Water drops on the camera enclosure
   
   \begin{itemize}
 \item {Issues mentioned above play a role in the false positive/negative}
-\item{Sensitivity: 0.1500000}
-\item{Specificity: 0.9975910}
+\item{POD: 0.1500000}
+\item{FAR: 0.002409028}
 
 % 
 \end{itemize}
@@ -468,7 +477,7 @@ Water drops on the camera enclosure
 % 
  \end{frame}
 
-\begin{frame}{Confusion Table with meteo features}\centering
+\begin{frame}{Contingency Table with meteo features}\centering
 % 
 \begin{itemize}
 \item {Picture and meteo features test set (8 months of observations)}
@@ -487,8 +496,8 @@ Water drops on the camera enclosure
   
   \begin{itemize}
 \item {Meteorological features are not selected except air temperature}
-\item{Sensitivity: 0.6500000}
-\item{Specificity: 0.976115}
+\item{POD: 0.6500000}
+\item{FAR: 0.02388535}
 
 
 % 
