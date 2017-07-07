@@ -73,7 +73,8 @@ today<-as.Date(Sys.time())
 
 datesToFetch<-datesRequired[datesRequired != today]
 
-values<-lapply(datesRequired, getTemp)
+values<-lapply(datesToFetch, getTemp)
+values<-rbindlist(values)
 
 
 
