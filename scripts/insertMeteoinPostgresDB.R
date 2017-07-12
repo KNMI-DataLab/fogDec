@@ -78,18 +78,14 @@ values<-rbindlist(values)
 
 
 
+values[TOA.MOR_10  == -1, TOA.MOR_10  := NA]
+#sensorData[, hhmmss := CorrectOurs(hhmmss)]
+values[, IT_DATETIME := as.POSIXct(values[, IT_DATETIME], format = "%Y%m%d_%H%M%S", tz = "UTC")]
+setnames(values, "IT_DATETIME", "timestamp")
+tmp <- within(values, rm(DS_CODE, "TOA.Q_MOR_10"))
+setnames(tmp,"TOA.MOR_10" ,"mor_visibility")
+tmp[,location_id:=1]#de bilt
+
+dbWriteTable(con, "meteo_features_stations", tmp, append = TRUE, row.names = FALSE, match.cols = TRUE)
 
 
-
-
-# insertionDayPhase <- dbGetQuery(con, "INSERT INTO day_phases ( day_phase_id, day_phase_description)
-#                                                   VALUES (0, 'night'), (1, 'day'), (10, 'civil dawn'),
-#                                                   (11, 'civil dusk'), (20, 'nautical dawn'), (21, 'nautical dusk'),
-#                                                   (30, 'astronomical dawn'), (31, 'astronomical dusk');")
-
-
-
-
-###
-###
-###
