@@ -92,7 +92,7 @@ dataNoMeteo<-dataNoMeteo[,unique(dataNoMeteo)]
 datesRequired<-unique(as.Date(dataNoMeteo[,timestamp]))
 }
 else{
-  test<-meteoFeaturesTable[location_id==location & is.na(variable),location_id,timestamp]
+  test<-meteoFeaturesTable[location_id==location & is.na(get(variable)),c("location_id","timestamp")]
   datesRequired<-unique(as.Date(test[,timestamp]))
 
   #values<-lapply(datesRequired, getValueFromKIS, 1, variable)
@@ -113,39 +113,40 @@ values<-rbindlist(values)
 values[, IT_DATETIME := as.POSIXct(values[, IT_DATETIME], format = "%Y%m%d_%H%M%S", tz = "UTC")]
 setnames(values, "IT_DATETIME", "timestamp")
 
-if(variable=="visibility"){
+if(variable=="mor_visibility"){
 values[TOA.MOR_10  == -1, TOA.MOR_10  := NA]
 tmp <- within(values, rm(DS_CODE, "TOA.Q_MOR_10"))
 setnames(tmp,"TOA.MOR_10" ,"mor_visibility")
 }
 
-if(variable=="windSpeed"){
+if(variable=="wind_speed"){
   ##values[TOW.FF_10M_10  == -1, TOW.FF_10M_10  := NA]
   tmp <- within(values, rm(DS_CODE, "TOW.Q_FF_10M_10"))
   setnames(tmp,"TOW.FF_10M_10" ,"wind_speed")
 }
 
-if(variable=="humidity"){
+if(variable=="rel_humidity"){
   ##values[TOT.U_10  == -1, TOT.U_10  := NA] ##TO BE ADDED WHEN INFO ARE PROVIDED
   tmp <- within(values, rm(DS_CODE, "TOT.Q_U_10"))
   setnames(tmp,"TOT.U_10" ,"rel_humidity")
 }
 
-if(variable=="airTemp"){
+if(variable=="air_temp"){
   ##values[TOT.T_DRYB_10  == -1, TOT.T_DRYB_10  := NA] ##TO BE ADDED WHEN INFO ARE PROVIDED
   tmp <- within(values, rm(DS_CODE, "TOT.Q_T_DRYB_10"))
   setnames(tmp,"TOT.T_DRYB_10" ,"rel_humidity")
 }
 
-if(variable=="dewPointTemp"){
+if(variable=="dew_point"){
   ##values[TOT.T_DEWP_10  == -1, TOT.T_DEWP_10  := NA] ##TO BE ADDED WHEN INFO ARE PROVIDED
   tmp <- within(values, rm(DS_CODE, "TOT.Q_T_DRYB_10"))
   setnames(tmp,"TOT.T_DEWP_10" ,"rel_humidity")
 }
 
+tmp[,location_id:=location]
+
 
 if(newval==TRUE){
-  tmp[,location_id:=location]
   #check to put just the missing time stamps otherwise getting exception in the DB if trying to fill meteo for timestamps already present
   toBeFilled<-tmp[which(tmp$timestamp %in% dataNoMeteo$timestamp)]
 }
@@ -154,7 +155,8 @@ else{
 setkey(meteoFeaturesTable, location_id, timestamp)
 setkey(tmp, location_id, timestamp)
 toBeFilled<-tmp[meteoFeaturesTable, nomatch=0]
-toBeFilled<-within(toBeFilled, rm(paste0("i.",variable)))
+toRem<-paste0("i.",variable)
+toBeFilled<-toBeFilled[, eval(toRem):=NULL]
 }
 
 
