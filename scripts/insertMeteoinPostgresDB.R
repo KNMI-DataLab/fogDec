@@ -106,7 +106,9 @@ else{
 
 today<-as.Date(Sys.time())
 datesToFetch<-datesRequired[datesRequired != today]
+
 values<-lapply(datesToFetch, getValueFromKIS, location, variable)
+
 values<-rbindlist(values)
 
 
@@ -134,13 +136,13 @@ if(variable=="rel_humidity"){
 if(variable=="air_temp"){
   ##values[TOT.T_DRYB_10  == -1, TOT.T_DRYB_10  := NA] ##TO BE ADDED WHEN INFO ARE PROVIDED
   tmp <- within(values, rm(DS_CODE, "TOT.Q_T_DRYB_10"))
-  setnames(tmp,"TOT.T_DRYB_10" ,"rel_humidity")
+  setnames(tmp,"TOT.T_DRYB_10" ,"air_temp")
 }
 
 if(variable=="dew_point"){
   ##values[TOT.T_DEWP_10  == -1, TOT.T_DEWP_10  := NA] ##TO BE ADDED WHEN INFO ARE PROVIDED
   tmp <- within(values, rm(DS_CODE, "TOT.Q_T_DRYB_10"))
-  setnames(tmp,"TOT.T_DEWP_10" ,"rel_humidity")
+  setnames(tmp,"TOT.T_DEWP_10" ,"dew_point")
 }
 
 tmp[,location_id:=location]
@@ -174,7 +176,7 @@ toBeFilled
 
 
 
-#postgis_update(con,tmp22,"meteo_features_stations",id_cols = "meteo_feature_id",update_cols = "wind_speed")
+postgis_update(con,tmp,"meteo_features_stations",id_cols = "meteo_feature_id",update_cols = "air_temp")
 
 
 #########################################################
