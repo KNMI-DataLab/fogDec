@@ -3,6 +3,7 @@ library(jsonlite)
 library(data.table)
 library(knmiR)
 library(postGIStools)
+library(parallel)
 
 getValueFromKIS<-function(x, location, variable){
   if(variable == "mor_visibility"){
@@ -80,10 +81,6 @@ temp2<-tempTB[meteoFeaturesTable]
 
 
 
-
-
-
-
 if(newval==TRUE){
 
 dataNoMeteoAll<-tempTB[!(which(tempTB$image_id %in% temp2$image_id))]#images have no meteo fetures at all
@@ -97,19 +94,31 @@ else{
 
   #values<-lapply(datesRequired, getValueFromKIS, 1, variable)
   #tmp <- within(values, rm(DS_CODE, "TOW.Q_FF_10M_10"))
-  
-  
- 
-  
-  
 }
 
 today<-as.Date(Sys.time())
 datesToFetch<-datesRequired[datesRequired != today]
 
+#print(datesToFetch[1:20])
+
+
+#testing parallel processes fetching the data via wget, but issues as {"failure":"Het,recept,kan,niet,opgevraagd,worden
+#cl<-makeCluster(4)
+#clusterEvalQ(cl, library(knmiR))
+
 values<-lapply(datesToFetch, getValueFromKIS, location, variable)
 
+#print(values)
 values<-rbindlist(values)
+#stopCluster(cl)
+#values<-rbindlist(values)
+#print(values)
+
+#values<-data.table(values)
+
+#values<-rbindlist(values)
+
+
 
 
 values[, IT_DATETIME := as.POSIXct(values[, IT_DATETIME], format = "%Y%m%d_%H%M%S", tz = "UTC")]
@@ -141,7 +150,7 @@ if(variable=="air_temp"){
 
 if(variable=="dew_point"){
   ##values[TOT.T_DEWP_10  == -1, TOT.T_DEWP_10  := NA] ##TO BE ADDED WHEN INFO ARE PROVIDED
-  tmp <- within(values, rm(DS_CODE, "TOT.Q_T_DRYB_10"))
+  tmp <- within(values, rm(DS_CODE, "TOT.Q_T_DEWP_10"))
   setnames(tmp,"TOT.T_DEWP_10" ,"dew_point")
 }
 
@@ -161,10 +170,6 @@ toRem<-paste0("i.",variable)
 toBeFilled<-toBeFilled[, eval(toRem):=NULL]
 }
 
-
-
-
-
 toBeFilled
 }
 
@@ -172,14 +177,41 @@ toBeFilled
 
 
 
-#############UPDATE EXISTING ROWS#############################################
+#Updates meteo variables in the DB for which at least one meteo variable has been already introduced for the 
+#corresponding date and time
+updateExistingMeteo<-function(){
+variables<-c("air_temp","dew_point","mor_visibility","wind_speed","rel_humidity")
+locations<-c(1,3,6,7,8) #schiphol at the moment is waiting,9)
+
+for(var in variables){
+  for(loc in locations){
+    tmp<-prepareMeteoTable(loc, var, FALSE)
+    message(paste("FINISHED location ",loc, " and variable ", var))
+    
+    dbConfig <- fromJSON("config.json")
+    
+    con <- dbConnect(RPostgreSQL::PostgreSQL(),
+                     dbname = "FOGDB",
+                     host = dbConfig[["host"]], port = 9418,
+                     user = dbConfig[["user"]], password = dbConfig[["pw"]])
+    tryCatch(
+      {
+        
+    postgis_update(con,tmp,"meteo_features_stations",id_cols = "meteo_feature_id",update_cols = var)
+      },
+    error=function(cond) {
+      message("data not available to update table")
+      message(cond)
+    })
+    dbDisconnect(con)
+  }
+}
+#tmp<-prepareMeteoTable(6, "dew_point",FALSE)
+
+#postgis_update(con,tmp,"meteo_features_stations",id_cols = "meteo_feature_id",update_cols = "rel_humidity")
+}
 
 
-
-postgis_update(con,tmp,"meteo_features_stations",id_cols = "meteo_feature_id",update_cols = "air_temp")
-
-
-#########################################################
 
 
 
