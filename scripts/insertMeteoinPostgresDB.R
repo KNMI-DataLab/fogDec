@@ -99,22 +99,22 @@ else{
 today<-as.Date(Sys.time())
 datesToFetch<-datesRequired[datesRequired != today]
 
-#print(datesToFetch[1:20])
+#test purposes
+#datesToFetch<-seq(as.Date("2016/09/04"), by = "day", length.out = 100)
 
 
-#testing parallel processes fetching the data via wget, but issues as {"failure":"Het,recept,kan,niet,opgevraagd,worden
-#cl<-makeCluster(4)
-#clusterEvalQ(cl, library(knmiR))
+cl<-makeCluster(4)
+clusterEvalQ(cl, library(knmiR))
 
-values<-lapply(datesToFetch, getValueFromKIS, location, variable)
+values<-parLapply(cl,datesToFetch, getValueFromKIS, location, variable)
 
-#print(values)
+print(values)
 values<-rbindlist(values)
-#stopCluster(cl)
+stopCluster(cl)
 #values<-rbindlist(values)
 #print(values)
 
-#values<-data.table(values)
+values<-data.table(values)
 
 #values<-rbindlist(values)
 
@@ -189,26 +189,24 @@ for(var in variables){
     message(paste("FINISHED location ",loc, " and variable ", var))
     
     dbConfig <- fromJSON("config.json")
-    
+
     con <- dbConnect(RPostgreSQL::PostgreSQL(),
                      dbname = "FOGDB",
                      host = dbConfig[["host"]], port = 9418,
                      user = dbConfig[["user"]], password = dbConfig[["pw"]])
     tryCatch(
-      {
-        
+     {
+
     postgis_update(con,tmp,"meteo_features_stations",id_cols = "meteo_feature_id",update_cols = var)
       },
-    error=function(cond) {
-      message("data not available to update table")
-      message(cond)
-    })
-    dbDisconnect(con)
+     error=function(cond) {
+       message("data not available to update table")
+       message(cond)
+     })
+   dbDisconnect(con)
   }
 }
-#tmp<-prepareMeteoTable(6, "dew_point",FALSE)
 
-#postgis_update(con,tmp,"meteo_features_stations",id_cols = "meteo_feature_id",update_cols = "rel_humidity")
 }
 
 
