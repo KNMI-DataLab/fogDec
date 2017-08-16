@@ -43,9 +43,7 @@ library(data.table)
 library(caret)
 
 
-knitr::opts_chunk$set(
-  echo = FALSE, cache = TRUE
-)
+knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
 @
 
 \begin{frame}
@@ -285,15 +283,18 @@ confMatDeBilt<-matDB$table
 
 
 <<resultsCabauw, include=FALSE, warning=FALSE>>=
+#Get meteo conditions for Cabauw
 
-#Get meteo conditions for Twente
 tableMeteo <- dbGetQuery(con, "SELECT * from meteo_features_stations
                                   WHERE location_id =3;")
 
-#Get features for Twente images
+#Get features for Cabauw images
 
 tableFeatures <- dbGetQuery(con, "SELECT * from image_features
                                   WHERE camera_id =3;")
+
+
+dbDisconnect(con)
 
 
 tableMeteo <- data.table(tableMeteo)
@@ -342,12 +343,14 @@ De Bilt camera:\\ reference\\
 \begin{textblock*}{4cm}(0cm,5cm) 
 prediction
 \end{textblock*}
+\begin{footnotesize}
 <<echo=FALSE>>=
 kable(confMatDeBilt)
 @
 <<echo=FALSE>>=
-kable(matDB$byClass[5:6])
+kable(matDB$byClass[c(5,6,11)])
 @
+\end{footnotesize}
 \vspace{0.2cm}
 Train set (year 2016): \Sexpr{trainDB}\\
 Test set (6-12/2015): \Sexpr{testDB}\\
@@ -358,12 +361,14 @@ Cabauw camera: reference\\
 \begin{textblock*}{4cm}(6.5cm,5cm) 
 prediction
 \end{textblock*}
+\begin{footnotesize}
 <<echo=FALSE>>=
 kable(confMatCabauw)
 @
 <<echo=FALSE>>=
-kable(matCab$byClass[5:6])
+kable(matCab$byClass[c(5,6,11)])
 @
+\end{footnotesize}
 \vspace{0.2cm}
 Train set (year 2017): \Sexpr{trainCab}\\
 Test set (10-12/2016): \Sexpr{testCab}\\
@@ -510,12 +515,14 @@ Twente camera:\\ reference\\
 \begin{textblock*}{4cm}(0cm,5cm) 
 prediction
 \end{textblock*}
+\begin{footnotesize}
 <<echo=FALSE>>=
 kable(matTwente$table)
 @
 <<echo=FALSE>>=
-kable(matTwente$byClass[5:6])
+kable(matTwente$byClass[c(5,6,11)])
 @
+\end{footnotesize}
 \vspace{0.2cm}
 Train set (year 2015): \Sexpr{dim(trainTwente)[1]}\\
 Test set (year 2016): \Sexpr{dim(testTwente)[1]}\\
@@ -526,12 +533,14 @@ Twente camera rain+wind filtered\footnote{precipitationDurationElec$<$600 and wi
 \begin{textblock*}{4cm}(6.5cm,5cm) 
 prediction
 \end{textblock*}
+\begin{footnotesize}
 <<echo=FALSE>>=
 kable(matTwenteNoRain$table)
 @
 <<echo=FALSE>>=
-kable(matTwenteNoRain$byClass[5:6])
+kable(matTwenteNoRain$byClass[c(5,6,11)])
 @
+\end{footnotesize}
 \vspace{0.2cm}
 Train set (year 2015): \Sexpr{dim(trainTwenteNoRain)[1]}\\
 Test set (year 2016): \Sexpr{dim(testTwenteNoRain)[1]}\\
@@ -605,15 +614,82 @@ Might be to exploit because KNMI is partner since recently\\ \hline
 \item 4 Dutch airports: 7 cameras
 \item 160 cameras along A15-A16-A4-A5-A1-A9-A50-A12-A27-A2 NL highways
 \item 37 cameras along M90 Scottish motorway (test purposes)
+\item 24 cameras Port of Rotterdam (advanced contacts)
 \end{itemize}
 \end{itemize}
 \column{0.4\textwidth}
 %\begin{textblock*}{8cm}(6cm,1cm)
+   \includegraphics[width=4.5cm]{schiphol.jpg}
+   \vspace*{0.2cm}
   \includegraphics[width=4.5cm]{camerasRWS.png}
 % \end{textblock*}
 \end{columns}
 
 \end{frame}
+
+
+\begin{frame}{From 1-camera analysis to a general solution}
+\begin{itemize}
+\item Thinking to a solution that can handle +100 cameras with:
+\begin{itemize}
+\item Centralized and persistent picture archiving
+\item Archiving fault warning
+\item Metadata extraction and storage at archival time
+\item Ease of metadata and metrics access for faster analysis/modeling
+\end{itemize}
+\end{itemize}
+
+
+
+\end{frame}
+
+\begin{frame}{Generic image archiving architecture implemented}
+
+\includegraphics[width=10.75cm]{archiverArchitecture.png}
+
+\end{frame}
+
+
+\begin{frame}{DB design to archive metadata and image features computation}
+Having the DB right is also important to streamline the analysis process down the road
+\begin{center}
+\includegraphics[width=8cm]{FogDBv6.png}
+\end{center}
+\end{frame}
+
+\begin{frame}{Flow for feature computation an ML model}
+\begin{center}
+\vspace*{-1cm}
+\includegraphics[width=8cm]{computationFlow.png}
+\end{center}
+
+
+\begin{textblock*}{8cm}(6cm,7.5cm)
+\begin{itemize}
+   \item No more loose csv files with meteo
+   \item No more loose rds files with feature computation
+   \end{itemize}
+ \end{textblock*}
+\end{frame}
+
+
+\begin{frame}{Results}
+\begin{itemize}
+\item +2.2 million images archived
+\item Initial investigation in domain adaptation fog dection:
+\begin{itemize}
+\item UVA master student investigated Neural Networks approach to analysis
+\item Application of image domain adaptation technique with Neural Network led to accuracy (\underline{not balanced}) of 42.9\% for training set of Cabauw and test set of De Bilt (4 visibility classes)
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Conclusion}
+
+\end{frame}
+
+
 
 %\begin{frame} {Classification Twente with \underline{meteo features}}%\centering
 
