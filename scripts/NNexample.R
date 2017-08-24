@@ -3,6 +3,9 @@ library(doParallel)
 library(imager)
 library(nnet)
 library(data.table)
+library(DBI)
+library(jsonlite)
+
 
 
 cl <- makeCluster(16)
@@ -96,6 +99,29 @@ setwd("~/images/RWS")
 files<-list.files(".","*.jpg", full.names = T,recursive = T)
 
 
+
+
+setwd("~/development/fogDec//")
+
+dbConfig <- fromJSON("config.json")
+
+con <- dbConnect(RPostgreSQL::PostgreSQL(),
+                 dbname = "FOGDB",
+                 host = dbConfig[["host"]], port = 9418,
+                 user = dbConfig[["user"]], password = dbConfig[["pw"]])
+
+
+
+imagesRWSDayLight <- dbGetQuery(con, "SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
+                                FROM images
+                                WHERE camera_id =326 AND day_phase=1;")
+
+
+
+test<-sapply(imagesRWSDayLight$filepath, strsplit, "HM577/")
+
+
+
 matRWS<-foreach(i=1:length(files), .combine = rbind) %dopar%{
   message(files[[i]])
   image<-load.image(files[[i]])
@@ -114,6 +140,7 @@ predictedRWS<-data.table(predictedRWS)
 
 predictedRWS[,predictedLabels:=colnames(predictedRWS)[max.col(predictedRWS, ties.method = "first")]]
 predictedRWS[,file:=files]
+
 
 
 
