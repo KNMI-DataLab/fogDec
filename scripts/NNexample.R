@@ -19,7 +19,16 @@ clusterEvalQ(cl, library("imager"))
 res2<-readRDS("~/images/Daniel/Training/ImageDescription2.rds")
 
 
-filesBase<-res2$basename
+resEvenBinary<-res2[mor_visibility<=250]
+
+set.seed(11)
+trainNoFog<-res2[sample(nrow(res2), 600), ]
+
+resEvenBinary<-rbind(resEvenBinary,trainNoFog)
+resEvenBinary<-data.frame(resEvenBinary)
+
+#filesBase<-res2$basename
+filesBase<-resEvenBinary$basename
 setwd("~/images/Daniel/Training/")
 
 
@@ -36,7 +45,8 @@ mat<-foreach(i=1:length(filesBase), .combine = rbind) %dopar%{
   v
 }
 dtMat<-data.table(mat)
-dtMat[,vis_class:=res2$vis_class]
+#dtMat[,vis_class:=res2$vis_class]
+dtMat[,fog:=resEvenBinary$mor_visibility<=250]
 
 stopCluster(cl)
 
@@ -48,12 +58,12 @@ feats <- feats[-length(feats)]
 
 # Concatenate strings
 f <- paste(feats,collapse=' + ')
-f <- paste('vis_class ~',f)
+f <- paste('fog ~',f)
 
 f <- as.formula(f)
 
 
-net<-nnet(f,dtMat,size=5, MaxNWts=35000, maxit=800)
+net<-nnet(f,dtMat,size=5, MaxNWts=55000, maxit=200)
 
 
 #nn <- neuralnet::neuralnet(f,dtMat[,c(1:30,2353)],hidden=c(10,10,10),linear.output=FALSE)
@@ -85,18 +95,22 @@ matTest<-foreach(i=1:length(filesBase), .combine = rbind) %dopar%{
 stopCluster(cl)
 dtMatTest<-data.table(matTest)
 
-dtMatTest[,vis_class:=resTest2$vis_class]
+#dtMatTest[,vis_class:=resTest2$vis_class]
+dtMatTest[,fog:=resTest2$mor_visibility<=250]
 
 
 
-prdicted<-predict(net,dtMatTest)
 
-dtMatTest[,predictedLabels:=colnames(prdicted)[max.col(prdicted, ties.method = "first")]]
-confusion<-data.table(predicted=dtMatTest$predictedLabels,vis_class=resTest2$vis_class)
+predicted<-predict(net,dtMatTest)
 
-table(confusion$predicted,confusion$vis_class)
+#dtMatTest[,predictedLabels:=colnames(prdicted)[max.col(prdicted, ties.method = "first")]]
 
-confusionMatrix(confusion$predicted,confusion$vis_class, mode = "prec_recall")
+
+confusion<-data.table(predicted=predicted>.4,fog=dtMatTest$fog)
+
+table(confusion$predicted,confusion$fog)
+
+confusionMatrix(confusion$predicted,confusion$fog, mode = "prec_recall")
 
 
 
@@ -160,8 +174,17 @@ predictedRWS<-predict(net,matRWS)
 
 predictedRWS<-data.table(predictedRWS)
 
-predictedRWS[,predictedLabels:=colnames(predictedRWS)[max.col(predictedRWS, ties.method = "first")]]
+#predictedRWS[,predictedLabels:=colnames(predictedRWS)[max.col(predictedRWS, ties.method = "first")]]
+predictedRWS[,fog:=V1>0.4]
 predictedRWS[,file:=files]
+
+
+
+
+
+
+
+
 
 
 
