@@ -75,6 +75,8 @@ setkey(imagesTable,camera_id)
 tempTB<-camerasTable[locationsTable]
 setkey(tempTB,camera_id)
 tempTB<-imagesTable[tempTB]
+tempTB[,timestamp:= strptime("1970-01-01", "%Y-%m-%d", tz="UTC") + round(as.numeric(tempTB$timestamp)/600)*600]
+
 setkey(tempTB,timestamp,location_id)
 setkey(meteoFeaturesTable, timestamp,location_id)
 temp2<-tempTB[meteoFeaturesTable]
@@ -82,13 +84,11 @@ temp2<-tempTB[meteoFeaturesTable]
 
 
 if(newval==TRUE){
-
 dataNoMeteoAll<-tempTB[!(which(tempTB$image_id %in% temp2$image_id))]#images have no meteo fetures at all
 dataNoMeteo<-dataNoMeteoAll[location_id == location, location_id,timestamp]
 dataNoMeteo<-dataNoMeteo[,unique(dataNoMeteo)]
 datesRequired<-unique(as.Date(dataNoMeteo[,timestamp]))
-}
-else{
+}else{
   test<-meteoFeaturesTable[location_id==location & is.na(get(variable)),c("location_id","timestamp")]
   datesRequired<-unique(as.Date(test[,timestamp]))
 
@@ -157,9 +157,13 @@ if(variable=="dew_point"){
 tmp[,location_id:=location]
 
 
+timeSyncToMeteo<-strptime("1970-01-01", "%Y-%m-%d", tz="UTC") + round(as.numeric(dataNoMeteo$timestamp)/600)*600
+
+
+
 if(newval==TRUE){
   #check to put just the missing time stamps otherwise getting exception in the DB if trying to fill meteo for timestamps already present
-  toBeFilled<-tmp[which(tmp$timestamp %in% dataNoMeteo$timestamp)]
+  toBeFilled<-tmp[which(tmp$timestamp %in% timeSyncToMeteo)]
 }
 
 else{
@@ -227,15 +231,15 @@ for(var in variables){
 
 
 #####################################################################################################
-# dbConfig <- fromJSON("config.json")
-#  
-# con <- dbConnect(RPostgreSQL::PostgreSQL(),
-#                   dbname = "FOGDB",
-#                   host = dbConfig[["host"]], port = 9418,
-#                   user = dbConfig[["user"]], password = dbConfig[["pw"]])
-# tmp<-prepareMeteoTable(location = 1, variable = "airTemp" )
-#dbWriteTable(con, "meteo_features_stations", tmp, append = TRUE, row.names = FALSE, match.cols = TRUE)
-#dbDisconnect(con)
+ dbConfig <- fromJSON("config.json")
+# #  
+ con <- dbConnect(RPostgreSQL::PostgreSQL(),
+                     dbname = "FOGDB",
+                    host = dbConfig[["host"]], port = 9418,
+                    user = dbConfig[["user"]], password = dbConfig[["pw"]])
+ tmp<-prepareMeteoTable(location = 8, variable = "mor_visibility", newval = TRUE )
+ dbWriteTable(con, "meteo_features_stations", tmp, append = TRUE, row.names = FALSE, match.cols = TRUE)
+dbDisconnect(con)
 #####################################################################################################
 
 
