@@ -231,15 +231,15 @@ for(var in variables){
 
 
 #####################################################################################################
- dbConfig <- fromJSON("config.json")
-# #  
- con <- dbConnect(RPostgreSQL::PostgreSQL(),
-                     dbname = "FOGDB",
-                    host = dbConfig[["host"]], port = 9418,
-                    user = dbConfig[["user"]], password = dbConfig[["pw"]])
- tmp<-prepareMeteoTable(location = 8, variable = "mor_visibility", newval = TRUE )
- dbWriteTable(con, "meteo_features_stations", tmp, append = TRUE, row.names = FALSE, match.cols = TRUE)
-dbDisconnect(con)
+#  dbConfig <- fromJSON("config.json")
+# # #  
+#  con <- dbConnect(RPostgreSQL::PostgreSQL(),
+#                      dbname = "FOGDB",
+#                     host = dbConfig[["host"]], port = 9418,
+#                     user = dbConfig[["user"]], password = dbConfig[["pw"]])
+#  tmp<-prepareMeteoTable(location = 8, variable = "mor_visibility", newval = TRUE )
+#  dbWriteTable(con, "meteo_features_stations", tmp, append = TRUE, row.names = FALSE, match.cols = TRUE)
+# dbDisconnect(con)
 #####################################################################################################
 
 
