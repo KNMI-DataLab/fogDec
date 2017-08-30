@@ -8,6 +8,7 @@ library(jsonlite)
 library(caret)
 
 
+
 setwd("~/development/fogDec/")
 dbConfig <- fromJSON("config.json")
 
@@ -39,13 +40,28 @@ imagesAndMOR<-conditionsFogSchiphol[imagesRWSDayLight]
 
 imagesAndMOR[,foggy:=mor_visibility<=250]
 
-test<-sapply(imagesAndMOR$filepath, strsplit, "/")
-test<-sapply(test, "[[", 10)
+
+
+
+
+training<-imagesAndMOR[foggy==TRUE]
+
+
+set.seed(11)
+
+training<-rbind(training,imagesAndMOR[sample(nrow(imagesAndMOR[foggy==FALSE]),200)])
+
+
+
+files<-sapply(training$filepath, strsplit, "/")
+files<-sapply(files, "[[", 10)
 
 
 setwd("~/images/RWS/A4Schiphol/")
 
-files<-test
+#files<-test
+
+
 
 
 cl <- makeCluster(16)
@@ -84,7 +100,7 @@ stopCluster(cl)
 
 dtMat<-data.table(matRWS)
 #dtMat[,vis_class:=res2$vis_class]
-dtMat[,foggy:=imagesAndMOR$foggy]
+dtMat[,foggy:=training$foggy]
 
 
 
@@ -114,10 +130,60 @@ predictedRWS[,file:=files]
 
 
 
+confusion<-data.table(predicted=predictedRWS$fog,fogSensor=dtMat$foggy)
+
+table(confusion$predicted,confusion$fog)
+
+confusionMatrix(confusion$predicted,confusion$fog, mode = "prec_recall")
+
+
+
+testSet<-imagesAndMOR[sample(nrow(imagesAndMOR),10000)]
+
+
+filesTest<-sapply(testSet$filepath, strsplit, "/")
+filesTest<-sapply(filesTest, "[[", 10)
+
+
+setwd("~/images/RWS/A4Schiphol/")
+
+#files<-test
 
 
 
 
+cl <- makeCluster(16)
+registerDoParallel(cl)
+
+clusterEvalQ(cl, library("imager"))
+
+matRWSTest<-foreach(i=1:length(filesTest), .combine = rbind) %dopar%{
+  message(filesTest[[i]])
+  image<-tryCatch(
+    load.image(filesTest[[i]]),
+    
+    error=function(error_message) {
+      #message("Yet another error message.")
+      #message("Here is the actual R error message:")
+      #next
+      return(NA)
+    }
+  )
+  if(is.na(image[[1]])){
+    v<-NA*1:(28*28)
+    message("Image not available error in acquisition")
+    v
+  }else{
+    image<-resize(image,28,28)
+    image<-blur_anisotropic(image, amplitude = 15000)
+    df<-as.data.frame(image)
+    v<-df$value
+    #mat<-rbind(mat,v)
+    v
+  }
+}
+
+stopCluster(cl)
 
 
 
