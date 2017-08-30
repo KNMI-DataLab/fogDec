@@ -8,7 +8,7 @@ library(jsonlite)
 library(caret)
 
 
-
+setwd("~/development/fogDec/")
 dbConfig <- fromJSON("config.json")
 
 con <- dbConnect(RPostgreSQL::PostgreSQL(),
@@ -20,15 +20,30 @@ con <- dbConnect(RPostgreSQL::PostgreSQL(),
 
 imagesRWSDayLight <- dbGetQuery(con, "SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
                                 FROM images
-                                WHERE camera_id =370 AND day_phase=1 AND timestamp<'2017-08-29 00:00:00';")
+                                WHERE camera_id IN (370, 378, 377, 376, 369, 358, 359, 360, 361) AND day_phase=1 AND timestamp<'2017-08-29 00:00:00';")
 
 
+conditionsFogSchiphol <- dbGetQuery(con, "SELECT location_id, timestamp, mor_visibility 
+                                FROM meteo_features_stations 
+                                WHERE location_id =9 AND timestamp<'2017-08-29 00:00:00';")
 
-test<-sapply(imagesRWSDayLight$filepath, strsplit, "HM59/")
-test<-sapply(test, "[[", 2)
+imagesRWSDayLight<-data.table(imagesRWSDayLight)
+imagesRWSDayLight[,timeSyncToMeteo:=strptime("1970-01-01", "%Y-%m-%d", tz="UTC") + round(as.numeric(timestamp)/600)*600]
+
+conditionsFogSchiphol<-data.table(conditionsFogSchiphol)
+
+setkey(imagesRWSDayLight, timeSyncToMeteo)
+setkey(conditionsFogSchiphol, timestamp)
+
+imagesAndMOR<-conditionsFogSchiphol[imagesRWSDayLight]
+
+imagesAndMOR[,foggy:=mor_visibility<=250]
+
+test<-sapply(imagesAndMOR$filepath, strsplit, "/")
+test<-sapply(test, "[[", 10)
 
 
-setwd("~/images/RWS/")
+setwd("~/images/RWS/A4Schiphol/")
 
 files<-test
 
@@ -40,28 +55,62 @@ clusterEvalQ(cl, library("imager"))
 
 matRWS<-foreach(i=1:length(files), .combine = rbind) %dopar%{
   message(files[[i]])
-  image<-load.image(files[[i]])
+  image<-tryCatch(
+    load.image(files[[i]]),
+    
+    error=function(error_message) {
+      #message("Yet another error message.")
+      #message("Here is the actual R error message:")
+      #next
+      return(NA)
+    }
+  )
+  if(is.na(image[[1]])){
+    v<-NA*1:(28*28)
+    message("Image not available error in acquisition")
+    v
+    }else{
   image<-resize(image,28,28)
   image<-blur_anisotropic(image, amplitude = 15000)
   df<-as.data.frame(image)
   v<-df$value
   #mat<-rbind(mat,v)
   v
+  }
 }
 
 stopCluster(cl)
 
 
+dtMat<-data.table(matRWS)
+#dtMat[,vis_class:=res2$vis_class]
+dtMat[,foggy:=imagesAndMOR$foggy]
 
 
 
-# predictedRWS<-predict(net,matRWS)
+
+
+feats <- names(dtMat)
+feats <- feats[-length(feats)]
+#feats<-feats[1:30]
+
+# Concatenate strings
+f <- paste(feats,collapse=' + ')
+f <- paste('foggy ~',f)
+
+f <- as.formula(f)
+
+
+net<-nnet(f,dtMat,size=5, MaxNWts=55000, maxit=200)
+
+
+predictedRWS<-predict(net,matRWS)
 # 
-# predictedRWS<-data.table(predictedRWS)
+predictedRWS<-data.table(predictedRWS)
 # 
 # #predictedRWS[,predictedLabels:=colnames(predictedRWS)[max.col(predictedRWS, ties.method = "first")]]
-# predictedRWS[,fog:=V1>0.4]
-# predictedRWS[,file:=files]
+predictedRWS[,fog:=V1>0.4]
+predictedRWS[,file:=files]
 
 
 
