@@ -28,6 +28,8 @@ conditionsFogSchiphol <- dbGetQuery(con, "SELECT location_id, timestamp, mor_vis
                                 FROM meteo_features_stations 
                                 WHERE location_id =9 AND timestamp<'2017-08-29 00:00:00';")
 
+dbDisconnect(con)
+
 imagesRWSDayLight<-data.table(imagesRWSDayLight)
 imagesRWSDayLight[,timeSyncToMeteo:=strptime("1970-01-01", "%Y-%m-%d", tz="UTC") + round(as.numeric(timestamp)/600)*600]
 
@@ -49,7 +51,7 @@ training<-imagesAndMOR[foggy==TRUE]
 
 set.seed(11)
 
-training<-rbind(training,imagesAndMOR[sample(nrow(imagesAndMOR[foggy==FALSE]),200)])
+training<-rbind(training,imagesAndMOR[sample(nrow(imagesAndMOR[foggy==FALSE]),400)])
 
 
 
@@ -82,12 +84,12 @@ matRWS<-foreach(i=1:length(files), .combine = rbind) %dopar%{
     }
   )
   if(is.na(image[[1]])){
-    v<-NA*1:(28*28)
+    v<-NA*1:(32*32)
     message("Image not available error in acquisition")
     v
     }else{
-  image<-resize(image,28,28)
-  image<-blur_anisotropic(image, amplitude = 15000)
+  image<-resize(image,32,32)
+  image<-blur_anisotropic(image, amplitude = 10000)
   df<-as.data.frame(image)
   v<-df$value
   #mat<-rbind(mat,v)
@@ -117,7 +119,7 @@ f <- paste('foggy ~',f)
 f <- as.formula(f)
 
 
-net<-nnet(f,dtMat,size=5, MaxNWts=55000, maxit=200)
+net<-nnet(f,dtMat,size=10, MaxNWts=55000, maxit=150)
 
 
 predictedRWS<-predict(net,matRWS)
@@ -134,11 +136,14 @@ confusion<-data.table(predicted=predictedRWS$fog,fogSensor=dtMat$foggy)
 
 table(confusion$predicted,confusion$fog)
 
-confusionMatrix(confusion$predicted,confusion$fog, mode = "prec_recall")
+confusionMatrix(confusion$predicted,confusion$fog, mode = "prec_recall", positive = "TRUE")
 
 
 
-testSet<-imagesAndMOR[sample(nrow(imagesAndMOR),10000)]
+
+#######################TEST-SET######################################
+
+testSet<-imagesAndMOR[sample(nrow(imagesAndMOR),1000)]
 
 
 filesTest<-sapply(testSet$filepath, strsplit, "/")
@@ -170,12 +175,12 @@ matRWSTest<-foreach(i=1:length(filesTest), .combine = rbind) %dopar%{
     }
   )
   if(is.na(image[[1]])){
-    v<-NA*1:(28*28)
+    v<-NA*1:(32*32)
     message("Image not available error in acquisition")
     v
   }else{
-    image<-resize(image,28,28)
-    image<-blur_anisotropic(image, amplitude = 15000)
+    image<-resize(image,32,32)
+    image<-blur_anisotropic(image, amplitude = 10000)
     df<-as.data.frame(image)
     v<-df$value
     #mat<-rbind(mat,v)
@@ -187,7 +192,21 @@ stopCluster(cl)
 
 
 
+predictedRWSTest<-predict(net,matRWSTest)
+# 
+predictedRWSTest<-data.table(predictedRWSTest)
+# 
+# #predictedRWS[,predictedLabels:=colnames(predictedRWS)[max.col(predictedRWS, ties.method = "first")]]
+predictedRWSTest[,fog:=V1>0.4]
+predictedRWSTest[,file:=filesTest]
 
+
+
+confusion<-data.table(predicted=predictedRWSTest$fog,fogSensor=testSet$foggy)
+
+table(confusion$predicted,confusion$fog)
+
+confusionMatrix(confusion$predicted,confusion$fog, mode = "prec_recall", positive = "TRUE")
 
 
 
