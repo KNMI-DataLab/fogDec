@@ -119,7 +119,7 @@ f <- paste('foggy ~',f)
 f <- as.formula(f)
 
 
-net<-nnet(f,dtMat,size=10, MaxNWts=55000, maxit=150)
+net<-nnet(f,dtMat,size=3, MaxNWts=55000, maxit=300)
 
 
 predictedRWS<-predict(net,matRWS)
@@ -197,16 +197,16 @@ predictedRWSTest<-predict(net,matRWSTest)
 predictedRWSTest<-data.table(predictedRWSTest)
 # 
 # #predictedRWS[,predictedLabels:=colnames(predictedRWS)[max.col(predictedRWS, ties.method = "first")]]
-predictedRWSTest[,fog:=V1>0.4]
+predictedRWSTest[,fog:=V1>0.1]
 predictedRWSTest[,file:=filesTest]
 
 
 
-confusion<-data.table(predicted=predictedRWSTest$fog,fogSensor=testSet$foggy)
+confusionTest<-data.table(predicted=predictedRWSTest$fog,fogSensor=testSet$foggy)
 
-table(confusion$predicted,confusion$fog)
+table(confusionTest$predicted,confusionTest$fog)
 
-confusionMatrix(confusion$predicted,confusion$fog, mode = "prec_recall", positive = "TRUE")
+confusionMatrix(confusionTest$predicted,confusionTest$fog, mode = "prec_recall", positive = "TRUE")
 
 
 
