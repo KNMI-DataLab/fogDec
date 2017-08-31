@@ -122,6 +122,12 @@ f <- as.formula(f)
 net<-nnet(f,dtMat,size=3, MaxNWts=55000, maxit=300)
 
 
+#darch  <- darch(dtMat[,1:3072], dtMat[,3073], layers =10)#, rbm.numEpochs = 0, rbm.batchSize = 100, rbm.trainOutputLayer = F, layers = c(400,100,10), darch.batchSize = 100, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 20 )
+
+
+
+
+
 predictedRWS<-predict(net,matRWS)
 # 
 predictedRWS<-data.table(predictedRWS)
