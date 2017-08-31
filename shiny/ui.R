@@ -38,10 +38,13 @@ dashboardPage(
       
       #shinyjs::disable("goButton"),
      
-    res<-fileInput(inputId = 'file', 
+    res<-fileInput(inputId = 'file',
               label = 'Select an Image',
               multiple = TRUE,
               accept=c('image/png', 'image/jpeg'))
+
+    ###HAVE THIS WORKING
+      #res<-shinyFilesButton('file', label='File select', title='Please select a file', multiple=FALSE)
     #if(){
               
     #}
