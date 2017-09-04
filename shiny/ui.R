@@ -1,25 +1,3 @@
-# shinyUI(fluidPage(
-#   titlePanel(fluidRow(column(12,"Fog Detection from Camera Images"))),
-#   sidebarLayout(
-#     sidebarPanel(
-#       fileInput(inputId = 'file', 
-#                 label = 'Select an Image',
-#                 multiple = TRUE,
-#                 accept=c('image/png', 'image/jpeg')),
-#      h5(strong("Analyze the image selected")),
-#       actionButton("goButton", "Analyze the image")
-#       #look here fr enable/disable buttons
-#       #https://stackoverflow.com/questions/40621393/disabling-buttons-in-shiny
-#     ),
-#     mainPanel(
-#       h4("The app works as follows..."),
-#       tableOutput('files'),
-#       uiOutput('images')
-#     )
-#   )   
-# ))
-
-
 library(shinydashboard)
 
 
