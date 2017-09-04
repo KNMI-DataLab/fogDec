@@ -51,7 +51,7 @@ training<-imagesAndMOR[foggy==TRUE]
 
 set.seed(11)
 
-training<-rbind(training,imagesAndMOR[sample(nrow(imagesAndMOR[foggy==FALSE]),400)])
+training<-rbind(training,imagesAndMOR[sample(nrow(imagesAndMOR[foggy==FALSE]),200)])
 
 
 
@@ -122,18 +122,24 @@ f <- as.formula(f)
 net<-nnet(f,dtMat,size=3, MaxNWts=55000, maxit=300)
 
 
-#darch  <- darch(dtMat[,1:3072], dtMat[,3073], layers =10)#, rbm.numEpochs = 0, rbm.batchSize = 100, rbm.trainOutputLayer = F, layers = c(400,100,10), darch.batchSize = 100, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 20 )
+complete<-dtMat[complete.cases(dtMat)]
+
+trainData<-complete[,1:3072]
+trainTargets<-complete[,3073]
+
+darch  <- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 100, rbm.trainOutputLayer = F, layers = c(800,200,100,10), darch.batchSize = 100, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 10000 )
 
 
 
 
 
-predictedRWS<-predict(net,matRWS)
+predictedRWS<-predict(darch,matRWS, type = "bin")
+  #predict(net,matRWS)
 # 
 predictedRWS<-data.table(predictedRWS)
 # 
 # #predictedRWS[,predictedLabels:=colnames(predictedRWS)[max.col(predictedRWS, ties.method = "first")]]
-predictedRWS[,fog:=V1>0.4]
+predictedRWS[,fog:=V2>0]
 predictedRWS[,file:=files]
 
 
@@ -148,7 +154,7 @@ confusionMatrix(confusion$predicted,confusion$fog, mode = "prec_recall", positiv
 
 
 #######################TEST-SET######################################
-
+set.seed(11)
 testSet<-imagesAndMOR[sample(nrow(imagesAndMOR),1000)]
 
 
@@ -198,12 +204,12 @@ stopCluster(cl)
 
 
 
-predictedRWSTest<-predict(net,matRWSTest)
+predictedRWSTest<-predict(darch,matRWSTest, type = "bin")#predict(net,matRWSTest)
 # 
 predictedRWSTest<-data.table(predictedRWSTest)
 # 
 # #predictedRWS[,predictedLabels:=colnames(predictedRWS)[max.col(predictedRWS, ties.method = "first")]]
-predictedRWSTest[,fog:=V1>0.1]
+predictedRWSTest[,fog:=V2>0]
 predictedRWSTest[,file:=filesTest]
 
 
