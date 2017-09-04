@@ -4,7 +4,7 @@ library(data.table)
 library(caret)
 
 
-#setwd("shiny/")
+setwd("shiny/")
 makeModelRDS<-function(){
 dbConfig <- fromJSON("../config.json")
 
@@ -72,7 +72,7 @@ getFileName<-function(string){
 
 
 gatherFeaturesForImages<-function(){
-  files<-list.files("picturesForApp/", pattern = "jpg")
+  files<-list.files("www/", pattern = "jpg")
   
   dbConfig <- fromJSON("../config.json")
   

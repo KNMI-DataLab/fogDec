@@ -16,21 +16,10 @@ shinyServer(function(input, output) {
   
   outputOptions(output, "visButton", suspendWhenHidden = FALSE)  
   
-  
-  
-  
-  #print(selectedFile)
-  #print(test)
-  
 
   
   observeEvent(input$goButton, {
     
-    
-    
-    
-    
-    ################################
     selectedFile<-input$file$files$`0`[[2]]
     
     
@@ -67,15 +56,12 @@ shinyServer(function(input, output) {
   
   
   file <- reactive({
-    print("HELLOOOOO")
     file<-input$file
     inFile <- parseFilePaths(roots=c(wd='/home/pagani/development/fogDec/shiny/www/'), file)
     #file <- input$file
-    print("HELLOOOOO")
     file$datapath <- inFile$datapath[[1]]
     output$visButton <- reactive({1
     })
-    print(file)
     file
   })
 
@@ -93,7 +79,6 @@ shinyServer(function(input, output) {
       #print(i)
         #print(imagename)
     src <- tail(strsplit(as.character(file()$datapath[1]),"/")[[1]],1)
-    
     picURL<-paste0('<img src="',src,'">')
     output$images<-renderText({picURL})
     
