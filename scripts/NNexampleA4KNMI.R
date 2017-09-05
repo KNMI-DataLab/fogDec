@@ -7,6 +7,7 @@ library(DBI)
 library(jsonlite)
 library(caret)
 library(darch)
+library(stringr)
 
 
 imagesAndMeteo<-function(dfImages, dfMeteo){
@@ -41,7 +42,7 @@ imagesAndMeteo<-function(dfImages, dfMeteo){
 setwd("~/development/fogDec/")
 dbConfig <- fromJSON("config.json")
 
-resolutionImg<-64
+resolutionImg<-28
 
 con <- dbConnect(RPostgreSQL::PostgreSQL(),
                  dbname = "FOGDB",
@@ -68,14 +69,50 @@ conditionsDeBilt <- dbGetQuery(con, "SELECT location_id, timestamp, mor_visibili
                                 FROM meteo_features_stations 
                                 WHERE location_id =1 AND timestamp<'2017-08-29 00:00:00';")
 
+imagesCabauw<-dbGetQuery(con, "SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
+                                FROM images
+                                WHERE camera_id IN (2,3) AND day_phase=1 AND timestamp<'2017-08-29 00:00:00';")
+
+conditionsCabauw <- dbGetQuery(con, "SELECT location_id, timestamp, mor_visibility 
+                                FROM meteo_features_stations 
+                                WHERE location_id =3 AND timestamp<'2017-08-29 00:00:00';")
+
+imagesEelde<-dbGetQuery(con, "SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
+                                FROM images
+                                WHERE camera_id IN (11,12) AND day_phase=1 AND timestamp<'2017-08-29 00:00:00';")
+
+conditionsEelde <- dbGetQuery(con, "SELECT location_id, timestamp, mor_visibility 
+                                FROM meteo_features_stations 
+                                WHERE location_id =7 AND timestamp<'2017-08-29 00:00:00';")
+
+imagesSchiphol<-dbGetQuery(con, "SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
+                                FROM images
+                                WHERE camera_id=15 AND day_phase=1 AND timestamp<'2017-08-29 00:00:00';")
+
+imagesRotterdam<-dbGetQuery(con, "SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
+                                FROM images
+                                WHERE camera_id IN (13,14) AND day_phase=1 AND timestamp<'2017-08-29 00:00:00';")
+
+conditionsRotterdam <- dbGetQuery(con, "SELECT location_id, timestamp, mor_visibility 
+                                FROM meteo_features_stations 
+                                WHERE location_id =8 AND timestamp<'2017-08-29 00:00:00';")
+
+
+
+
+
 
 dbDisconnect(con)
 
 
 mergedA4Schiphol<-imagesAndMeteo(imagesRWSDayLight, conditionsFogSchiphol)
 mergedDeBilt<-imagesAndMeteo(imagesDeBilt, conditionsDeBilt)
+mergedCabauw<-imagesAndMeteo(imagesCabauw, conditionsCabauw)
+mergedEelde<-imagesAndMeteo(imagesEelde, conditionsEelde)
+mergedRotterdam<-imagesAndMeteo(imagesRotterdam, conditionsRotterdam)
+mergedSchipholAirport<-imagesAndMeteo(imagesSchiphol, conditionsFogSchiphol)
 
-total<-rbind(mergedA4Schiphol,mergedDeBilt)
+total<-rbind(mergedA4Schiphol,mergedDeBilt, mergedCabauw, mergedEelde)
 
 
 training<-total[foggy==TRUE]
@@ -83,17 +120,28 @@ training<-total[foggy==TRUE]
 
 set.seed(11)
 
-training<-rbind(training,total[sample(nrow(imagesAndMOR[foggy==FALSE]),500)])
+training<-rbind(training,total[sample(nrow(total[foggy==FALSE]),1000)])
+
+
+files<-sapply(training$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveDEBILT/",x))
+files<-sapply(files, function(x) gsub(".*/CAMERA/", "",x))
+files<-sapply(files, function(x) gsub(".*/cabauw/", "oldArchiveCABAUW/cabauw/",x))
 
 
 
-files<-sapply(training$filepath, strsplit, "/CAMERA",simplify = T)
-#files<-sapply(files, "[[", 10)
 
-files<-sapply(files, strsplit, "/AXIS214",simplify = T)
-files<-unlist(files)
 
-files<-files[c(FALSE, TRUE)]
+
+# 
+# files<-sapply(training$filepath, strsplit, "/CAMERA/",simplify = T)
+# #files<-sapply(files, "[[", 10)
+# 
+# 
+# files<-sapply(files, str_replace_all, "/AXIS214/",  "/AXIS214/oldArchiveDEBILT/",simplify = T )
+# files<-sapply(files, strsplit, "/AXIS214/",simplify = T)
+# files<-unlist(files)
+# 
+# files<-files[c(FALSE, TRUE)]
 
 
 
@@ -146,18 +194,18 @@ dtMat[,foggy:=training$foggy]
 
 
 
-feats <- names(dtMat)
-feats <- feats[-length(feats)]
-#feats<-feats[1:30]
+#feats <- names(dtMat)
+#feats <- feats[-length(feats)]
+##feats<-feats[1:30]
 
-# Concatenate strings
-f <- paste(feats,collapse=' + ')
-f <- paste('foggy ~',f)
+## Concatenate strings
+#f <- paste(feats,collapse=' + ')
+#f <- paste('foggy ~',f)
 
-f <- as.formula(f)
+#f <- as.formula(f)
 
 
-net<-nnet(f,dtMat,size=3, MaxNWts=55000, maxit=300)
+#net<-nnet(f,dtMat,size=3, MaxNWts=55000, maxit=300)
 
 
 complete<-dtMat[complete.cases(dtMat)]
@@ -168,7 +216,7 @@ trainData<-complete[,1:lastFeature]
 groundTruth<-lastFeature+1
 trainTargets<-complete[,groundTruth:groundTruth]
 
-darch  <- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 100, rbm.trainOutputLayer = F, layers = c(800,500,300,200,100,50,10), darch.batchSize = 200, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 600 )
+darch  <- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 100, rbm.trainOutputLayer = F, layers = c(500,200,100,10), darch.batchSize = 100, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 1500 )
 
 
 
@@ -196,14 +244,35 @@ confusionMatrix(confusion$predicted,confusion$fog, mode = "prec_recall", positiv
 
 #######################TEST-SET######################################
 set.seed(11)
-testSet<-imagesAndMOR[sample(nrow(imagesAndMOR),1000)]
+testSet<-total[sample(nrow(total),10000)]
 
 
-filesTest<-sapply(testSet$filepath, strsplit, "/")
-filesTest<-sapply(filesTest, "[[", 10)
 
 
-setwd("~/images/RWS/A4Schiphol/")
+filesTest<-sapply(testSet$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveDEBILT/",x))
+filesTest<-sapply(filesTest, function(x) gsub(".*/CAMERA/", "",x))
+filesTest<-sapply(filesTest, function(x) gsub(".*/cabauw/", "oldArchiveCABAUW/cabauw/",x))
+
+
+
+
+# filesTest<-sapply(testSet$filepath, strsplit, "/CAMERA/",simplify = T)
+# #files<-sapply(files, "[[", 10)
+# 
+# 
+# filesTest<-sapply(filesTest, str_replace_all, "/AXIS214/",  "/AXIS214/oldArchiveDEBILT/",simplify = T )
+# filesTest<-sapply(filesTest, strsplit, "/AXIS214/",simplify = T)
+# filesTest<-unlist(filesTest)
+# 
+# filesTest<-filesTest[c(FALSE, TRUE)]
+
+
+
+setwd("~/share/")
+
+
+
+
 
 #files<-test
 
