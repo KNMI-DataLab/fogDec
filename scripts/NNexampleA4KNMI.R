@@ -115,12 +115,16 @@ mergedSchipholAirport<-imagesAndMeteo(imagesSchiphol, conditionsFogSchiphol)
 total<-rbind(mergedA4Schiphol,mergedDeBilt, mergedCabauw, mergedEelde)
 
 
-training<-total[foggy==TRUE]
+# training<-total[foggy==TRUE]
+# 
+# 
+# set.seed(11)
+# 
+# training<-rbind(training,total[sample(nrow(total[foggy==FALSE]),1000)])
 
+inTrain<-createDataPartition(total$foggy, p=0.7, list = FALSE)
 
-set.seed(11)
-
-training<-rbind(training,total[sample(nrow(total[foggy==FALSE]),1000)])
+training<-total[inTrain,]
 
 
 files<-sapply(training$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveDEBILT/",x))
@@ -244,9 +248,9 @@ confusionMatrix(confusion$predicted,confusion$fog, mode = "prec_recall", positiv
 
 #######################TEST-SET######################################
 set.seed(11)
-testSet<-total[sample(nrow(total),10000)]
+#testSet<-total[sample(nrow(total),10000)]
 
-
+testSet<-total[-inTrain,]
 
 
 filesTest<-sapply(testSet$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveDEBILT/",x))
