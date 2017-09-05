@@ -9,6 +9,34 @@ library(caret)
 library(darch)
 
 
+imagesAndMeteo<-function(dfImages, dfMeteo){
+  imagesDayLight<-data.table(dfImages)
+  imagesDayLight[,timeSyncToMeteo:=strptime("1970-01-01", "%Y-%m-%d", tz="UTC") + round(as.numeric(timestamp)/600)*600]
+  
+  tableMeteo<-data.table(dfMeteo)
+  
+  setkey(imagesDayLight, timeSyncToMeteo)
+  setkey(tableMeteo, timestamp)
+  
+  imagesAndMOR<-tableMeteo[imagesDayLight]
+  
+  imagesAndMOR[,foggy:=mor_visibility<=250]
+  
+  imagesAndMOR
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 setwd("~/development/fogDec/")
 dbConfig <- fromJSON("config.json")
@@ -31,38 +59,45 @@ conditionsFogSchiphol <- dbGetQuery(con, "SELECT location_id, timestamp, mor_vis
                                 FROM meteo_features_stations 
                                 WHERE location_id =9 AND timestamp<'2017-08-29 00:00:00';")
 
+
+imagesDeBilt<-dbGetQuery(con, "SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
+                                FROM images
+                                WHERE camera_id IN (1,99) AND day_phase=1 AND timestamp<'2017-08-29 00:00:00';")
+
+conditionsDeBilt <- dbGetQuery(con, "SELECT location_id, timestamp, mor_visibility 
+                                FROM meteo_features_stations 
+                                WHERE location_id =1 AND timestamp<'2017-08-29 00:00:00';")
+
+
 dbDisconnect(con)
 
-imagesRWSDayLight<-data.table(imagesRWSDayLight)
-imagesRWSDayLight[,timeSyncToMeteo:=strptime("1970-01-01", "%Y-%m-%d", tz="UTC") + round(as.numeric(timestamp)/600)*600]
 
-conditionsFogSchiphol<-data.table(conditionsFogSchiphol)
+mergedA4Schiphol<-imagesAndMeteo(imagesRWSDayLight, conditionsFogSchiphol)
+mergedDeBilt<-imagesAndMeteo(imagesDeBilt, conditionsDeBilt)
 
-setkey(imagesRWSDayLight, timeSyncToMeteo)
-setkey(conditionsFogSchiphol, timestamp)
-
-imagesAndMOR<-conditionsFogSchiphol[imagesRWSDayLight]
-
-imagesAndMOR[,foggy:=mor_visibility<=250]
+total<-rbind(mergedA4Schiphol,mergedDeBilt)
 
 
-
-
-
-training<-imagesAndMOR[foggy==TRUE]
+training<-total[foggy==TRUE]
 
 
 set.seed(11)
 
-training<-rbind(training,imagesAndMOR[sample(nrow(imagesAndMOR[foggy==FALSE]),200)])
+training<-rbind(training,total[sample(nrow(imagesAndMOR[foggy==FALSE]),500)])
 
 
 
-files<-sapply(training$filepath, strsplit, "/")
-files<-sapply(files, "[[", 10)
+files<-sapply(training$filepath, strsplit, "/CAMERA",simplify = T)
+#files<-sapply(files, "[[", 10)
+
+files<-sapply(files, strsplit, "/AXIS214",simplify = T)
+files<-unlist(files)
+
+files<-files[c(FALSE, TRUE)]
 
 
-setwd("~/images/RWS/A4Schiphol/")
+
+setwd("~/share/")
 
 #files<-test
 
