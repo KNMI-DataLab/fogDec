@@ -114,17 +114,25 @@ mergedSchipholAirport<-imagesAndMeteo(imagesSchiphol, conditionsFogSchiphol)
 
 total<-rbind(mergedA4Schiphol,mergedDeBilt, mergedCabauw, mergedEelde)
 
+set.seed(11)
 
-# training<-total[foggy==TRUE]
-# 
-# 
-# set.seed(11)
-# 
-# training<-rbind(training,total[sample(nrow(total[foggy==FALSE]),1000)])
+foggyData<-total[foggy==TRUE]
+inTraining<-sample(nrow(foggyData),0.7*nrow(foggyData))
+training<-foggyData[inTraining]
 
-inTrain<-createDataPartition(total$foggy, p=0.7, list = FALSE)
 
-training<-total[inTrain,]
+
+nonFoggyData<-total[foggy==FALSE]
+training<-rbind(training,nonFoggyData[sample(nrow(nonFoggyData),nrow(training))])
+
+
+
+testing<-foggyData[-inTraining]
+testing<-rbind(testing,nonFoggyData[sample(nrow(nonFoggyData),5000)])
+
+#inTrain<-createDataPartition(total$foggy, p=0.7, list = FALSE)
+
+#training<-total[inTrain,]
 
 
 files<-sapply(training$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveDEBILT/",x))
@@ -220,13 +228,17 @@ trainData<-complete[,1:lastFeature]
 groundTruth<-lastFeature+1
 trainTargets<-complete[,groundTruth:groundTruth]
 
-darch  <- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 100, rbm.trainOutputLayer = F, layers = c(500,200,100,10), darch.batchSize = 100, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 1500 )
+darch  <- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,500,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 500 )
+
+darch1<- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,800, 500,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 800 )
+darch2  <- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,1000,800,500,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 1000 )
+darch3  <- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 500 )
 
 
 
 
 
-predictedRWS<-predict(darch,matRWS, type = "bin")
+predictedRWS<-predict(darch1,matRWS, type = "bin")
   #predict(net,matRWS)
 # 
 predictedRWS<-data.table(predictedRWS)
@@ -250,10 +262,10 @@ confusionMatrix(confusion$predicted,confusion$fog, mode = "prec_recall", positiv
 set.seed(11)
 #testSet<-total[sample(nrow(total),10000)]
 
-testSet<-total[-inTrain,]
+#testSet<-total[-inTrain,]
 
 
-filesTest<-sapply(testSet$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveDEBILT/",x))
+filesTest<-sapply(testing$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveDEBILT/",x))
 filesTest<-sapply(filesTest, function(x) gsub(".*/CAMERA/", "",x))
 filesTest<-sapply(filesTest, function(x) gsub(".*/cabauw/", "oldArchiveCABAUW/cabauw/",x))
 
@@ -318,7 +330,10 @@ stopCluster(cl)
 
 
 
-predictedRWSTest<-predict(darch,matRWSTest, type = "bin")#predict(net,matRWSTest)
+
+
+
+predictedRWSTest<-predict(darch1,matRWSTest, type = "bin")#predict(net,matRWSTest)
 # 
 predictedRWSTest<-data.table(predictedRWSTest)
 # 
@@ -328,11 +343,15 @@ predictedRWSTest[,file:=filesTest]
 
 
 
-confusionTest<-data.table(predicted=predictedRWSTest$fog,fogSensor=testSet$foggy)
+confusionTest<-data.table(predicted=predictedRWSTest$fog,fogSensor=testing$foggy)
 
 table(confusionTest$predicted,confusionTest$fog)
 
 confusionMatrix(confusionTest$predicted,confusionTest$fog, mode = "prec_recall", positive = "TRUE")
 
+
+
+
+###############################TEST UNKNOWN UNLABELD DATASET##########################
 
 
