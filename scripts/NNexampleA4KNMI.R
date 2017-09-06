@@ -355,3 +355,122 @@ confusionMatrix(confusionTest$predicted,confusionTest$fog, mode = "prec_recall",
 ###############################TEST UNKNOWN UNLABELD DATASET##########################
 
 
+#id non labled data cameraid=276#
+
+con <- dbConnect(RPostgreSQL::PostgreSQL(),
+                 dbname = "FOGDB",
+                 host = dbConfig[["host"]], port = 9418,
+                 user = dbConfig[["user"]], password = dbConfig[["pw"]])
+
+
+
+imagesRWSDayLightNoLabel <- dbGetQuery(con, "SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
+                                FROM images
+                                WHERE camera_id=276 AND day_phase=1 AND timestamp<'2017-08-29 00:00:00';")
+dbDisconnect(con)
+
+filesNew<-sapply(imagesRWSDayLightNoLabel$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveDEBILT/",x))
+filesNew<-sapply(filesNew, function(x) gsub(".*/CAMERA/", "",x))
+filesNew<-sapply(filesNew, function(x) gsub(".*/cabauw/", "oldArchiveCABAUW/cabauw/",x))
+
+
+
+
+# filesTest<-sapply(testSet$filepath, strsplit, "/CAMERA/",simplify = T)
+# #files<-sapply(files, "[[", 10)
+# 
+# 
+# filesTest<-sapply(filesTest, str_replace_all, "/AXIS214/",  "/AXIS214/oldArchiveDEBILT/",simplify = T )
+# filesTest<-sapply(filesTest, strsplit, "/AXIS214/",simplify = T)
+# filesTest<-unlist(filesTest)
+# 
+# filesTest<-filesTest[c(FALSE, TRUE)]
+
+
+
+setwd("~/share/")
+
+
+
+
+
+#files<-test
+
+
+
+
+cl <- makeCluster(16)
+registerDoParallel(cl)
+
+clusterEvalQ(cl, library("imager"))
+
+matRWSNew<-foreach(i=1:length(filesNew), .combine = rbind) %dopar%{
+  message(filesNew[[i]])
+  image<-tryCatch(
+    load.image(filesNew[[i]]),
+    
+    error=function(error_message) {
+      #message("Yet another error message.")
+      #message("Here is the actual R error message:")
+      #next
+      return(NA)
+    }
+  )
+  if(is.na(image[[1]])){
+    v<-NA*1:(resolutionImg*resolutionImg)
+    message("Image not available error in acquisition")
+    v
+  }else{
+    image<-resize(image,resolutionImg,resolutionImg)
+    image<-blur_anisotropic(image, amplitude = 10000)
+    df<-as.data.frame(image)
+    v<-df$value
+    #mat<-rbind(mat,v)
+    v
+  }
+}
+
+stopCluster(cl)
+
+
+
+
+
+
+predictedRWSNew<-predict(darch1,matRWSNew, type = "bin")#predict(net,matRWSTest)
+# 
+predictedRWSNew<-data.table(predictedRWSNew)
+# 
+# #predictedRWS[,predictedLabels:=colnames(predictedRWS)[max.col(predictedRWS, ties.method = "first")]]
+predictedRWSNew[,fog:=V2>0]
+predictedRWSNew[,file:=filesNew]
+
+
+
+#confusionTest<-data.table(predicted=predictedRWSTest$fog,fogSensor=testing$foggy)
+
+#table(confusionTest$predicted,confusionTest$fog)
+
+#confusionMatrix(confusionTest$predicted,confusionTest$fog, mode = "prec_recall", positive = "TRUE")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
