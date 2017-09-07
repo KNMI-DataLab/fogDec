@@ -114,13 +114,25 @@ mergedSchipholAirport<-imagesAndMeteo(imagesSchiphol, conditionsFogSchiphol)
 
 total<-rbind(mergedA4Schiphol,mergedDeBilt, mergedCabauw, mergedEelde)
 
-
-training<-total[foggy==TRUE]
-
-
 set.seed(11)
 
-training<-rbind(training,total[sample(nrow(total[foggy==FALSE]),1000)])
+foggyData<-total[foggy==TRUE]
+inTraining<-sample(nrow(foggyData),0.7*nrow(foggyData))
+training<-foggyData[inTraining]
+
+
+
+nonFoggyData<-total[foggy==FALSE]
+training<-rbind(training,nonFoggyData[sample(nrow(nonFoggyData),nrow(training))])
+
+
+
+testing<-foggyData[-inTraining]
+testing<-rbind(testing,nonFoggyData[sample(nrow(nonFoggyData),5000)])
+
+#inTrain<-createDataPartition(total$foggy, p=0.7, list = FALSE)
+
+#training<-total[inTrain,]
 
 
 files<-sapply(training$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveDEBILT/",x))
@@ -216,13 +228,17 @@ trainData<-complete[,1:lastFeature]
 groundTruth<-lastFeature+1
 trainTargets<-complete[,groundTruth:groundTruth]
 
-darch  <- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 100, rbm.trainOutputLayer = F, layers = c(500,200,100,10), darch.batchSize = 100, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 1500 )
+darch  <- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,500,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 500 )
+
+darch1<- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,800, 500,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 800 )
+darch2  <- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,1000,800,500,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 1000 )
+darch3  <- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 500 )
 
 
 
 
 
-predictedRWS<-predict(darch,matRWS, type = "bin")
+predictedRWS<-predict(darch1,matRWS, type = "bin")
   #predict(net,matRWS)
 # 
 predictedRWS<-data.table(predictedRWS)
@@ -244,12 +260,12 @@ confusionMatrix(confusion$predicted,confusion$fog, mode = "prec_recall", positiv
 
 #######################TEST-SET######################################
 set.seed(11)
-testSet<-total[sample(nrow(total),10000)]
+#testSet<-total[sample(nrow(total),10000)]
+
+#testSet<-total[-inTrain,]
 
 
-
-
-filesTest<-sapply(testSet$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveDEBILT/",x))
+filesTest<-sapply(testing$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveDEBILT/",x))
 filesTest<-sapply(filesTest, function(x) gsub(".*/CAMERA/", "",x))
 filesTest<-sapply(filesTest, function(x) gsub(".*/cabauw/", "oldArchiveCABAUW/cabauw/",x))
 
@@ -314,7 +330,10 @@ stopCluster(cl)
 
 
 
-predictedRWSTest<-predict(darch,matRWSTest, type = "bin")#predict(net,matRWSTest)
+
+
+
+predictedRWSTest<-predict(darch1,matRWSTest, type = "bin")#predict(net,matRWSTest)
 # 
 predictedRWSTest<-data.table(predictedRWSTest)
 # 
@@ -324,11 +343,134 @@ predictedRWSTest[,file:=filesTest]
 
 
 
-confusionTest<-data.table(predicted=predictedRWSTest$fog,fogSensor=testSet$foggy)
+confusionTest<-data.table(predicted=predictedRWSTest$fog,fogSensor=testing$foggy)
 
 table(confusionTest$predicted,confusionTest$fog)
 
 confusionMatrix(confusionTest$predicted,confusionTest$fog, mode = "prec_recall", positive = "TRUE")
+
+
+
+
+###############################TEST UNKNOWN UNLABELD DATASET##########################
+
+
+#id non labled data cameraid=276#
+
+con <- dbConnect(RPostgreSQL::PostgreSQL(),
+                 dbname = "FOGDB",
+                 host = dbConfig[["host"]], port = 9418,
+                 user = dbConfig[["user"]], password = dbConfig[["pw"]])
+
+
+
+imagesRWSDayLightNoLabel <- dbGetQuery(con, "SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
+                                FROM images
+                                WHERE camera_id=276 AND day_phase=1 AND timestamp<'2017-08-29 00:00:00';")
+dbDisconnect(con)
+
+filesNew<-sapply(imagesRWSDayLightNoLabel$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveDEBILT/",x))
+filesNew<-sapply(filesNew, function(x) gsub(".*/CAMERA/", "",x))
+filesNew<-sapply(filesNew, function(x) gsub(".*/cabauw/", "oldArchiveCABAUW/cabauw/",x))
+
+
+
+
+# filesTest<-sapply(testSet$filepath, strsplit, "/CAMERA/",simplify = T)
+# #files<-sapply(files, "[[", 10)
+# 
+# 
+# filesTest<-sapply(filesTest, str_replace_all, "/AXIS214/",  "/AXIS214/oldArchiveDEBILT/",simplify = T )
+# filesTest<-sapply(filesTest, strsplit, "/AXIS214/",simplify = T)
+# filesTest<-unlist(filesTest)
+# 
+# filesTest<-filesTest[c(FALSE, TRUE)]
+
+
+
+setwd("~/share/")
+
+
+
+
+
+#files<-test
+
+
+
+
+cl <- makeCluster(16)
+registerDoParallel(cl)
+
+clusterEvalQ(cl, library("imager"))
+
+matRWSNew<-foreach(i=1:length(filesNew), .combine = rbind) %dopar%{
+  message(filesNew[[i]])
+  image<-tryCatch(
+    load.image(filesNew[[i]]),
+    
+    error=function(error_message) {
+      #message("Yet another error message.")
+      #message("Here is the actual R error message:")
+      #next
+      return(NA)
+    }
+  )
+  if(is.na(image[[1]])){
+    v<-NA*1:(resolutionImg*resolutionImg)
+    message("Image not available error in acquisition")
+    v
+  }else{
+    image<-resize(image,resolutionImg,resolutionImg)
+    image<-blur_anisotropic(image, amplitude = 10000)
+    df<-as.data.frame(image)
+    v<-df$value
+    #mat<-rbind(mat,v)
+    v
+  }
+}
+
+stopCluster(cl)
+
+
+
+
+
+
+predictedRWSNew<-predict(darch1,matRWSNew, type = "bin")#predict(net,matRWSTest)
+# 
+predictedRWSNew<-data.table(predictedRWSNew)
+# 
+# #predictedRWS[,predictedLabels:=colnames(predictedRWS)[max.col(predictedRWS, ties.method = "first")]]
+predictedRWSNew[,fog:=V2>0]
+predictedRWSNew[,file:=filesNew]
+
+
+
+#confusionTest<-data.table(predicted=predictedRWSTest$fog,fogSensor=testing$foggy)
+
+#table(confusionTest$predicted,confusionTest$fog)
+
+#confusionMatrix(confusionTest$predicted,confusionTest$fog, mode = "prec_recall", positive = "TRUE")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
