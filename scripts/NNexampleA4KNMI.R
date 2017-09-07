@@ -10,6 +10,9 @@ library(darch)
 library(stringr)
 
 
+Sys.setenv(TZ = "UTC")
+
+
 imagesAndMeteo<-function(dfImages, dfMeteo){
   imagesDayLight<-data.table(dfImages)
   imagesDayLight[,timeSyncToMeteo:=strptime("1970-01-01", "%Y-%m-%d", tz="UTC") + round(as.numeric(timestamp)/600)*600]
@@ -49,53 +52,54 @@ con <- dbConnect(RPostgreSQL::PostgreSQL(),
                  host = dbConfig[["host"]], port = 9418,
                  user = dbConfig[["user"]], password = dbConfig[["pw"]])
 
+dateStr<-"\'2017-09-07 00:00:00\'"
 
 
-imagesRWSDayLight <- dbGetQuery(con, "SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
+imagesRWSDayLight <- dbGetQuery(con, paste0("SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
                                 FROM images
-                                WHERE camera_id IN (370, 378, 377, 376, 369, 358, 359, 360, 361) AND day_phase=1 AND timestamp<'2017-08-29 00:00:00';")
+                                WHERE camera_id IN (370, 378, 377, 376, 369, 358, 359, 360, 361) AND day_phase=1 AND timestamp<", dateStr,";"))
 
 
-conditionsFogSchiphol <- dbGetQuery(con, "SELECT location_id, timestamp, mor_visibility 
+conditionsFogSchiphol <- dbGetQuery(con, paste0("SELECT location_id, timestamp, mor_visibility 
                                 FROM meteo_features_stations 
-                                WHERE location_id =9 AND timestamp<'2017-08-29 00:00:00';")
+                                WHERE location_id =9 AND timestamp<", dateStr,";"))
 
 
-imagesDeBilt<-dbGetQuery(con, "SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
+imagesDeBilt<-dbGetQuery(con, paste0("SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
                                 FROM images
-                                WHERE camera_id IN (1,99) AND day_phase=1 AND timestamp<'2017-08-29 00:00:00';")
+                                WHERE camera_id IN (1,99) AND day_phase=1 AND timestamp<", dateStr,";"))
 
-conditionsDeBilt <- dbGetQuery(con, "SELECT location_id, timestamp, mor_visibility 
+conditionsDeBilt <- dbGetQuery(con, paste0("SELECT location_id, timestamp, mor_visibility 
                                 FROM meteo_features_stations 
-                                WHERE location_id =1 AND timestamp<'2017-08-29 00:00:00';")
+                                WHERE location_id =1 AND timestamp<", dateStr,";"))
 
-imagesCabauw<-dbGetQuery(con, "SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
+imagesCabauw<-dbGetQuery(con, paste0("SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
                                 FROM images
-                                WHERE camera_id IN (2,3) AND day_phase=1 AND timestamp<'2017-08-29 00:00:00';")
+                                WHERE camera_id IN (2,3) AND day_phase=1 AND timestamp<", dateStr,";"))
 
-conditionsCabauw <- dbGetQuery(con, "SELECT location_id, timestamp, mor_visibility 
+conditionsCabauw <- dbGetQuery(con, paste0("SELECT location_id, timestamp, mor_visibility 
                                 FROM meteo_features_stations 
-                                WHERE location_id =3 AND timestamp<'2017-08-29 00:00:00';")
+                                WHERE location_id =3 AND timestamp<", dateStr,";"))
 
-imagesEelde<-dbGetQuery(con, "SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
+imagesEelde<-dbGetQuery(con, paste0("SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
                                 FROM images
-                                WHERE camera_id IN (11,12) AND day_phase=1 AND timestamp<'2017-08-29 00:00:00';")
+                                WHERE camera_id IN (11,12) AND day_phase=1 AND timestamp<", dateStr,";"))
 
-conditionsEelde <- dbGetQuery(con, "SELECT location_id, timestamp, mor_visibility 
+conditionsEelde <- dbGetQuery(con, paste0("SELECT location_id, timestamp, mor_visibility 
                                 FROM meteo_features_stations 
-                                WHERE location_id =7 AND timestamp<'2017-08-29 00:00:00';")
+                                WHERE location_id =7 AND timestamp<", dateStr,";"))
 
-imagesSchiphol<-dbGetQuery(con, "SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
+imagesSchiphol<-dbGetQuery(con, paste0("SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
                                 FROM images
-                                WHERE camera_id=15 AND day_phase=1 AND timestamp<'2017-08-29 00:00:00';")
+                                WHERE camera_id=15 AND day_phase=1 AND timestamp<", dateStr,";"))
 
-imagesRotterdam<-dbGetQuery(con, "SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
+imagesRotterdam<-dbGetQuery(con, paste0("SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
                                 FROM images
-                                WHERE camera_id IN (13,14) AND day_phase=1 AND timestamp<'2017-08-29 00:00:00';")
+                                WHERE camera_id IN (13,14) AND day_phase=1 AND timestamp<", dateStr,";"))
 
-conditionsRotterdam <- dbGetQuery(con, "SELECT location_id, timestamp, mor_visibility 
+conditionsRotterdam <- dbGetQuery(con, paste0("SELECT location_id, timestamp, mor_visibility 
                                 FROM meteo_features_stations 
-                                WHERE location_id =8 AND timestamp<'2017-08-29 00:00:00';")
+                                WHERE location_id =8 AND timestamp<", dateStr,";"))
 
 
 
@@ -364,9 +368,9 @@ con <- dbConnect(RPostgreSQL::PostgreSQL(),
 
 
 
-imagesRWSDayLightNoLabel <- dbGetQuery(con, "SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
+imagesRWSDayLightNoLabel <- dbGetQuery(con, paste0("SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
                                 FROM images
-                                WHERE camera_id=276 AND day_phase=1 AND timestamp<'2017-08-29 00:00:00';")
+                                WHERE camera_id=276 AND day_phase=1 AND timestamp<", dateStr,";"))
 dbDisconnect(con)
 
 filesNew<-sapply(imagesRWSDayLightNoLabel$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveDEBILT/",x))
