@@ -50,10 +50,14 @@ getValueFromKIS<-function(x, location, variable){
 }
 
 
+`%not in%` <- function (x, table) is.na(match(x, table, nomatch=NA_integer_))
+
+
 
 prepareMeteoTable<-function(location, variable,newval){
 
-
+Sys.setenv(TZ = "UTC")
+  
 dbConfig <- fromJSON("config.json")
 
 con <- dbConnect(RPostgreSQL::PostgreSQL(),
@@ -84,7 +88,7 @@ temp2<-tempTB[meteoFeaturesTable]
 
 
 if(newval==TRUE){
-dataNoMeteoAll<-tempTB[!(which(tempTB$image_id %in% temp2$image_id))]#images have no meteo fetures at all
+dataNoMeteoAll<-tempTB[(which(tempTB$image_id %not in% temp2$image_id))]#images have no meteo fetures at all
 dataNoMeteo<-dataNoMeteoAll[location_id == location, location_id,timestamp]
 dataNoMeteo<-dataNoMeteo[,unique(dataNoMeteo)]
 datesRequired<-unique(as.Date(dataNoMeteo[,timestamp]))
@@ -231,15 +235,22 @@ for(var in variables){
 
 
 #####################################################################################################
-#  dbConfig <- fromJSON("config.json")
-# # #  
-#  con <- dbConnect(RPostgreSQL::PostgreSQL(),
-#                      dbname = "FOGDB",
-#                     host = dbConfig[["host"]], port = 9418,
-#                     user = dbConfig[["user"]], password = dbConfig[["pw"]])
-#  tmp<-prepareMeteoTable(location = 8, variable = "mor_visibility", newval = TRUE )
-#  dbWriteTable(con, "meteo_features_stations", tmp, append = TRUE, row.names = FALSE, match.cols = TRUE)
-# dbDisconnect(con)
+
+locationsMeteo<-c(1,3,6,7,8,9)
+
+
+for(i in locationsMeteo){
+dbConfig <- fromJSON("config.json")
+# #
+ con <- dbConnect(RPostgreSQL::PostgreSQL(),
+                     dbname = "FOGDB",
+                    host = dbConfig[["host"]], port = 9418,
+                    user = dbConfig[["user"]], password = dbConfig[["pw"]])
+ tmp<-prepareMeteoTable(location = i, variable = "mor_visibility", newval = TRUE )
+ message(paste("location",i,"ready to be written on DB"))
+ dbWriteTable(con, "meteo_features_stations", tmp, append = TRUE, row.names = FALSE, match.cols = TRUE)
+dbDisconnect(con)
+}
 #####################################################################################################
 
 
