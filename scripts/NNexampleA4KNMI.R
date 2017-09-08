@@ -52,7 +52,7 @@ con <- dbConnect(RPostgreSQL::PostgreSQL(),
                  host = dbConfig[["host"]], port = 9418,
                  user = dbConfig[["user"]], password = dbConfig[["pw"]])
 
-dateStr<-"\'2017-09-07 00:00:00\'"
+dateStr<-"\'2017-08-29 00:00:00\'"
 
 
 imagesRWSDayLight <- dbGetQuery(con, paste0("SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
@@ -132,11 +132,17 @@ training<-rbind(training,nonFoggyData[sample(nrow(nonFoggyData),nrow(training))]
 
 
 testing<-foggyData[-inTraining]
-testing<-rbind(testing,nonFoggyData[sample(nrow(nonFoggyData),5000)])
+testing<-rbind(testing,nonFoggyData[sample(nrow(nonFoggyData),4000)])
 
 #inTrain<-createDataPartition(total$foggy, p=0.7, list = FALSE)
 
 #training<-total[inTrain,]
+
+
+saveRDS(training,"~/development/fogNNmodels/trainingDataLabels.RDS")
+
+saveRDS(testing,"~/development/fogNNmodels/testingDataLabels.RDS")
+
 
 
 files<-sapply(training$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveDEBILT/",x))
@@ -232,14 +238,16 @@ trainData<-complete[,1:lastFeature]
 groundTruth<-lastFeature+1
 trainTargets<-complete[,groundTruth:groundTruth]
 
-darch  <- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,500,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 500 )
+#darch  <- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,500,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 500 )
 
-darch1<- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,800, 500,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 800 )
-darch2  <- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,1000,800,500,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 1000 )
-darch3  <- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 500 )
+#darch1<- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,800, 500,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 800 )
+#darch2  <- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,1000,800,500,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 1000 )
+#darch3  <- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 500 )
 
 
 
+
+saveRDS(matRWS,"~/development/fogNNmodels/trainingDataMat.RDS")
 
 
 predictedRWS<-predict(darch1,matRWS, type = "bin")
@@ -273,6 +281,7 @@ filesTest<-sapply(testing$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveD
 filesTest<-sapply(filesTest, function(x) gsub(".*/CAMERA/", "",x))
 filesTest<-sapply(filesTest, function(x) gsub(".*/cabauw/", "oldArchiveCABAUW/cabauw/",x))
 
+saveRDS(filesTest,"~/development/fogNNmodels/filenamesTest.RDS")
 
 
 
@@ -334,6 +343,7 @@ stopCluster(cl)
 
 
 
+saveRDS(matRWSTest,"~/development/fogNNmodels/testingDataMat.RDS")
 
 
 
@@ -349,7 +359,7 @@ predictedRWSTest[,file:=filesTest]
 
 confusionTest<-data.table(predicted=predictedRWSTest$fog,fogSensor=testing$foggy)
 
-table(confusionTest$predicted,confusionTest$fog)
+table(confusionTest$predicted,confusionTest$fogSensor)
 
 confusionMatrix(confusionTest$predicted,confusionTest$fog, mode = "prec_recall", positive = "TRUE")
 
