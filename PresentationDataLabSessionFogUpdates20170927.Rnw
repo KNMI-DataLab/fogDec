@@ -703,7 +703,7 @@ Having the DB right is also important to streamline the analysis process down th
 \begin{itemize}
 \item Features is the whole picture: each pixel (of each of the RGB layers)
 \item Use a deep neural network (InputL:2352,L1:800,L2:500,L3:100,L5:10,OutputL:2) to fit the model
-\item Training set: +-1100 random fog and +-1100 non-fog pictures from De Bilt,Cabauw,Airports,A4 HM5-HM11 (i.e.,9 cameras) 
+\item Training set: +-750 random fog and +-750 non-fog pictures from De Bilt,Cabauw,Airports,A4 HM5-HM11 (i.e.,9 cameras) 
 \item Labels: from MOR sensor, fog considered if visibility $<=$250m
 \begin{itemize}
 \item NB: labels for A4 are taken from the Schiphol MOR sensor, manual check on a sub sample
@@ -715,7 +715,7 @@ Having the DB right is also important to streamline the analysis process down th
 
 <<NN highways, echo=FALSE>>=
 #results for presentation
-library(darch)
+library(darch) 
 
 modelDarch<-readRDS("~/development/fogNNmodels/model1.rds")
 dataMatTrain<-readRDS("~/development/fogNNmodels/trainingDataMat.RDS")
@@ -725,6 +725,7 @@ testing<-readRDS("~/development/fogNNmodels/testingDataLabels.RDS")
 training<-readRDS("~/development/fogNNmodels/trainingDataLabels.RDS")
 
 filesTest<-readRDS("~/development/fogNNmodels/filenamesTest.RDS")
+files<-readRDS("~/development/fogNNmodels/trainingFileNames.RDS")
 
 
 dtMat<-data.table(dataMatTrain)
@@ -746,7 +747,7 @@ predictedRWS[,file:=files]
 
 confusion<-data.table(predicted=predictedRWS$fog,fogSensor=dtMat$foggy)
 
-table(confusion$predicted,confusion$fogSensor)
+#table(confusion$predicted,confusion$fogSensor)
 
 confInSample<-confusionMatrix(confusion$predicted,confusion$fog, mode = "prec_recall", positive = "TRUE")
 
@@ -766,7 +767,7 @@ predictedRWSTest[,file:=filesTest]
 
 confusionTest<-data.table(predicted=predictedRWSTest$fog,fogSensor=testing$foggy)
 
-table(confusionTest$predicted,confusionTest$fogSensor)
+#table(confusionTest$predicted,confusionTest$fogSensor)
 
 confOutSample<-confusionMatrix(confusionTest$predicted,confusionTest$fog, mode = "prec_recall", positive = "TRUE")
 
@@ -774,23 +775,107 @@ confOutSample<-confusionMatrix(confusionTest$predicted,confusionTest$fog, mode =
 @
 
 
+
+<<confusionDraw, echo=FALSE>>=
+
+draw_confusion_matrix <- function(cm) {
+
+  layout(matrix(c(1,1,2)))
+  par(mar=c(2,2,2,2))
+  plot(c(100, 345), c(300, 450), type = "n", xlab="", ylab="", xaxt='n', yaxt='n')
+  title('CONFUSION MATRIX', cex.main=2)
+
+  # create the matrix 
+  rect(150, 430, 240, 370, col='#3F97D0')
+  text(195, 435, 'FALSE', cex=1.2)
+  rect(250, 430, 340, 370, col='#F7AD50')
+  text(295, 435, 'TRUE', cex=1.2)
+  text(125, 370, 'Predicted', cex=1.3, srt=90, font=2)
+  text(245, 450, 'Actual', cex=1.3, font=2)
+  rect(150, 305, 240, 365, col='#F7AD50')
+  rect(250, 305, 340, 365, col='#3F97D0')
+  text(140, 400, 'FALSE', cex=1.2, srt=90)
+  text(140, 335, 'TRUE', cex=1.2, srt=90)  
+
+  # add in the cm results 
+  res <- as.numeric(cm$table)
+  text(195, 400, res[1], cex=1.6, font=2, col='white')
+  text(195, 335, res[2], cex=1.6, font=2, col='white')
+  text(295, 400, res[3], cex=1.6, font=2, col='white')
+  text(295, 335, res[4], cex=1.6, font=2, col='white')
+
+  # add in the specifics 
+  plot(c(100, 0), c(100, 0), type = "n", xlab="", ylab="", main = "DETAILS", xaxt='n', yaxt='n')
+  text(10, 85, names(cm$byClass[1]), cex=1.2, font=2)
+  text(10, 70, round(as.numeric(cm$byClass[1]), 3), cex=1.2)
+  text(30, 85, names(cm$byClass[2]), cex=1.2, font=2)
+  text(30, 70, round(as.numeric(cm$byClass[2]), 3), cex=1.2)
+  text(50, 85, names(cm$byClass[5]), cex=1.2, font=2)
+  text(50, 70, round(as.numeric(cm$byClass[5]), 3), cex=1.2)
+  text(70, 85, names(cm$byClass[6]), cex=1.2, font=2)
+  text(70, 70, round(as.numeric(cm$byClass[6]), 3), cex=1.2)
+  text(90, 85, names(cm$byClass[7]), cex=1.2, font=2)
+  text(90, 70, round(as.numeric(cm$byClass[7]), 3), cex=1.2)
+
+  # add in the accuracy information 
+  text(50, 35, names(cm$overall[1]), cex=1.5, font=2)
+  text(50, 20, round(as.numeric(cm$overall[1]), 3), cex=1.4)
+  #text(70, 35, names(cm$overall[2]), cex=1.5, font=2)
+  #text(70, 20, round(as.numeric(cm$overall[2]), 3), cex=1.4)
+} 
+@
+
+
+
 \begin{frame}{New Results (new continued)}
 \begin{itemize}
-\item Test set: 4000 random non-fog images, 334 foggy images (not part of training set, obviously)
+\item Test set: 4000 random non-fog images, 334 foggy images (not part of training set, obviously) 
 
 \item Results:
 \begin{itemize}
-\item In-sample: \Sexpr{confInSample}
-\item Out-of-sample: \Sexpr{confOutSample}
+\item In-sample: 
+<<inSampleConfusion, echo=FALSE, fig.height=4, fig.width=7>>=
+draw_confusion_matrix(confInSample)
+@
 \end{itemize}
+\end{itemize}
+\end{frame}
 
+ \begin{frame}{New Results (new continued)}
+ \begin{itemize}
+\item Results:
+ \begin{itemize}
+ \item Out-of-sample:
+ <<outOfSamepleConfusion, echo=FALSE, fig.height=4, fig.width=7>>=
+ draw_confusion_matrix(confOutSample)
+ @
+
+ \end{itemize}
+ \end{itemize}
+
+ \end{frame}
+
+
+\begin{frame}{Next steps: many!}
+\begin{itemize}
+\item Wait for the foggy period to get more images :-)
+\item Test the approach on other highways and manually examine the labels (labor intensive, any volunteers??)
+\item Get more for images for training the network from UK MetOffice (contacts at EGU2017)
+\item Test a more advanced techniques: convolutional neural networks
+\item test with more classes of visibility
 \end{itemize}
 \end{frame}
 
 
-
-
 \begin{frame}{Conclusion}
+\begin{itemize}
+\item We are transitioning from a one-scene to dynamic-scene fog recognition
+\item Getting acquainted with new ML techniques (i.e., NN)
+\item Results look good from this last example
+\item \large Architecture for images and metadata handling essential to speed up and automate the analysis process. This aspect does \textbf{NOT} have to be underestimated for data science projects.
+\item \normalsize Sometimes I miss Martin Roth! :-)
+
+\end{itemize}
 
 \end{frame}
 
