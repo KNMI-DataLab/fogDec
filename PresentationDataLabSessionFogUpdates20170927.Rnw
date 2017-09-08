@@ -673,7 +673,7 @@ Having the DB right is also important to streamline the analysis process down th
 \end{frame}
 
 
-\begin{frame}{Results}
+\begin{frame}{New Results (old)}
 \begin{itemize}
 \item +2.2 million images archived
 \item Initial investigation in domain adaptation fog dection:
@@ -683,6 +683,111 @@ Having the DB right is also important to streamline the analysis process down th
 \end{itemize}
 \end{itemize}
 \end{frame}
+
+
+\begin{frame}{New Results (new)}
+\begin{textblock*}{9.5cm}(0.1cm,2.2cm)
+\begin{itemize}
+\item New more general idea of fog detection.
+\item Reason: scenary are too different also for the same camera (e.g., zoom)
+\end{itemize}
+\end{textblock*}
+\begin{textblock*}{8cm}(7.5cm,2.2cm)
+\begin{center}
+\includegraphics[width=2.3cm]{private/A4-HM81-ID11066_20170801_0502.jpg}\\
+\includegraphics[width=2.3cm]{private/A4-HM81-ID11066_20170802_1232.jpg}\\
+\includegraphics[width=2.3cm]{private/A4-HM81-ID11066_20170802_1242.jpg}
+\end{center}
+\end{textblock*}
+\begin{textblock*}{9.5cm}(0.1cm,3.5cm)
+\begin{itemize}
+\item Features is the whole picture: each pixel (of each of the RGB layers)
+\item Use a deep neural network (InputL:2352,L1:800,L2:500,L3:100,L5:10,OutputL:2) to fit the model
+\item Training set: +-1100 random fog and +-1100 non-fog pictures from De Bilt,Cabauw,Airports,A4 HM5-HM11 (i.e.,9 cameras) 
+\item Labels: from MOR sensor, fog considered if visibility $<=$250m
+\begin{itemize}
+\item NB: labels for A4 are taken from the Schiphol MOR sensor, manual check on a sub sample
+\end{itemize}
+\end{itemize}
+\end{textblock*}
+\end{frame}
+
+
+<<NN highways, echo=FALSE>>=
+#results for presentation
+library(darch)
+
+modelDarch<-readRDS("~/development/fogNNmodels/model1.rds")
+dataMatTrain<-readRDS("~/development/fogNNmodels/trainingDataMat.RDS")
+dataMatTest<-readRDS("~/development/fogNNmodels/testingDataMat.RDS")
+
+testing<-readRDS("~/development/fogNNmodels/testingDataLabels.RDS")
+training<-readRDS("~/development/fogNNmodels/trainingDataLabels.RDS")
+
+filesTest<-readRDS("~/development/fogNNmodels/filenamesTest.RDS")
+
+
+dtMat<-data.table(dataMatTrain)
+#dtMat[,vis_class:=res2$vis_class]
+dtMat[,foggy:=training$foggy]
+
+
+###In sample testing#####
+predictedRWS<-predict(modelDarch,dataMatTrain, type = "bin")
+#predict(net,matRWS)
+# 
+predictedRWS<-data.table(predictedRWS)
+# 
+# #predictedRWS[,predictedLabels:=colnames(predictedRWS)[max.col(predictedRWS, ties.method = "first")]]
+predictedRWS[,fog:=V2>0]
+predictedRWS[,file:=files]
+
+
+
+confusion<-data.table(predicted=predictedRWS$fog,fogSensor=dtMat$foggy)
+
+table(confusion$predicted,confusion$fogSensor)
+
+confInSample<-confusionMatrix(confusion$predicted,confusion$fog, mode = "prec_recall", positive = "TRUE")
+
+
+
+
+####OUT of sample testing##
+predictedRWSTest<-predict(modelDarch,dataMatTest, type = "bin")#predict(net,matRWSTest)
+# 
+predictedRWSTest<-data.table(predictedRWSTest)
+# 
+# #predictedRWS[,predictedLabels:=colnames(predictedRWS)[max.col(predictedRWS, ties.method = "first")]]
+predictedRWSTest[,fog:=V2>0]
+predictedRWSTest[,file:=filesTest]
+
+
+
+confusionTest<-data.table(predicted=predictedRWSTest$fog,fogSensor=testing$foggy)
+
+table(confusionTest$predicted,confusionTest$fogSensor)
+
+confOutSample<-confusionMatrix(confusionTest$predicted,confusionTest$fog, mode = "prec_recall", positive = "TRUE")
+
+
+@
+
+
+\begin{frame}{New Results (new continued)}
+\begin{itemize}
+\item Test set: 4000 random non-fog images, 334 foggy images (not part of training set, obviously)
+
+\item Results:
+\begin{itemize}
+\item In-sample: \Sexpr{confInSample}
+\item Out-of-sample: \Sexpr{confOutSample}
+\end{itemize}
+
+\end{itemize}
+\end{frame}
+
+
 
 
 \begin{frame}{Conclusion}
