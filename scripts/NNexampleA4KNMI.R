@@ -150,6 +150,7 @@ files<-sapply(files, function(x) gsub(".*/CAMERA/", "",x))
 files<-sapply(files, function(x) gsub(".*/cabauw/", "oldArchiveCABAUW/cabauw/",x))
 
 
+saveRDS(files,"~/development/fogNNmodels/trainingFileNames.RDS")
 
 
 
