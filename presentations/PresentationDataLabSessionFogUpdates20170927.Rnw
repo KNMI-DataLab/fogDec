@@ -6,7 +6,7 @@
 \usepackage[skins]{tcolorbox}
 
 \Engelstrue     % For English slides 
-\renewcommand{\titleFigure}{figure/fogCover.jpg}
+\renewcommand{\titleFigure}{../figure/fogCover.jpg}
 
 \usepackage{tikz}
 \usepackage{verbatim}
@@ -15,7 +15,7 @@
 % ---------------
 % Graphics folder
 % ---------------
-\graphicspath{{figure/}}
+\graphicspath{{../figure/}}
 
 \title[Fog detection]{DataLab project: fog detection using cameras}
 \subtitle{KNMI DataLab Meeting}
@@ -41,9 +41,13 @@ library(DBI)
 library(jsonlite)
 library(data.table)
 library(caret)
+library(darch)
 
 
 knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
+
+#setwd("~/development/fogDec/")
+
 @
 
 \begin{frame}
@@ -57,6 +61,7 @@ knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
    \item Approach
    \item Results (till Dec 2016)
    \item RWS project phase (since Jan 2017)
+   \item New results
    \item Conclusion
 %   \item Idea and SWI
 %   \item Dehaze algorithm
@@ -67,11 +72,6 @@ knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
 
 
 % 20 MINUTES presentation
-
-
-
-
-
 
 
 
@@ -126,7 +126,7 @@ knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
 
 
 << ExamplePictures, include=FALSE, cache=FALSE>>=
-path <- system.file("extdata/Meetterrein", package="visDec")
+path <- system.file("../extdata/Meetterrein", package="visDec")
 filenames <- list.files(path,
                         pattern=glob2rx("Meetterrein_201510*.jpg"),
                         full.names=TRUE)
@@ -174,7 +174,7 @@ their knowledge or performance with experience.
 \vspace*{-5mm}
 Example elaboration and feature: edge detection
 <<LandmarkPlotClear, cache=TRUE, echo=FALSE, fig.height=4.2, fig.width=8.4>>=
-im <- subim(load.image("figure/Meetterrein_20150703_0320.jpg"), y > 16)
+im <- subim(load.image("../figure/Meetterrein_20150703_0320.jpg"), y > 16)
 
 
 old_par <- par(mfrow=c(1,2))
@@ -201,7 +201,7 @@ par(old_par)
  \# of cases  \textemdash \% of total cases}
  
 <<Classification, include=FALSE>>=
-load("results/deBiltResults2015.RData")
+load("../results/deBiltResults2015.RData")
 imageSummary[, dayIsEven := mday(dateOnly) %% 2]
 train <- imageSummary[, .(dateTime, MOR, meanEdge, changePoint, meanBrightness)]
 train <- na.omit(train)
@@ -221,7 +221,7 @@ fancyRpartPlot(fogTree, sub="")
 
 
 <<resultsDeBilt, include=FALSE, warning=FALSE>>=
-dbConfig <- fromJSON("config.json")
+dbConfig <- fromJSON("../config.json")
 
 
 
@@ -399,11 +399,11 @@ Test set (10-12/2016): \Sexpr{testCab}\\
 \begin{frame}{Twente: weather (un)protection}%\centering
 \begin{columns}
 \column{0.2\textwidth}
-\includegraphics[height=2cm]{figure/wideCamera}
+\includegraphics[height=2cm]{wideCamera}
 
 \column{0.8\textwidth}
-\includegraphics[height=3cm]{inst/extdata/cornerCasesTwente/EHTW_201506280400.jpg} \\
-\includegraphics[height=3cm]{inst/extdata/cornerCasesTwente/EHTW_201510060700.jpg} \\
+\includegraphics[height=3cm]{../inst/extdata/cornerCasesTwente/EHTW_201506280400.jpg} \\
+\includegraphics[height=3cm]{../inst/extdata/cornerCasesTwente/EHTW_201510060700.jpg} \\
 
 \end{columns}
 \begin{textblock*}{5cm}(6.2cm,3.85cm)
@@ -424,7 +424,7 @@ Water drops on the camera enclosure
 
 
 <<ClassificationTwente, echo=FALSE>>=
-dataTwente <-readRDS("results/ResultsTwente2015-2016_3hSun.rds")
+dataTwente <-readRDS("../results/ResultsTwente2015-2016_3hSun.rds")
  offsetBeforeSunrise <- 0
 # #time in minutes
  offsetAfterSunset <- 0
@@ -434,20 +434,20 @@ dataTwente <- dataTwente[dateTime > sunriseDateTime & dateTime < sunsetDateTime,
  setkey(dataTwente, dateTime)
 #
 #
- source("scripts/ReadMeteoData.R")
- windTwente <-ReadWindData("inst/extdata/Sensor/TwenteWind1-1-2015-31-08-2016.csv")
+ source("../scripts/ReadMeteoData.R")
+ windTwente <-ReadWindData("../inst/extdata/Sensor/TwenteWind1-1-2015-31-08-2016.csv")
  setkey(windTwente, dateTime)
 #
 #
-humidityTwente <-ReadHumidityData("inst/extdata/Sensor/TwenteHumidity1-1-2015-31-08-2016.csv")
+humidityTwente <-ReadHumidityData("../inst/extdata/Sensor/TwenteHumidity1-1-2015-31-08-2016.csv")
  setkey(humidityTwente, dateTime)
 #
 #
- tempDewPointTwente <-ReadTempDewPointData("inst/extdata/Sensor/TwenteTemp_DewPoint1-1-2015-31-08-2016.csv")
+ tempDewPointTwente <-ReadTempDewPointData("../inst/extdata/Sensor/TwenteTemp_DewPoint1-1-2015-31-08-2016.csv")
  setkey(tempDewPointTwente, dateTime)
 #
 #
-precipitationTwente <-ReadPrecipitationData("inst/extdata/Sensor/TwenteRainAll-1-2015-31-08-2016.csv")
+precipitationTwente <-ReadPrecipitationData("../inst/extdata/Sensor/TwenteRainAll-1-2015-31-08-2016.csv")
  precipitationTwente[, rain := FALSE]
 rainDuration <- 400
  precipitationTwente[precipitationDurationPWS > rainDuration | precipitationDurationElec > rainDuration, rain:= TRUE]
@@ -512,7 +512,7 @@ matTwenteNoRain<-confusionMatrix(ifelse(twentePredNoRain>0.3, TRUE, FALSE), test
 \begin{frame}{Results Twente:}
 \begin{textblock*}{4cm}(1.5cm,4.0cm)
 Twente camera:\\ reference\\
-\begin{textblock*}{4cm}(0cm,5cm) 
+\begin{textblock*}{4cm}(0cm,5cm)
 prediction
 \end{textblock*}
 \begin{footnotesize}
@@ -528,9 +528,9 @@ Train set (year 2015): \Sexpr{dim(trainTwente)[1]}\\
 Test set (year 2016): \Sexpr{dim(testTwente)[1]}\\
 \end{textblock*}
 
-\begin{textblock*}{4cm}(8.0cm,4.0cm) 
+\begin{textblock*}{4cm}(8.0cm,4.0cm)
 Twente camera rain+wind filtered\footnote{precipitationDurationElec$<$600 and windSpeed$<$3.5}: reference\\
-\begin{textblock*}{4cm}(6.5cm,5cm) 
+\begin{textblock*}{4cm}(6.5cm,5cm)
 prediction
 \end{textblock*}
 \begin{footnotesize}
@@ -547,7 +547,7 @@ Test set (year 2016): \Sexpr{dim(testTwenteNoRain)[1]}\\
 \end{textblock*}
 
 \end{frame}
-
+% 
 \begin{frame}{How to compute +100k images?}
 \begin{textblock*}{5cm}(0.5cm,4cm)
 \begin{itemize}
@@ -565,7 +565,7 @@ Test set (year 2016): \Sexpr{dim(testTwenteNoRain)[1]}\\
 \end{frame}
 
 
-
+% 
 \begin{frame}{Cloud investigation in a nutshell}
 \vspace*{-0.25cm}
 \begin{footnotesize}
@@ -581,7 +581,7 @@ Creation and administration via script \\ \hline
 Test non-capped machines\newline Running more than 20 machines\newline Creation and administration via script\\ \hline
 ECMWF & Free+- & Constraints of the architecture, languages, compilers\newline Limited experience in non traditional languages &
 Wait for a solution of the bug \\ \hline
-SurfSara & Kind technical service (once contacted)\newline Fast connectivity\newline & 
+SurfSara & Kind technical service (once contacted)\newline Fast connectivity\newline &
 Long time to up and running\newline
 Open Nebula more confusing than “Big Providers”\newline
 Less documentation\newline
@@ -601,7 +601,7 @@ Might be to exploit because KNMI is partner since recently\\ \hline
 \item Re-size the approach to deal with more data feeds
 \end{itemize}
 \end{frame}
-
+% 
 \begin{frame}{More data sets}
 \begin{columns}
 \column{0.6\textwidth}
@@ -609,7 +609,7 @@ Might be to exploit because KNMI is partner since recently\\ \hline
 \item More datasets have been hunted ;-)
 \item Let's not talk about privacy issues, please!
 
-\item New datasets: 
+\item New datasets:
 \begin{itemize}
 \item 4 Dutch airports: 7 cameras
 \item 160 cameras along A15-A16-A4-A5-A1-A9-A50-A12-A27-A2 NL highways
@@ -618,16 +618,45 @@ Might be to exploit because KNMI is partner since recently\\ \hline
 \end{itemize}
 \end{itemize}
 \column{0.4\textwidth}
-%\begin{textblock*}{8cm}(6cm,1cm)
    \includegraphics[width=4.5cm]{schiphol.jpg}
    \vspace*{0.2cm}
   \includegraphics[width=4.5cm]{camerasRWS.png}
-% \end{textblock*}
 \end{columns}
 
 \end{frame}
 
 
+
+
+\begin{frame}{Scraping the web for GPS coordinates}
+\begin{textblock*}{9cm}(0.2cm,2cm)
+\begin{center}
+\begin{itemize}
+\item RWS has a different coordinate system: highway+hectimetre
+\item We consider LAT-LON locations for cameras
+\item GPS locations provided by RWS just 10 out of 160
+\item Had to find a smart, fast, and easy way to get GPS coordinates of highways+hectometes
+\item Web scraping becomes handy!
+\item Website hmpaal.nl e.g., \tiny \url{http://www.hmpaal.nl/hectometer/A2/77.6/}
+\normalsize
+\item Python script that scrapes the GPS coordinates of highways+hectometes
+\item Random cross-check with google streetview
+\item For the highways+hectometes not available: \underline{time-consuming} search via google streetview (+-10/12 cases)
+\end{itemize}
+\end{center}
+\end{textblock*}
+
+\begin{textblock*}{6cm}(9cm,2.5cm)
+\includegraphics[width=3.5cm]{webScraping.png}
+\vspace{0.3cm}
+\includegraphics[width=3.5cm]{hmPaal.PNG}
+\end{textblock*}
+\end{frame}
+
+
+
+
+% 
 \begin{frame}{From 1-camera analysis to a general solution}
 \begin{itemize}
 \item Thinking to a solution that can handle +100 cameras with:
@@ -638,11 +667,8 @@ Might be to exploit because KNMI is partner since recently\\ \hline
 \item Ease of metadata and metrics access for faster analysis/modeling
 \end{itemize}
 \end{itemize}
-
-
-
 \end{frame}
-
+% 
 \begin{frame}{Generic image archiving architecture implemented}
 
 \includegraphics[width=10.75cm]{archiverArchitecture.png}
@@ -656,7 +682,7 @@ Having the DB right is also important to streamline the analysis process down th
 \includegraphics[width=8cm]{FogDBv6.png}
 \end{center}
 \end{frame}
-
+% 
 \begin{frame}{Flow for feature computation an ML model}
 \begin{center}
 \vspace*{-1cm}
@@ -672,7 +698,7 @@ Having the DB right is also important to streamline the analysis process down th
  \end{textblock*}
 \end{frame}
 
-
+% 
 \begin{frame}{New Results (old)}
 \begin{itemize}
 \item +2.2 million images archived
@@ -683,8 +709,8 @@ Having the DB right is also important to streamline the analysis process down th
 \end{itemize}
 \end{itemize}
 \end{frame}
-
-
+% 
+% 
 \begin{frame}{New Results (new)}
 \begin{textblock*}{9.5cm}(0.1cm,2.2cm)
 \begin{itemize}
@@ -703,7 +729,7 @@ Having the DB right is also important to streamline the analysis process down th
 \begin{itemize}
 \item Features is the whole picture: each pixel (of each of the RGB layers)
 \item Use a deep neural network (InputL:2352,L1:800,L2:500,L3:100,L5:10,OutputL:2) to fit the model
-\item Training set: +-750 random fog and +-750 non-fog pictures from De Bilt,Cabauw,Airports,A4 HM5-HM11 (i.e.,9 cameras) 
+\item Training set: +-750 random fog and +-750 non-fog pictures from De Bilt,Cabauw,Airports,A4 HM5-HM11 (i.e.,9 cameras)
 \item Labels: from MOR sensor, fog considered if visibility $<=$250m
 \begin{itemize}
 \item NB: labels for A4 are taken from the Schiphol MOR sensor, manual check on a sub sample
@@ -711,11 +737,11 @@ Having the DB right is also important to streamline the analysis process down th
 \end{itemize}
 \end{textblock*}
 \end{frame}
-
-
+% 
+% 
 <<NN highways, echo=FALSE>>=
 #results for presentation
-library(darch) 
+
 
 modelDarch<-readRDS("~/development/fogNNmodels/model1.rds")
 dataMatTrain<-readRDS("~/development/fogNNmodels/trainingDataMat.RDS")
@@ -736,9 +762,9 @@ dtMat[,foggy:=training$foggy]
 ###In sample testing#####
 predictedRWS<-predict(modelDarch,dataMatTrain, type = "bin")
 #predict(net,matRWS)
-# 
+#
 predictedRWS<-data.table(predictedRWS)
-# 
+#
 # #predictedRWS[,predictedLabels:=colnames(predictedRWS)[max.col(predictedRWS, ties.method = "first")]]
 predictedRWS[,fog:=V2>0]
 predictedRWS[,file:=files]
@@ -756,9 +782,9 @@ confInSample<-confusionMatrix(confusion$predicted,confusion$fog, mode = "prec_re
 
 ####OUT of sample testing##
 predictedRWSTest<-predict(modelDarch,dataMatTest, type = "bin")#predict(net,matRWSTest)
-# 
+#
 predictedRWSTest<-data.table(predictedRWSTest)
-# 
+#
 # #predictedRWS[,predictedLabels:=colnames(predictedRWS)[max.col(predictedRWS, ties.method = "first")]]
 predictedRWSTest[,fog:=V2>0]
 predictedRWSTest[,file:=filesTest]
@@ -774,7 +800,7 @@ confOutSample<-confusionMatrix(confusionTest$predicted,confusionTest$fog, mode =
 
 @
 
-
+% 
 
 <<confusionDraw, echo=FALSE>>=
 
@@ -785,7 +811,7 @@ draw_confusion_matrix <- function(cm) {
   plot(c(100, 345), c(300, 450), type = "n", xlab="", ylab="", xaxt='n', yaxt='n')
   title('CONFUSION MATRIX', cex.main=2)
 
-  # create the matrix 
+  # create the matrix
   rect(150, 430, 240, 370, col='#3F97D0')
   text(195, 435, 'FALSE', cex=1.2)
   rect(250, 430, 340, 370, col='#F7AD50')
@@ -795,16 +821,16 @@ draw_confusion_matrix <- function(cm) {
   rect(150, 305, 240, 365, col='#F7AD50')
   rect(250, 305, 340, 365, col='#3F97D0')
   text(140, 400, 'FALSE', cex=1.2, srt=90)
-  text(140, 335, 'TRUE', cex=1.2, srt=90)  
+  text(140, 335, 'TRUE', cex=1.2, srt=90)
 
-  # add in the cm results 
+  # add in the cm results
   res <- as.numeric(cm$table)
   text(195, 400, res[1], cex=1.6, font=2, col='white')
   text(195, 335, res[2], cex=1.6, font=2, col='white')
   text(295, 400, res[3], cex=1.6, font=2, col='white')
   text(295, 335, res[4], cex=1.6, font=2, col='white')
 
-  # add in the specifics 
+  # add in the specifics
   plot(c(100, 0), c(100, 0), type = "n", xlab="", ylab="", main = "DETAILS", xaxt='n', yaxt='n')
   text(10, 85, names(cm$byClass[1]), cex=1.2, font=2)
   text(10, 70, round(as.numeric(cm$byClass[1]), 3), cex=1.2)
@@ -817,23 +843,23 @@ draw_confusion_matrix <- function(cm) {
   text(90, 85, names(cm$byClass[7]), cex=1.2, font=2)
   text(90, 70, round(as.numeric(cm$byClass[7]), 3), cex=1.2)
 
-  # add in the accuracy information 
+  # add in the accuracy information
   text(50, 35, names(cm$overall[1]), cex=1.5, font=2)
   text(50, 20, round(as.numeric(cm$overall[1]), 3), cex=1.4)
   #text(70, 35, names(cm$overall[2]), cex=1.5, font=2)
   #text(70, 20, round(as.numeric(cm$overall[2]), 3), cex=1.4)
-} 
+}
 @
 
 
 
 \begin{frame}{New Results (new continued)}
 \begin{itemize}
-\item Test set: 4000 random non-fog images, 334 foggy images (not part of training set, obviously) 
+\item Test set: 4000 random non-fog images, 334 foggy images (not part of training set, obviously)
 
 \item Results:
 \begin{itemize}
-\item In-sample: 
+\item In-sample:
 <<inSampleConfusion, echo=FALSE, fig.height=4, fig.width=7>>=
 draw_confusion_matrix(confInSample)
 @
@@ -855,7 +881,7 @@ draw_confusion_matrix(confInSample)
 
  \end{frame}
 
-
+% 
 \begin{frame}{Next steps: many!}
 \begin{itemize}
 \item Wait for the foggy period to get more images :-)
@@ -876,27 +902,7 @@ draw_confusion_matrix(confInSample)
 \item \normalsize Sometimes I miss Martin Roth! :-)
 
 \end{itemize}
-
 \end{frame}
-
-
-
-%\begin{frame} {Classification Twente with \underline{meteo features}}%\centering
-
-%Based on image features and meteo features (air temperature, dew point, wind speed, relative humidity)
-
-
-
- % \begin{columns}
- % \column{0.5\textwidth}
- % \textbf{\textit{Image-only features}}
-
-
-%\end{frame}
-
-
-
-
 
 
 \end{document}
