@@ -83,20 +83,25 @@ knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
  \begin{textblock*}{5cm}(7.4cm,5.5cm)
   \includegraphics[width=5cm]{airplane.jpg}
  \end{textblock*}
+
+\begin{textblock*}{7cm}(0.2cm,3cm)
 \begin{itemize}
-  \item Substantial impact on air,\\ marine, and road traffic
-  \item Loss of life comparable to that of\\ tornadoes or even winter storms\footnote{Gultepe, I. et al. (2007): Fog research: A review of past achievements and future perspectives. \emph{Pure and Applied Geophysics}, \textbf{164}, 1121--1159.}
+  \item Substantial impact on air, marine, and road traffic
+  \item Loss of life comparable to that of tornadoes or even winter storms\footnote{Gultepe, I. et al. (2007): Fog research: A review of past achievements and future perspectives. \emph{Pure and Applied Geophysics}, \textbf{164}, 1121--1159.}
   \item May form and dissipate suddenly
   \item Often only a local phenomenon
   \item Not easy to accurately forecast
   \item Satellites are not pointing to NL 24/7
+  \item But maybe other ubiquitous ``sensors'' can be used e.g., traffic cameras
  \end{itemize}
+  \end{textblock*}
 \end{frame}
 
-\begin{frame}{Purpose, Scope, Benefits}
+
+\begin{frame}{Purpose, Scope, Benefits of the project}
 \begin{itemize}
 \item \textbf{Purpose:} use cameras to identify fog conditions to issue safety hazards
-\item \textbf{Scope:} daylight fog identification from static cameras using image analysis
+\item \textbf{Scope:} daylight fog identification from static scenery cameras using image analysis
 \item \textbf{Benefits:}
 \begin{itemize}
 \item \textit{Society: }
@@ -133,12 +138,22 @@ filenames <- list.files(path,
 @
 
 
-\begin{frame}{Approach: Machine Learning in a small nutshell}
-Machine learning is the systematic study of algorithms and systems that improve
+\begin{frame}{Approach: Big Data and Machine Learning}
+\begin{textblock*}{12cm}(0.2cm,2.2cm)
+\begin{itemize}
+\begin{small}
+\item Use big amount of data (i.e., images) to train models that can discriminate different (i.e., fog/non-fog) conditions.
+
+\item Machine learning is the systematic study of algorithms and systems that improve
 their knowledge or performance with experience.
+\end{small}
+\end{itemize}
+\end{textblock*}
+\begin{textblock*}{12cm}(0.2cm,3.75cm)
 \begin{center}
-\includegraphics[width=8cm]{figreML.png}
+\includegraphics[width=7cm]{figreML.png}
 \end{center}
+\end{textblock*}
 
 \end{frame}
 
@@ -146,7 +161,7 @@ their knowledge or performance with experience.
 
 
 
-\begin{frame}{Machine learning approach: features extracted from images}
+\begin{frame}{Machine learning approach: \textit{Features} extracted from images}
 \begin{itemize}
 \begin{footnotesize}
 \item{Mean Edges: for finding the boundaries of objects within images. It works by detecting discontinuities in the image (e.g., foreground and background elements).}
@@ -195,7 +210,7 @@ par(old_par)
 
 
 
-\begin{frame}{Machine Learning: De Bilt classification tree} 
+\begin{frame}{Machine learning: De Bilt classification tree} 
 \scriptsize{keys for reading a node:\\
  fraction of fog cases in the node/sub-tree\\
  \# of cases  \textemdash \% of total cases}
@@ -548,7 +563,7 @@ Test set (year 2016): \Sexpr{dim(testTwenteNoRain)[1]}\\
 
 \end{frame}
 % 
-\begin{frame}{How to compute +100k images?}
+\begin{frame}{How to handle +100k images?}
 \begin{textblock*}{5cm}(0.5cm,4cm)
 \begin{itemize}
 \item{Use of cloud providers}
@@ -593,12 +608,24 @@ Might be to exploit because KNMI is partner since recently\\ \hline
 \end{footnotesize}
 \end{frame}
 
+
+
 \begin{frame}{New project phase with RWS (since Jan 2017)}
 \begin{itemize}
-\item Goal: test approach in a more operational-oriented situation
-\item Have more data (i.e., images) to test the approach
-\item Deal with moving cameras
-\item Re-size the approach to deal with more data feeds
+\item KNMI-RWS collaboration: partner to address a high-impact societal issue
+\item RWS: 
+\begin{itemize}
+\item test new/innovative solution for mobility problems
+\item more automatic warnings
+\item more coverage than manual operators
+\end{itemize}
+\item KNMI: 
+\begin{itemize}
+\item have more data
+\item test/improve ML models
+\item deal with static and moving cameras of RWS domain
+\item re-size the approach to deal with more data feeds
+\end{itemize}
 \end{itemize}
 \end{frame}
 % 
@@ -607,7 +634,7 @@ Might be to exploit because KNMI is partner since recently\\ \hline
 \column{0.6\textwidth}
 \begin{itemize}
 \item More datasets have been hunted ;-)
-\item Let's not talk about privacy issues, please!
+\item Let's refrain from discussing privacy issues, please!
 
 \item New datasets:
 \begin{itemize}
@@ -709,6 +736,31 @@ Having the DB right is also important to streamline the analysis process down th
 \end{itemize}
 \end{itemize}
 \end{frame}
+
+
+
+\begin{frame}{Neural Network (nutshell)}
+\begin{textblock*}{8cm}(0.5cm,2.2cm)
+\begin{itemize}
+\item Inspired by the functioning and firing of neurons in the brain
+\item Allow the fitting of complex non-linear classification tasks
+\item With many input high order interaction terms would explode (e.g., 25x25px gray-scale image and we want quadratic interaction terms requires 3 millions features)
+\item Used proficiently in image processing and image classification
+\item Training to find the right weights can be long if networks are big and deep
+\item Activation function can be customized (usually sigmoid-like function)
+\end{itemize}
+\end{textblock*}
+\begin{textblock*}{8cm}(6.5cm,3cm)
+\begin{center}
+\includegraphics[width=3cm]{nnet.png}\\
+\includegraphics[width=3cm]{artificial.jpg}
+\end{center}
+\end{textblock*}
+\end{frame}
+
+
+
+
 % 
 % 
 \begin{frame}{New Results (new)}
@@ -729,8 +781,8 @@ Having the DB right is also important to streamline the analysis process down th
 \begin{itemize}
 \item Features is the whole picture: each pixel (of each of the RGB layers)
 \item Use a deep neural network (InputL:2352,L1:800,L2:500,L3:100,L5:10,OutputL:2) to fit the model
-\item Training set: +-750 random fog and +-750 non-fog pictures from De Bilt,Cabauw,Airports,A4 HM5-HM11 (i.e.,9 cameras)
-\item Labels: from MOR sensor, fog considered if visibility $<=$250m
+\item Training set: +-750 random fog and +-750 non-fog pictures from De Bilt, Cabauw, Airports, A4 HM50-HM110 (i.e.,9 cameras)
+\item Labels: from MOR sensor, fog considered if visibility $\leq$250m
 \begin{itemize}
 \item NB: labels for A4 are taken from the Schiphol MOR sensor, manual check on a sub sample
 \end{itemize}
@@ -854,9 +906,30 @@ draw_confusion_matrix <- function(cm) {
 
 
 \begin{frame}{New Results (new continued)}
+\begin{textblock*}{8cm}(0.2cm,3.5cm)
+\begin{center}
 \begin{itemize}
 \item Test set: 4000 random non-fog images, 334 foggy images (not part of training set, obviously)
+\item Pre-processing of images:
+\begin{itemize}
+\item Scaling to 28x28 px to reduce feature space
+\item Image blurring/smoothing to help against overfitting
+\end{itemize}
+\end{itemize}
+\end{center}
+\end{textblock*}
 
+\begin{textblock*}{8cm}(6cm,2.5cm)
+\begin{center}
+\includegraphics[width=4cm]{private/original1.png}\\
+\includegraphics[width=1cm]{private/resize1.png}\\
+\includegraphics[width=1cm]{private/blurr1.png}
+\end{center}
+\end{textblock*}
+\end{frame}
+
+\begin{frame}{New Results (new continued)}
+\begin{itemize}
 \item Results:
 \begin{itemize}
 \item In-sample:
@@ -887,7 +960,7 @@ draw_confusion_matrix(confInSample)
 \item Wait for the foggy period to get more images :-)
 \item Test the approach on other highways and manually examine the labels (labor intensive, any volunteers??)
 \item Get more for images for training the network from UK MetOffice (contacts at EGU2017)
-\item Test a more advanced techniques for image processing: convolutional neural networks
+\item Test a more advanced technique for image processing: convolutional neural networks
 \item Test with more classes of visibility
 \item Fog at night time (?)
 \end{itemize}
