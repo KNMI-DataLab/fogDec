@@ -963,6 +963,7 @@ draw_confusion_matrix(confInSample)
 \item Test a more advanced technique for image processing: convolutional neural networks
 \item Test with more classes of visibility
 \item Fog at night time (?)
+\item Add meteo-related features
 \end{itemize}
 \end{frame}
 
