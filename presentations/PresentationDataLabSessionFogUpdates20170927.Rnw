@@ -391,6 +391,23 @@ Test set (10-12/2016): \Sexpr{testCab}\\
 
 \end{frame}
 
+\begin{frame}{Evaluation of performance}
+\begin{textblock*}{6cm}(0.5cm,2.75cm)
+\begin{itemize}
+\item Accuracy can be misleading especially in unbalanced datasets like this one.
+\item Better to use:
+\begin{itemize}
+\item Precision: fraction of items selected that are relevant (correct) ($Prec=\frac{TP}{TP+FP}$)
+\item Recall: fraction of items correctly selected on all the relevant items  ($Rec=\frac{TP}{TP+FN}$)
+\end{itemize}
+\end{itemize}
+\end{textblock*}
+\begin{textblock*}{4.8cm}(7.5cm,2cm)
+ \includegraphics[width=4cm]{private/precisionRecall.png}
+\end{textblock*}
+\end{frame}
+
+
 \begin{frame}{Twente KNMI station}\centering
 %The situation in Twente is different for two reasons, the wide angle of the
 %camera makes the horizontal averaging of the transmission rate less appropriate.
@@ -706,7 +723,7 @@ Might be to exploit because KNMI is partner since recently\\ \hline
 \begin{frame}{DB design to archive metadata and image features computation}
 Having the DB right is also important to streamline the analysis process down the road
 \begin{center}
-\includegraphics[width=8cm]{FogDBv6.png}
+\includegraphics[width=8cm]{FogDBv7.png}
 \end{center}
 \end{frame}
 % 
