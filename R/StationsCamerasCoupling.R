@@ -1,23 +1,14 @@
-library(DBI)
-library(jsonlite)
-library(data.table)
-#library(knmiR)
-library(postGIStools)
-library(geosphere)
-
-
+# library(DBI)
+# library(jsonlite)
+# library(data.table)
+# #library(knmiR)
+# library(postGIStools)
+# library(geosphere)
+#' Couple cameras and KNMI nearby stations
+#' @param maxDistance Numeric distance radius from the KNMI station
+#' @import jsonlite DBI postGIStools geosphere data.table
+#' @export
 coupleCamerasAndKNMInearStations<-function(maxDistance = 5000){
-# locationKNMIStations<-read.csv("inst/extdata/testStationsGood2.csv", sep = ";",header = TRUE)
-# locationKNMIStations<-data.table(locationKNMIStations)
-# #fill NA with a 0 coordinate NB: Bonaire station 990 is not filled
-# locationKNMIStations[is.na(lon), lon:=0]
-# locationKNMIStations<-locationKNMIStations[lat!=9999 & as.Date(as.character(locationKNMIStations$endDate), "%Y%m%d")==as.Date("99991231", "%Y%m%d")]
-# locationKNMIStations<-locationKNMIStations[typeStation=="Luchtdruk- en weerwaarnemingen"]
-# 
-# uniqueKNMIStations<-unique(locationKNMIStations,by=c("lat", "lon"))
-# uniqueKNMIStations[,KISID:=gsub("_A_","_WAARNEEMID_", KISID)]
-# stationsForDB<-uniqueKNMIStations[, !c("lat", "lon", "startDate","endDate")]
-
 
 distanceUsableSensor<-maxDistance
 
@@ -71,10 +62,5 @@ locationAndMeteoStation
 
 }
 
-# test<-locationsPortHW[rep(seq_len(nrow(locationsPortHW)), 7), ]
-# test2<-locationPortSight[rep(seq_len(nrow(locationPortSight)), 27), ]
-# fullData<-cbind(test,test2)
-# 
-# distance<-distm(as.matrix(cbind(fullData$longitude, fullData$latitude),ncol=2),as.matrix(cbind(fullData$lon,fullData$lat),ncol=2), fun = distHaversine)
 
 

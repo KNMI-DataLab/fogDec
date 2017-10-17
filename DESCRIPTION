@@ -15,7 +15,11 @@ Imports:
     caret,
     abind,
     tree,
-    changepoint
+    changepoint,
+    DBI,
+    jsonlite,
+    postGIStools,
+    geosphere
 License: LGPL
 LazyData: true
 RoxygenNote: 6.0.1.9000
