@@ -378,7 +378,7 @@ cameras <- as.data.table(dbReadTable(con, "cameras"))
 
 
 ############METEO STATIONS LOCATIONS############################################
-locationKNMIStations<-read.csv("inst/extdata/testStationsGood2.csv", sep = ";",header = TRUE)
+locationKNMIStations<-read.csv("inst/extdata/testStationsGood3.csv", sep = ";",header = TRUE)
 locationKNMIStations<-data.table(locationKNMIStations)
 #fill NA with a 0 coordinate NB: Bonaire station 990 is not filled
 locationKNMIStations[is.na(lon), lon:=0]
@@ -402,7 +402,7 @@ dbWriteTable(con, "locations", tmp, append = TRUE, row.names = FALSE, match.cols
 
 
 ############METEO STATIONS TABLE############################################
-locationKNMIStations<-read.csv("inst/extdata/testStationsGood2.csv", sep = ";",header = TRUE)
+locationKNMIStations<-read.csv("inst/extdata/testStationsGood3.csv", sep = ";",header = TRUE)
 locationKNMIStations<-data.table(locationKNMIStations)
 #fill NA with a 0 coordinate NB: Bonaire station 990 is not filled
 locationKNMIStations[is.na(lon), lon:=0]

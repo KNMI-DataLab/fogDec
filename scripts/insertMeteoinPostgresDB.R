@@ -249,6 +249,9 @@ prepareMeteoTable2<-function(variable,newval, stationMapping){
   
   today<-as.Date(Sys.time())
   datesToFetch<-datesRequired[datesRequired != today]
+  ####### DEBUG
+  #datesToFetch<-tail(datesToFetch,1)
+  ###########
   
   #test purposes
   #datesToFetch<-seq(as.Date("2016/09/04"), by = "day", length.out = 100)
@@ -256,62 +259,65 @@ prepareMeteoTable2<-function(variable,newval, stationMapping){
   
   cl<-makeCluster(4)
   clusterEvalQ(cl, library(knmiR))
+  valuesTotal<-NULL
   
   for(knmilocation in stationsCodes){
   print(knmilocation)
   values<-parLapply(cl,datesToFetch, getValueFromKIS, knmilocation, variable, KNMIstationsTable)
   
-  values<-lapply(datesToFetch, getValueFromKIS, knmilocation, variable, KNMIstationsTable)
+  #values<-lapply(datesToFetch, getValueFromKIS, knmilocation, variable, KNMIstationsTable)
   
   print(values)
   values<-rbindlist(values)
+  values<-cbind(rep(KNMIstationsTable[KNMIstationsTable$knmi_kis_id==knmilocation]$location_id,dim(values)[1]),values)
+  valuesTotal<-rbind(valuesTotal,values)
   }
   stopCluster(cl)
   #values<-rbindlist(values)
   #print(values)
   
-  values<-data.table(values)
+  valuesTotal<-data.table(valuesTotal)
   
   #values<-rbindlist(values)
   
   
   
   
-  values[, IT_DATETIME := as.POSIXct(values[, IT_DATETIME], format = "%Y%m%d_%H%M%S", tz = "UTC")]
-  setnames(values, "IT_DATETIME", "timestamp")
+  valuesTotal[, IT_DATETIME := as.POSIXct(valuesTotal[, IT_DATETIME], format = "%Y%m%d_%H%M%S", tz = "UTC")]
+  setnames(valuesTotal, "IT_DATETIME", "timestamp")
   
   if(variable=="mor_visibility"){
-    values[TOA.MOR_10  == -1, TOA.MOR_10  := NA]
-    tmp <- within(values, rm(DS_CODE, "TOA.Q_MOR_10"))
+    valuesTotal[TOA.MOR_10  == -1, TOA.MOR_10  := NA]
+    tmp <- within(valuesTotal, rm(DS_CODE, "TOA.Q_MOR_10"))
     setnames(tmp,"TOA.MOR_10" ,"mor_visibility")
   }
   
   if(variable=="wind_speed"){
-    ##values[TOW.FF_10M_10  == -1, TOW.FF_10M_10  := NA]
-    tmp <- within(values, rm(DS_CODE, "TOW.Q_FF_10M_10"))
+    ##valuesTotal[TOW.FF_10M_10  == -1, TOW.FF_10M_10  := NA]
+    tmp <- within(valuesTotal, rm(DS_CODE, "TOW.Q_FF_10M_10"))
     setnames(tmp,"TOW.FF_10M_10" ,"wind_speed")
   }
   
   if(variable=="rel_humidity"){
-    ##values[TOT.U_10  == -1, TOT.U_10  := NA] ##TO BE ADDED WHEN INFO ARE PROVIDED
-    tmp <- within(values, rm(DS_CODE, "TOT.Q_U_10"))
+    ##valuesTotal[TOT.U_10  == -1, TOT.U_10  := NA] ##TO BE ADDED WHEN INFO ARE PROVIDED
+    tmp <- within(valuesTotal, rm(DS_CODE, "TOT.Q_U_10"))
     setnames(tmp,"TOT.U_10" ,"rel_humidity")
   }
   
   if(variable=="air_temp"){
-    ##values[TOT.T_DRYB_10  == -1, TOT.T_DRYB_10  := NA] ##TO BE ADDED WHEN INFO ARE PROVIDED
-    tmp <- within(values, rm(DS_CODE, "TOT.Q_T_DRYB_10"))
+    ##valuesTotal[TOT.T_DRYB_10  == -1, TOT.T_DRYB_10  := NA] ##TO BE ADDED WHEN INFO ARE PROVIDED
+    tmp <- within(valuesTotal, rm(DS_CODE, "TOT.Q_T_DRYB_10"))
     setnames(tmp,"TOT.T_DRYB_10" ,"air_temp")
   }
   
   if(variable=="dew_point"){
-    ##values[TOT.T_DEWP_10  == -1, TOT.T_DEWP_10  := NA] ##TO BE ADDED WHEN INFO ARE PROVIDED
-    tmp <- within(values, rm(DS_CODE, "TOT.Q_T_DEWP_10"))
+    ##valuesTotal[TOT.T_DEWP_10  == -1, TOT.T_DEWP_10  := NA] ##TO BE ADDED WHEN INFO ARE PROVIDED
+    tmp <- within(valuesTotal, rm(DS_CODE, "TOT.Q_T_DEWP_10"))
     setnames(tmp,"TOT.T_DEWP_10" ,"dew_point")
   }
   
-  tmp[,location_id:=location]
-  
+  setnames(tmp,"V1","location_id")
+
   
   timeSyncToMeteo<-strptime("1970-01-01", "%Y-%m-%d", tz="UTC") + round(as.numeric(dataNoMeteo$timestamp)/600)*600
   
@@ -393,35 +399,38 @@ for(var in variables){
 
 
 stationMapping<-coupleCamerasAndKNMInearStations()
-dbConfig <- fromJSON("config.json")
-
-con <- dbConnect(RPostgreSQL::PostgreSQL(),
-                 dbname = "FOGDB",
-                 host = dbConfig[["host"]], port = 9418,
-                 user = dbConfig[["user"]], password = dbConfig[["pw"]])
-KNMIstationsTable <- as.data.table(dbReadTable(con, "meteo_stations"))
-dbDisconnect(con)
-setkey(KNMIstationsTable,knmi_kis_id)
-setkey(stationCouple, KISstations)
-test<-stationCouple[KNMIstationsTable]
-test2<-test[locationIDsHW!=location_id]
-stationsCodes<-unique(test2[,KISstations])
-
-
-
-for(i in stationsCodes){
-dbConfig <- fromJSON("config.json")
-# #
- con <- dbConnect(RPostgreSQL::PostgreSQL(),
-                     dbname = "FOGDB",
-                    host = dbConfig[["host"]], port = 9418,
-                    user = dbConfig[["user"]], password = dbConfig[["pw"]])
- tmp<-prepareMeteoTable(location = i, variable = "mor_visibility", newval = TRUE )
- message(paste("location",i,"ready to be written on DB"))
- dbWriteTable(con, "meteo_features_stations", tmp, append = TRUE, row.names = FALSE, match.cols = TRUE)
-dbDisconnect(con)
-}
-#####################################################################################################
+# dbConfig <- fromJSON("config.json")
+# 
+# con <- dbConnect(RPostgreSQL::PostgreSQL(),
+#                  dbname = "FOGDB",
+#                  host = dbConfig[["host"]], port = 9418,
+#                  user = dbConfig[["user"]], password = dbConfig[["pw"]])
+# KNMIstationsTable <- as.data.table(dbReadTable(con, "meteo_stations"))
+# dbDisconnect(con)
+# 
+# table<-prepareMeteoTable2(variable = "mor_visibility", newval = TRUE, stationMapping)
+# 
+# setkey(KNMIstationsTable,knmi_kis_id)
+# setkey(stationCouple, KISstations)
+# test<-stationCouple[KNMIstationsTable]
+# test2<-test[locationIDsHW!=location_id]
+# stationsCodes<-unique(test2[,KISstations])
+# 
+# 
+# 
+# for(i in stationsCodes){
+# dbConfig <- fromJSON("config.json")
+# # #
+#  con <- dbConnect(RPostgreSQL::PostgreSQL(),
+#                      dbname = "FOGDB",
+#                     host = dbConfig[["host"]], port = 9418,
+#                     user = dbConfig[["user"]], password = dbConfig[["pw"]])
+#  tmp<-prepareMeteoTable(location = i, variable = "mor_visibility", newval = TRUE )
+#  message(paste("location",i,"ready to be written on DB"))
+#  dbWriteTable(con, "meteo_features_stations", tmp, append = TRUE, row.names = FALSE, match.cols = TRUE)
+# dbDisconnect(con)
+# }
+# #####################################################################################################
 
 
 
