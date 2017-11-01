@@ -91,7 +91,8 @@ tableMeteoStations <- dbGetQuery(connectionSetup, "CREATE TABLE meteo_stations (
                                                   location_id integer NOT NULL references locations(location_id), 
                                                   knmi_kis_id varchar NOT NULL,
                                                   meteo_station_type varchar,
-                                                  meteo_station_location_code varchar,                                                         
+                                                  meteo_station_location_code varchar,
+                                                  unique(knmi_kis_id),
                                                   PRIMARY KEY(meteo_station_id));")
 
 

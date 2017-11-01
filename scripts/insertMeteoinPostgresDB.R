@@ -187,7 +187,7 @@ toBeFilled
 
 
 
-prepareMeteoTable2<-function(variable,newval, stationMapping){
+prepareMeteoTableStationMapping<-function(variable,newval, stationMapping){
   
   Sys.setenv(TZ = "UTC")
   
@@ -202,7 +202,7 @@ prepareMeteoTable2<-function(variable,newval, stationMapping){
   imagesTable <- as.data.table(dbReadTable(con, "images"))
   camerasTable <- as.data.table(dbReadTable(con, "cameras"))
   locationsTable <- as.data.table(dbReadTable(con, "locations"))
-  meteoFeaturesTable <- as.data.table(dbReadTable(con, "meteo_features_stations"))
+  meteoFeaturesTable <- as.data.table(dbReadTable(con, "meteo_features_copy"))#######TEST
   KNMIstationsTable <- as.data.table(dbReadTable(con, "meteo_stations"))
   
   
@@ -228,12 +228,14 @@ prepareMeteoTable2<-function(variable,newval, stationMapping){
   tempTB<-tempTB[location_id %in% locationsOfCamerasMatched]
   tempTB[,timestamp:= strptime("1970-01-01", "%Y-%m-%d", tz="UTC") + round(as.numeric(tempTB$timestamp)/600)*600]
   
+  #####################ERROR HERE IN THE MERGING location_id of the meteo stations is not the location of the cameras of the 
+  ## the mapping has to be used images####################
   setkey(tempTB,timestamp,location_id)
   setkey(meteoFeaturesTable, timestamp,location_id)
   temp2<-tempTB[meteoFeaturesTable]
   
   
-  
+  ####TO BE FIXED ALSO: RETRIEVE JUST THE DATES FOR THE STATION THAT MISSED THAT DATE AND NOT FOR ALL OF THEM.
   if(newval==TRUE){
     dataNoMeteoAll<-tempTB[(which(tempTB$image_id %not in% temp2$image_id))]#images have no meteo fetures at all
     dataNoMeteo<-dataNoMeteoAll[,location_id,timestamp]
@@ -257,7 +259,7 @@ prepareMeteoTable2<-function(variable,newval, stationMapping){
   #datesToFetch<-seq(as.Date("2016/09/04"), by = "day", length.out = 100)
   
   
-  cl<-makeCluster(4)
+  cl<-makeCluster(8)
   clusterEvalQ(cl, library(knmiR))
   valuesTotal<-NULL
   
@@ -398,7 +400,17 @@ for(var in variables){
 #locationsMeteo<-c(1,3,6,7,8,9)
 
 
-stationMapping<-coupleCamerasAndKNMInearStations()
+stationMapping<-coupleCamerasAndKNMInearStations(maxDistance = 7500)
+table<-prepareMeteoTableStationMapping(variable = "mor_visibility", newval = TRUE, stationMapping)
+dbConfig <- fromJSON("config.json")
+con <- dbConnect(RPostgreSQL::PostgreSQL(),
+                   dbname = "FOGDB",
+                  host = dbConfig[["host"]], port = 9418,
+                  user = dbConfig[["user"]], password = dbConfig[["pw"]])
+dbWriteTable(con, "meteo_features_copy", table, append = TRUE, row.names = FALSE, match.cols = TRUE)
+dbDisconnect(con)
+
+
 # dbConfig <- fromJSON("config.json")
 # 
 # con <- dbConnect(RPostgreSQL::PostgreSQL(),
@@ -408,7 +420,7 @@ stationMapping<-coupleCamerasAndKNMInearStations()
 # KNMIstationsTable <- as.data.table(dbReadTable(con, "meteo_stations"))
 # dbDisconnect(con)
 # 
-# table<-prepareMeteoTable2(variable = "mor_visibility", newval = TRUE, stationMapping)
+# 
 # 
 # setkey(KNMIstationsTable,knmi_kis_id)
 # setkey(stationCouple, KISstations)

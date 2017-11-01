@@ -11,9 +11,8 @@ library(stringr)
 
 
 
-###########TO BE ADDED THE FOLLOWING MAPPING AT THE MOMENT MANUALLY################
-coupling<-coupleCamerasAndKNMInearStations()
-###################################################################################
+#the coupling contains also the locations of the station itself of course
+coupling<-coupleCamerasAndKNMInearStations(maxDistance = 7500)
 
 
 
@@ -21,16 +20,16 @@ coupling<-coupleCamerasAndKNMInearStations()
 Sys.setenv(TZ = "UTC")
 
 
-imagesAndMeteo<-function(dfImages, dfMeteo){
-  imagesDayLight<-data.table(dfImages)
-  imagesDayLight[,timeSyncToMeteo:=strptime("1970-01-01", "%Y-%m-%d", tz="UTC") + round(as.numeric(timestamp)/600)*600]
+imagesAndMeteoGeneral<-function(dtImages, dtMeteo){
+  #imagesDayLight<-data.table(dfImages)
+  dtImages[,timeSyncToMeteo:=strptime("1970-01-01", "%Y-%m-%d", tz="UTC") + round(as.numeric(timestamp)/600)*600]
   
-  tableMeteo<-data.table(dfMeteo)
+  #tableMeteo<-data.table(dfMeteo)
   
-  setkey(imagesDayLight, timeSyncToMeteo)
-  setkey(tableMeteo, timestamp)
+  setkey(dtImages, location_id_closest_KNMI_meteo,timeSyncToMeteo)
+  setkey(dtMeteo, location_id,timestamp)
   
-  imagesAndMOR<-tableMeteo[imagesDayLight]
+  imagesAndMOR<-dtMeteo[dtImages]
   
   imagesAndMOR[,foggy:=mor_visibility<=250]
   
@@ -60,69 +59,73 @@ con <- dbConnect(RPostgreSQL::PostgreSQL(),
                  host = dbConfig[["host"]], port = 9418,
                  user = dbConfig[["user"]], password = dbConfig[["pw"]])
 
-dateStr<-"\'2017-08-29 00:00:00\'"
+dateStr<-"\'2017-11-01 00:00:00\'"
 
 
-imagesRWSDayLight <- dbGetQuery(con, paste0("SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
+
+cameras<-dbReadTable(con, "cameras")
+meteoStations<-dbReadTable(con,"meteo_stations")
+
+
+camerasRWSCoupledMeteo <- dbGetQuery(con, paste0("SELECT * FROM cameras
+                                            WHERE location_id IN (", paste(coupling$locationIDsHW, collapse=", "), ");"))
+
+
+
+
+imagesRWSDayLight <- dbGetQuery(con, paste0("SELECT images.image_id, images.filepath, images.timestamp, images.day_phase, images.camera_id
                                 FROM images
-                                WHERE camera_id IN (370, 378, 377, 376, 369, 358, 359, 360, 361) AND day_phase=1 AND timestamp<", dateStr,";"))
+                                WHERE camera_id IN (", paste(camerasRWSCoupledMeteo$camera_id, collapse=", "), ")AND day_phase=1 AND timestamp<", dateStr,";"))
+
+camerasRWSCoupledMeteo<-data.table(camerasRWSCoupledMeteo)
+imagesRWSDayLight<-data.table(imagesRWSDayLight)
+setkey(camerasRWSCoupledMeteo,camera_id)
+setkey(imagesRWSDayLight,camera_id)
+
+full<-imagesRWSDayLight[camerasRWSCoupledMeteo]
+
+coupling$locationIDsHW<-as.numeric(coupling$locationIDsHW)
+setkey(coupling, locationIDsHW)
+setkey(full, location_id)
+full<-full[coupling, nomatch=0]
 
 
-conditionsFogSchiphol <- dbGetQuery(con, paste0("SELECT location_id, timestamp, mor_visibility 
+meteoStations <- dbGetQuery(con, paste0("SELECT * FROM meteo_stations
+                                            WHERE knmi_kis_id IN (", paste(paste0("'",coupling$KISstations,"'"), collapse = ", "), ");"))
+
+
+meteoStations<-data.table(meteoStations)
+setkey(meteoStations,knmi_kis_id)
+setkey(full,KISstations)
+
+full<-full[meteoStations,nomatch=0]
+
+setnames(full, old=c("i.location_id"), new=c("location_id_closest_KNMI_meteo"))
+
+#meteoConditions <- dbGetQuery(con, paste0("SELECT * FROM meteo_stations
+                               #             WHERE knmi_kis_id IN (", paste(paste0("'",coupling$KISstations,"'"), collapse = ", "), ");"))
+meteoConditions <- dbGetQuery(con, paste0("SELECT location_id, timestamp, mor_visibility 
                                 FROM meteo_features_stations 
-                                WHERE location_id =9 AND timestamp<", dateStr,";"))
+                                WHERE location_id IN (", paste(meteoStations$location_id, collapse=", "), ") AND timestamp<", dateStr,";"))
 
-
-imagesDeBilt<-dbGetQuery(con, paste0("SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
-                                FROM images
-                                WHERE camera_id IN (1,99) AND day_phase=1 AND timestamp<", dateStr,";"))
-
-conditionsDeBilt <- dbGetQuery(con, paste0("SELECT location_id, timestamp, mor_visibility 
-                                FROM meteo_features_stations 
-                                WHERE location_id =1 AND timestamp<", dateStr,";"))
-
-imagesCabauw<-dbGetQuery(con, paste0("SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
-                                FROM images
-                                WHERE camera_id IN (2,3) AND day_phase=1 AND timestamp<", dateStr,";"))
-
-conditionsCabauw <- dbGetQuery(con, paste0("SELECT location_id, timestamp, mor_visibility 
-                                FROM meteo_features_stations 
-                                WHERE location_id =3 AND timestamp<", dateStr,";"))
-
-imagesEelde<-dbGetQuery(con, paste0("SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
-                                FROM images
-                                WHERE camera_id IN (11,12) AND day_phase=1 AND timestamp<", dateStr,";"))
-
-conditionsEelde <- dbGetQuery(con, paste0("SELECT location_id, timestamp, mor_visibility 
-                                FROM meteo_features_stations 
-                                WHERE location_id =7 AND timestamp<", dateStr,";"))
-
-imagesSchiphol<-dbGetQuery(con, paste0("SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
-                                FROM images
-                                WHERE camera_id=15 AND day_phase=1 AND timestamp<", dateStr,";"))
-
-imagesRotterdam<-dbGetQuery(con, paste0("SELECT images.image_id, images.filepath, images.timestamp, images.day_phase
-                                FROM images
-                                WHERE camera_id IN (13,14) AND day_phase=1 AND timestamp<", dateStr,";"))
-
-conditionsRotterdam <- dbGetQuery(con, paste0("SELECT location_id, timestamp, mor_visibility 
-                                FROM meteo_features_stations 
-                                WHERE location_id =8 AND timestamp<", dateStr,";"))
-
-
-
-
-
-
+meteoConditions<-data.table(meteoConditions)
 dbDisconnect(con)
 
 
-mergedA4Schiphol<-imagesAndMeteo(imagesRWSDayLight, conditionsFogSchiphol)
-mergedDeBilt<-imagesAndMeteo(imagesDeBilt, conditionsDeBilt)
-mergedCabauw<-imagesAndMeteo(imagesCabauw, conditionsCabauw)
-mergedEelde<-imagesAndMeteo(imagesEelde, conditionsEelde)
-mergedRotterdam<-imagesAndMeteo(imagesRotterdam, conditionsRotterdam)
-mergedSchipholAirport<-imagesAndMeteo(imagesSchiphol, conditionsFogSchiphol)
+mergedRWSandKNMIstations<-imagesAndMeteoGeneral(full, meteoConditions)
+
+
+##################checked TILL HERE SOLVING THE METEO TABLE FIRST#######################################
+
+
+
+
+
+
+
+
+
+
 
 total<-rbind(mergedA4Schiphol,mergedDeBilt, mergedCabauw, mergedEelde)
 
