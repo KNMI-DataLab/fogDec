@@ -3,6 +3,12 @@
 dist: trusty
 sudo: required
 
+addons:
+  apt:
+    packages:
+      - libgdal-dev
+      - libproj-dev
+
 language: r
 warnings_are_errors: true
 
