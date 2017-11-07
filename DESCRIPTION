@@ -18,6 +18,7 @@ Imports:
     changepoint,
     DBI,
     jsonlite,
+    rgdal,
     postGIStools,
     geosphere
 License: LGPL
