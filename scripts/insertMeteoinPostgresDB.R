@@ -222,26 +222,30 @@ prepareMeteoTableStationMapping<-function(variable,newval, stationMapping){
   setkey(camerasTable,location_id)
   setkey(locationsTable,location_id)
   setkey(imagesTable,camera_id)
-  tempTB<-camerasTable[locationsTable]
+  tempTB<-camerasTable[locationsTable, nomatch=0]
   setkey(tempTB,camera_id)
   tempTB<-imagesTable[tempTB]
-  tempTB<-tempTB[location_id %in% locationsOfCamerasMatched]
+  tempTB<-tempTB[location_id %in% locationsOfCamerasMatched] ##basically filter to the cameras where there is a location match with KNMI stations
   tempTB[,timestamp:= strptime("1970-01-01", "%Y-%m-%d", tz="UTC") + round(as.numeric(tempTB$timestamp)/600)*600]
   
-  #####################ERROR HERE IN THE MERGING location_id of the meteo stations is not the location of the cameras of the 
-  ## the mapping has to be used images####################
-  setkey(tempTB,timestamp,location_id)
-  setkey(meteoFeaturesTable, timestamp,location_id)
+  
+  setkey(tempTB,location_id)
+  test2$locationIDsHW<-as.numeric(test2$locationIDsHW)
+  setkey(test2,locationIDsHW)
+  tempTB<-tempTB[test2]
+  setnames(tempTB,"i.location_id","meteoStationLocationID")
+  
+  setkey(tempTB,timestamp,meteoStationLocationID)
+  
+  setkey(meteoFeaturesTable,timestamp,location_id)
   temp2<-tempTB[meteoFeaturesTable]
   
-  
-  ####TO BE FIXED ALSO: RETRIEVE JUST THE DATES FOR THE STATION THAT MISSED THAT DATE AND NOT FOR ALL OF THEM.
   if(newval==TRUE){
     dataNoMeteoAll<-tempTB[(which(tempTB$image_id %not in% temp2$image_id))]#images have no meteo fetures at all
-    dataNoMeteo<-dataNoMeteoAll[,location_id,timestamp]
-    dataNoMeteo<-dataNoMeteo[,unique(dataNoMeteo)]
-    datesRequired<-unique(as.Date(dataNoMeteo[,timestamp]))
+    noMeteoSelection<-dataNoMeteoAll[,KISstations,timestamp]
+    noMeteoSelection2<-noMeteoSelection[,.(dateOnly=as.Date(timestamp)), by=KISstations]
   }else{
+    #TO BE LOOKED INTO
     test<-meteoFeaturesTable[location_id==location & is.na(get(variable)),c("location_id","timestamp")]
     datesRequired<-unique(as.Date(test[,timestamp]))
     
@@ -250,21 +254,20 @@ prepareMeteoTableStationMapping<-function(variable,newval, stationMapping){
   }
   
   today<-as.Date(Sys.time())
-  datesToFetch<-datesRequired[datesRequired != today]
-  ####### DEBUG
-  #datesToFetch<-tail(datesToFetch,1)
-  ###########
+  noMeteoSelection2<-noMeteoSelection2[dateOnly!=today]
   
   #test purposes
   #datesToFetch<-seq(as.Date("2016/09/04"), by = "day", length.out = 100)
   
+  stationsCodesToFetch<-unique(noMeteoSelection2$KISstations)
   
   cl<-makeCluster(8)
   clusterEvalQ(cl, library(knmiR))
   valuesTotal<-NULL
   
-  for(knmilocation in stationsCodes){
+  for(knmilocation in stationsCodesToFetch){
   print(knmilocation)
+  datesToFetch<-unique(noMeteoSelection2[KISstations==knmilocation,dateOnly])
   values<-parLapply(cl,datesToFetch, getValueFromKIS, knmilocation, variable, KNMIstationsTable)
   
   #values<-lapply(datesToFetch, getValueFromKIS, knmilocation, variable, KNMIstationsTable)
@@ -321,7 +324,7 @@ prepareMeteoTableStationMapping<-function(variable,newval, stationMapping){
   setnames(tmp,"V1","location_id")
 
   
-  timeSyncToMeteo<-strptime("1970-01-01", "%Y-%m-%d", tz="UTC") + round(as.numeric(dataNoMeteo$timestamp)/600)*600
+  timeSyncToMeteo<-strptime("1970-01-01", "%Y-%m-%d", tz="UTC") + round(as.numeric(noMeteoSelection$timestamp)/600)*600
   
   
   
@@ -381,27 +384,13 @@ for(var in variables){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #####################################################################################################
 
 #locationsMeteo<-c(1,3,6,7,8,9)
 
 
 stationMapping<-coupleCamerasAndKNMInearStations(maxDistance = 7500)
-table<-prepareMeteoTableStationMapping(variable = "mor_visibility", newval = TRUE, stationMapping)
+#table<-prepareMeteoTableStationMapping(variable = "mor_visibility", newval = TRUE, stationMapping)
 dbConfig <- fromJSON("config.json")
 con <- dbConnect(RPostgreSQL::PostgreSQL(),
                    dbname = "FOGDB",
@@ -443,30 +432,3 @@ dbDisconnect(con)
 # dbDisconnect(con)
 # }
 # #####################################################################################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

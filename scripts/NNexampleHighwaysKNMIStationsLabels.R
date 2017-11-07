@@ -59,7 +59,7 @@ con <- dbConnect(RPostgreSQL::PostgreSQL(),
                  host = dbConfig[["host"]], port = 9418,
                  user = dbConfig[["user"]], password = dbConfig[["pw"]])
 
-dateStr<-"\'2017-11-01 00:00:00\'"
+dateStr<-"\'2017-11-02 00:00:00\'"
 
 
 
@@ -104,8 +104,9 @@ setnames(full, old=c("i.location_id"), new=c("location_id_closest_KNMI_meteo"))
 
 #meteoConditions <- dbGetQuery(con, paste0("SELECT * FROM meteo_stations
                                #             WHERE knmi_kis_id IN (", paste(paste0("'",coupling$KISstations,"'"), collapse = ", "), ");"))
+#######TEST TABLE
 meteoConditions <- dbGetQuery(con, paste0("SELECT location_id, timestamp, mor_visibility 
-                                FROM meteo_features_stations 
+                                FROM meteo_features_copy  
                                 WHERE location_id IN (", paste(meteoStations$location_id, collapse=", "), ") AND timestamp<", dateStr,";"))
 
 meteoConditions<-data.table(meteoConditions)
@@ -122,12 +123,12 @@ mergedRWSandKNMIstations<-imagesAndMeteoGeneral(full, meteoConditions)
 
 
 
+total<-mergedRWSandKNMIstations
 
 
 
 
-
-total<-rbind(mergedA4Schiphol,mergedDeBilt, mergedCabauw, mergedEelde)
+#total<-rbind(mergedA4Schiphol,mergedDeBilt, mergedCabauw, mergedEelde)
 
 set.seed(11)
 
@@ -252,11 +253,13 @@ trainTargets<-complete[,groundTruth:groundTruth]
 
 #darch  <- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,500,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 500 )
 
-#darch1<- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,800, 500,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 800 )
+darch1<- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,800, 500,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 800 )
 #darch2  <- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,1000,800,500,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 1000 )
 #darch3  <- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 500 )
 
 
+
+saveRDS(darch1,"~/development/fogNNmodels/NNmodelTrainedWithStationCoupling.RDS")
 
 
 saveRDS(matRWS,"~/development/fogNNmodels/trainingDataMat.RDS")
