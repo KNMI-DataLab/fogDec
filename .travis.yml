@@ -3,17 +3,8 @@
 dist: trusty
 sudo: required
 
-addons:
-  apt:
-    packages:
-    - postgresql-server-dev
-
-
 language: r
 warnings_are_errors: true
-
-
-
 
 r_github_packages:
   - MartinRoth/visDec
