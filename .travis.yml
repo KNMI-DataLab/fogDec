@@ -1,12 +1,16 @@
 # Sample .travis.yml for R projects
 
-language: r
-warnings_are_errors: true
 dist: trusty
 sudo: required
-
 before_install:
   - sudo apt-get postgresql-server-dev
+
+
+language: r
+warnings_are_errors: true
+
+
+
 
 r_github_packages:
   - MartinRoth/visDec
