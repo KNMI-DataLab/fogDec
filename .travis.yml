@@ -6,7 +6,7 @@ dist: trusty
 sudo: required
 
 before_install:
-  - sudo apt-get postgresql-server-dev-9.3
+  - sudo apt-get postgresql-server-dev
 
 r_github_packages:
   - MartinRoth/visDec
