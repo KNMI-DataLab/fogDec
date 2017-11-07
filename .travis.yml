@@ -5,6 +5,8 @@ warnings_are_errors: true
 dist: trusty
 sudo: required
 
+before_install:
+  - sudo apt-get postgresql-server-dev-9.3
 
 r_github_packages:
   - MartinRoth/visDec
