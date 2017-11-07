@@ -3,7 +3,7 @@
 dist: trusty
 sudo: required
 before_install:
-  - sudo apt-get postgresql-server-dev
+  - sudo apt-get install postgresql-server-dev
 
 
 language: r
