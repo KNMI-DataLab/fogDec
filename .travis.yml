@@ -2,8 +2,11 @@
 
 dist: trusty
 sudo: required
-before_install:
-  - sudo apt-get install postgresql-server-dev
+
+addons:
+  apt:
+    packages:
+    - postgresql-server-dev
 
 
 language: r
@@ -14,8 +17,6 @@ warnings_are_errors: true
 
 r_github_packages:
   - MartinRoth/visDec
-  - SESYNC-ci/postGIStools
-
 r_packages:
   - covr
 after_success:
