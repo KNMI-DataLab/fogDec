@@ -5,6 +5,12 @@ warnings_are_errors: true
 dist: trusty
 sudo: required
 
+addons:
+  postgresql: "9.5"
+  apt:
+    packages:
+      - postgresql-9.5-postgis-2.3
+
 r_github_packages:
   - MartinRoth/visDec
 
