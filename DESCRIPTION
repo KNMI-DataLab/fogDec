@@ -21,6 +21,7 @@ Imports:
     rgdal,
     postGIStools,
     stats,
+    RPostgreSQL,
     geosphere
 License: LGPL
 LazyData: true
