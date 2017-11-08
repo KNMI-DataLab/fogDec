@@ -1,12 +1,6 @@
-# library(DBI)
-# library(jsonlite)
-# library(data.table)
-# #library(knmiR)
-# library(postGIStools)
-# library(geosphere)
 #' Couple cameras and KNMI nearby stations
 #' @param maxDistance Numeric distance radius from the KNMI station
-#' @import jsonlite DBI postGIStools geosphere data.table
+#' @import jsonlite DBI postGIStools geosphere data.table stats
 #' @export
 coupleCamerasAndKNMInearStations<-function(maxDistance = 5000){
 
