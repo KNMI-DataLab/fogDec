@@ -300,6 +300,10 @@ cmAfterSnow<-confusionMatrix(confusion$predicted,confusion$fog, mode = "prec_rec
 draw_confusion_matrix(cmAfterSnow)
 
 
+
+
+
+
 ###### let's train and test with this special dataset in the training (a part of it) and test set (a part of it)#####
 
 
@@ -312,9 +316,10 @@ training<-foggyData[inTraining]
 
 
 nonFoggyData<-total[foggy==FALSE]
-inTrainingNonFog<-sample(nrow(nonFoggyData),0.5*nrow(nonFoggyData))
+inTrainingNonFog<-sample(nrow(nonFoggyData),0.7*nrow(nonFoggyData))
 training<-rbind(training,nonFoggyData[inTrainingNonFog])
 
+picsNonFoggyInTrainQty<-length(inTrainingNonFog)
 
 
 testing<-foggyData[-inTraining]
@@ -387,26 +392,235 @@ total<-mergedRWSandKNMIstations
 #total<-rbind(mergedA4Schiphol,mergedDeBilt, mergedCabauw, mergedEelde)
 
 
-#have to adjust the addition of foggy images to the training set to match the balanced training set given the images non foggy of the snowy days
+#have to adjust the addition of foggy images to the training set to match the balanced training set given the images non foggy of the snowy
 set.seed(11)
 
+
+
+#adding foggy pictures from non snowy period to match up the balanced training set, ahve to use replace since fog (labeled) events are limited
 foggyData<-total[foggy==TRUE]
-inTraining<-sample(nrow(foggyData),0.7*nrow(foggyData))
-training<-foggyData[inTraining]
+inTrainingNoSnow<-sample(nrow(foggyData),picsNonFoggyInTrainQty, replace = TRUE)
+trainingFogNoSnow<-foggyData[inTrainingNoSnow]
+
+training<-rbind(training,trainingFogNoSnow)
+
+
+#nonFoggyData<-total[foggy==FALSE]
+#training<-rbind(training,nonFoggyData[sample(nrow(nonFoggyData),nrow(training))])
 
 
 
-nonFoggyData<-total[foggy==FALSE]
-training<-rbind(training,nonFoggyData[sample(nrow(nonFoggyData),nrow(training))])
+#testing<-foggyData[-inTraining]
+testing<-rbind(testing,nonFoggyData[sample(nrow(nonFoggyData),5000)])
+#adding fogs cases from (likely) non snowy days to the set
+testing<-rbind(testing,foggyData[sample(nrow(foggyData),1000)])
+
+
+files<-sapply(training$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveDEBILT/",x))
+files<-sapply(files, function(x) gsub(".*/CAMERA/", "",x))
+files<-sapply(files, function(x) gsub(".*/cabauw/", "oldArchiveCABAUW/cabauw/",x))
+
+
+setwd("~/share/")
+
+#files<-test
 
 
 
-testing<-foggyData[-inTraining]
-testing<-rbind(testing,nonFoggyData[sample(nrow(nonFoggyData),4000)])
+
+cl <- makeCluster(16)
+registerDoParallel(cl)
+
+clusterEvalQ(cl, library("imager"))
+
+matRWS<-foreach(i=1:length(files), .combine = rbind) %dopar%{
+  message(files[[i]])
+  image<-tryCatch(
+    load.image(files[[i]]),
+    
+    error=function(error_message) {
+      #message("Yet another error message.")
+      #message("Here is the actual R error message:")
+      #next
+      return(NA)
+    }
+  )
+  if(is.na(image[[1]])){
+    v<-NA*1:(resolutionImg*resolutionImg)
+    message("Image not available error in acquisition")
+    v
+  }else{
+    image<-resize(image,resolutionImg,resolutionImg)
+    image<-blur_anisotropic(image, amplitude = 10000)
+    df<-as.data.frame(image)
+    v<-df$value
+    #mat<-rbind(mat,v)
+    v
+  }
+}
+
+stopCluster(cl)
+
+
+dtMat<-data.table(matRWS)
+#dtMat[,vis_class:=res2$vis_class]
+dtMat[,foggy:=training$foggy]
 
 
 
 
 
+#feats <- names(dtMat)
+#feats <- feats[-length(feats)]
+##feats<-feats[1:30]
+
+## Concatenate strings
+#f <- paste(feats,collapse=' + ')
+#f <- paste('foggy ~',f)
+
+#f <- as.formula(f)
+
+
+#net<-nnet(f,dtMat,size=3, MaxNWts=55000, maxit=300)
+
+
+complete<-dtMat[complete.cases(dtMat)]
+
+lastFeature<-resolutionImg*resolutionImg*3
+
+trainData<-complete[,1:lastFeature]
+groundTruth<-lastFeature+1
+trainTargets<-complete[,groundTruth:groundTruth]
+
+#darch  <- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,500,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 500 )
+
+darch1<- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,800, 500,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 800 )
+#darch2  <- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,1000,800,500,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 1000 )
+#darch3  <- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 500 )
+
+saveRDS(darch1,"~/development/fogNNmodels/NNmodelTrainedWithSnowDays.RDS")
+
+
+
+
+
+#IN sample performance
+
+
+predictedRWS<-predict(darch1,matRWS, type = "bin")
+#predict(net,matRWS)
+# 
+predictedRWS<-data.table(predictedRWS)
+# 
+# #predictedRWS[,predictedLabels:=colnames(predictedRWS)[max.col(predictedRWS, ties.method = "first")]]
+predictedRWS[,fog:=V2>0]
+predictedRWS[,file:=files]
+
+
+
+confusion<-data.table(predicted=predictedRWS$fog,fogSensor=dtMat$foggy)
+
+table(confusion$predicted,confusion$fog)
+
+insampleSnowTrained<-confusionMatrix(confusion$predicted,confusion$fog, mode = "prec_recall", positive = "TRUE")
+
+draw_confusion_matrix(insampleSnowTrained)
+
+confusion$filename<-predictedRWS$file
+
+
+
+
+#looking into the performance on the test set (out of sample)
+
+filesTest<-sapply(testing$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveDEBILT/",x))
+filesTest<-sapply(filesTest, function(x) gsub(".*/CAMERA/", "",x))
+filesTest<-sapply(filesTest, function(x) gsub(".*/cabauw/", "oldArchiveCABAUW/cabauw/",x))
+
+#saveRDS(filesTest,"~/development/fogNNmodels/filenamesTest.RDS")
+
+
+
+# filesTest<-sapply(testSet$filepath, strsplit, "/CAMERA/",simplify = T)
+# #files<-sapply(files, "[[", 10)
+# 
+# 
+# filesTest<-sapply(filesTest, str_replace_all, "/AXIS214/",  "/AXIS214/oldArchiveDEBILT/",simplify = T )
+# filesTest<-sapply(filesTest, strsplit, "/AXIS214/",simplify = T)
+# filesTest<-unlist(filesTest)
+# 
+# filesTest<-filesTest[c(FALSE, TRUE)]
+
+
+
+setwd("~/share/")
+
+
+
+
+
+#files<-test
+
+
+
+
+cl <- makeCluster(16)
+registerDoParallel(cl)
+
+clusterEvalQ(cl, library("imager"))
+
+matRWSTest<-foreach(i=1:length(filesTest), .combine = rbind) %dopar%{
+  message(filesTest[[i]])
+  image<-tryCatch(
+    load.image(filesTest[[i]]),
+    
+    error=function(error_message) {
+      #message("Yet another error message.")
+      #message("Here is the actual R error message:")
+      #next
+      return(NA)
+    }
+  )
+  if(is.na(image[[1]])){
+    v<-NA*1:(resolutionImg*resolutionImg)
+    message("Image not available error in acquisition")
+    v
+  }else{
+    image<-resize(image,resolutionImg,resolutionImg)
+    image<-blur_anisotropic(image, amplitude = 10000)
+    df<-as.data.frame(image)
+    v<-df$value
+    #mat<-rbind(mat,v)
+    v
+  }
+}
+
+stopCluster(cl)
+
+
+
+#saveRDS(matRWSTest,"~/development/fogNNmodels/testingDataMat.RDS")
+
+
+
+predictedRWSTest<-predict(darch1,matRWSTest, type = "bin")#predict(net,matRWSTest)
+# 
+predictedRWSTest<-data.table(predictedRWSTest)
+# 
+# #predictedRWS[,predictedLabels:=colnames(predictedRWS)[max.col(predictedRWS, ties.method = "first")]]
+predictedRWSTest[,fog:=V2>0]
+predictedRWSTest[,file:=filesTest]
+
+
+
+confusionTest<-data.table(predicted=predictedRWSTest$fog,fogSensor=testing$foggy)
+
+table(confusionTest$predicted,confusionTest$fogSensor)
+
+outOfSampleSnowTrained<-confusionMatrix(confusionTest$predicted,confusionTest$fog, mode = "prec_recall", positive = "TRUE")
+
+draw_confusion_matrix(outOfSampleSnowTrained)
+
+confusionTest$filename<-predictedRWSTest$file
 
 
