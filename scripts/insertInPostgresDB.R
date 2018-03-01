@@ -430,6 +430,24 @@ dbWriteTable(con, "meteo_stations", tmp, append = TRUE, row.names = FALSE, match
 ###############################################################################
 
 
+#######UPDATE THE STATIONS AND LOCATION FOR A ROTTERDAM STATION SINCE THE METADATA ARE NOT COMPLETE 
+#######AND LOCATION OF ROTTERDAM AIRPORT STATION IS OVERWRITTEN BY THE LOGIC ABOVE
+
+query<- "UPDATE meteo_stations
+SET meteo_station_name = 'Rotterdam locatie 24t', knmi_kis_id = '344_SENSORID_24t', meteo_station_location_code = '24t'
+WHERE meteo_station_id = 25;"
+
+query2<- "UPDATE locations
+SET location_description = 'knmi Rotterdam locatie 24t'
+WHERE location_id = 536;"
+
+dbGetQuery(con, query)
+dbGetQuery(con, query2)
+
+
+
+######
+
 
 
 dbDisconnect(con)
