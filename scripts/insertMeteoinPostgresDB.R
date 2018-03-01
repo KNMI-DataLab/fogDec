@@ -390,7 +390,7 @@ for(var in variables){
 
 
 stationMapping<-coupleCamerasAndKNMInearStations(maxDistance = 7500)
-#table<-prepareMeteoTableStationMapping(variable = "mor_visibility", newval = TRUE, stationMapping)
+table<-prepareMeteoTableStationMapping(variable = "mor_visibility", newval = TRUE, stationMapping)
 dbConfig <- fromJSON("config.json")
 con <- dbConnect(RPostgreSQL::PostgreSQL(),
                    dbname = "FOGDB",
