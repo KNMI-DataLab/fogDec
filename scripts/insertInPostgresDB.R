@@ -377,11 +377,76 @@ cameras <- as.data.table(dbReadTable(con, "cameras"))
 
 
 
+############METEO STATIONS LOCATIONS############################################
+locationKNMIStations<-read.csv("inst/extdata/testStationsGood3.csv", sep = ";",header = TRUE)
+locationKNMIStations<-data.table(locationKNMIStations)
+#fill NA with a 0 coordinate NB: Bonaire station 990 is not filled
+locationKNMIStations[is.na(lon), lon:=0]
+locationKNMIStations<-locationKNMIStations[lat!=9999 & as.Date(as.character(locationKNMIStations$endDate), "%Y%m%d")==as.Date("99991231", "%Y%m%d")]
+locationKNMIStations<-locationKNMIStations[typeStation=="Luchtdruk- en weerwaarnemingen"]
+
+uniqueKNMIStations<-unique(locationKNMIStations,by=c("lat", "lon"))
+uniqueKNMIStations[,KISID:=gsub("_A_","_WAARNEEMID_", KISID)]
+setnames(uniqueKNMIStations, c("lon","lat", "stationName", "KISID", "locationCode"), c("longitude", "latitude", "meteo_station_name", "knmi_kis_id", "meteo_station_location_code"))
+
+tmp<-uniqueKNMIStations
+tmp<-within(tmp, rm(typeStation,altitude,startDate,endDate))
+tmp<-tmp[,location_description:= paste("knmi",meteo_station_name)]
+tmp<-within(tmp, rm("meteo_station_name", "meteo_station_location_code", "knmi_kis_id"))
+
+#stationsForDB<-uniqueKNMIStations[, !c("lat", "lon", "startDate","endDate")]
+dbWriteTable(con, "locations", tmp, append = TRUE, row.names = FALSE, match.cols = TRUE)
+###############################################################################
 
 
 
 
+############METEO STATIONS TABLE############################################
+locationKNMIStations<-read.csv("inst/extdata/testStationsGood3.csv", sep = ";",header = TRUE)
+locationKNMIStations<-data.table(locationKNMIStations)
+#fill NA with a 0 coordinate NB: Bonaire station 990 is not filled
+locationKNMIStations[is.na(lon), lon:=0]
+locationKNMIStations<-locationKNMIStations[lat!=9999 & as.Date(as.character(locationKNMIStations$endDate), "%Y%m%d")==as.Date("99991231", "%Y%m%d")]
+locationKNMIStations<-locationKNMIStations[typeStation=="Luchtdruk- en weerwaarnemingen"]
 
+uniqueKNMIStations<-unique(locationKNMIStations,by=c("lat", "lon"))
+uniqueKNMIStations[,KISID:=gsub("_A_","_SENSORID_", KISID)]
+setnames(uniqueKNMIStations, c("lon","lat", "stationName", "KISID", "locationCode","typeStation"), c("longitude", "latitude", "meteo_station_name", "knmi_kis_id", "meteo_station_location_code","meteo_station_type"))
+
+tmp<-uniqueKNMIStations
+#tmp<-within(tmp, rm(altitude,startDate,endDate,latitude,longitude))
+
+setkeyv(tmp,c("longitude","latitude"))
+
+locations <- as.data.table(dbReadTable(con, "locations"))
+setkeyv(locations, c("longitude","latitude"))
+
+tmp<-tmp[locations,nomatch=0]
+
+#tmp<-tmp[,location_description:= paste("knmi",meteo_station_name)]
+tmp<-tmp[,c("meteo_station_name", "meteo_station_location_code", "knmi_kis_id","location_id","meteo_station_type")]
+
+dbWriteTable(con, "meteo_stations", tmp, append = TRUE, row.names = FALSE, match.cols = TRUE)
+###############################################################################
+
+
+#######UPDATE THE STATIONS AND LOCATION FOR A ROTTERDAM STATION SINCE THE METADATA ARE NOT COMPLETE 
+#######AND LOCATION OF ROTTERDAM AIRPORT STATION IS OVERWRITTEN BY THE LOGIC ABOVE
+
+query<- "UPDATE meteo_stations
+SET meteo_station_name = 'Rotterdam locatie 24t', knmi_kis_id = '344_SENSORID_24t', meteo_station_location_code = '24t'
+WHERE meteo_station_id = 25;"
+
+query2<- "UPDATE locations
+SET location_description = 'knmi Rotterdam locatie 24t'
+WHERE location_id = 536;"
+
+dbGetQuery(con, query)
+dbGetQuery(con, query2)
+
+
+
+######
 
 
 
