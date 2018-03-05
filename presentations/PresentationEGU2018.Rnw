@@ -17,11 +17,11 @@
 % ---------------
 \graphicspath{{../figure/}}
 
-\title{Neural network approach for automatic fog detection using surveillance
+\title[NN for automatic fog detection]{Neural network approach for automatic fog detection using surveillance
 camera images}
 %\subtitle{KNMI DataLab Meeting}
 \date{April 9, 2018}
-\author[Pagani, Noteboom, Wauben]{G.A. Pagani, J.W. Noteboom\\ and W. Wauben}
+\author[Pagani, Noteboom, Wauben]{G.A. Pagani, J.W. Noteboom and W. Wauben}
 
 \begin{document}
 \tikzstyle{every picture}+=[remember picture]
@@ -33,7 +33,7 @@ camera images}
 
 \begin{frame}{Outline}
 \begin{itemize}
-  \item Motivation for Fog
+  \item Motivation for Fog research
    \item Purpose
    \item Approach
    \item Results (till Dec 2016)
@@ -113,7 +113,7 @@ knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Approach: availability of sensors and traffic cameras}
+\begin{frame}{Visibility sensors vs. traffic cameras}
  \begin{textblock*}{5cm}(1.2cm,3.0cm)
   \includegraphics[width=5cm]{SensorPlacement.png}
  \end{textblock*}
@@ -162,11 +162,11 @@ knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
 \end{frame}
 
 
-\begin{frame}{Why NN}
+\begin{frame}{Why Neural Networks?}
 \begin{textblock*}{9.5cm}(0.1cm,2.2cm)
 \begin{itemize}
 \item New more general idea of fog detection than our previous attempt with decision trees and picture features
-\item Reason: scenery are too different also for the same camera (e.g., zoom)
+\item Reason to use: scenery are too different also for the same camera (e.g., zoom)
 \item Features is the whole picture: each pixel (of each of the RGB layers)
 \item Use a deep neural network (InputL:2352,L1:800,L2:500,L3:100,L5:10,OutputL:2) to fit the model
 \end{itemize}
@@ -180,49 +180,64 @@ knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
 \end{textblock*}
 \end{frame}
 
+
+
+<<NN highways, echo=FALSE>>=
+#results for presentation
+
+
+modelDarch<-readRDS("~/development/fogNNmodels/model1.rds")
+dataMatTrain<-readRDS("~/development/fogNNmodels/trainingDataMat.RDS")
+dataMatTest<-readRDS("~/development/fogNNmodels/testingDataMat.RDS")
+
+testing<-readRDS("~/development/fogNNmodels/testingDataLabels.RDS")
+training<-readRDS("~/development/fogNNmodels/trainingDataLabels.RDS")
+
+filesTest<-readRDS("~/development/fogNNmodels/filenamesTest.RDS")
+files<-readRDS("~/development/fogNNmodels/trainingFileNames.RDS")
+
+
+dtMat<-data.table(dataMatTrain)
+#dtMat[,vis_class:=res2$vis_class]
+dtMat[,foggy:=training$foggy]
+
+
+###In sample testing#####
+predictedRWS<-predict(modelDarch,dataMatTrain, type = "bin")
+#predict(net,matRWS)
+#
+predictedRWS<-data.table(predictedRWS)
+#
+# #predictedRWS[,predictedLabels:=colnames(predictedRWS)[max.col(predictedRWS, ties.method = "first")]]
+predictedRWS[,fog:=V2>0]
+predictedRWS[,file:=files]
+
+@
+
+
+
 \begin{frame}{Training and Test sets}
 \begin{textblock*}{9.5cm}(0.1cm,3.5cm)
 \begin{itemize}
-
-\item Training set: +-750 random fog and +-750 non-fog pictures from De Bilt, Cabauw, Airports, A4 HM50-HM110 (i.e.,9 cameras)
 \item Labels: from forward scatter visibility sensor that provides mteorological optical range (MOR)
-\item Fog considered if visibility $\leq$250m
-\item NB: labels in for highway cameras are given by a KNMI station in a radius of 7.5km
+\item Fog considered if visibility is $\leq$250m
+\item Point of concern: labels for highway cameras are given by a KNMI station in a radius of 7.5km
+\item Training set: \Sexpr{length(sum(training$foggy))} +-5600 random fog and \Sexpr{length(sum(training$foggy==FALSE))}+-5600 non-fog pictures from 96 cameras 
+\item Test set: \Sexpr{length(sum(testing$foggy))} +-2400 fog and  \Sexpr{length(sum(testing$foggy==FALSE))} non-fog pictures
+
 \end{itemize}
 \end{textblock*}
+
+\begin{textblock*}{8cm}(7.5cm,2.2cm)
+\begin{center}
+\includegraphics[width=2.3cm]{training.png}\\
+\includegraphics[width=2.3cm]{test.png}
+\end{center}
+\end{textblock*}
 \end{frame}
-%
-% 
-% <<NN highways, echo=FALSE>>=
-% #results for presentation
-% 
-% 
-% modelDarch<-readRDS("~/development/fogNNmodels/model1.rds")
-% dataMatTrain<-readRDS("~/development/fogNNmodels/trainingDataMat.RDS")
-% dataMatTest<-readRDS("~/development/fogNNmodels/testingDataMat.RDS")
-% 
-% testing<-readRDS("~/development/fogNNmodels/testingDataLabels.RDS")
-% training<-readRDS("~/development/fogNNmodels/trainingDataLabels.RDS")
-% 
-% filesTest<-readRDS("~/development/fogNNmodels/filenamesTest.RDS")
-% files<-readRDS("~/development/fogNNmodels/trainingFileNames.RDS")
-% 
-% 
-% dtMat<-data.table(dataMatTrain)
-% #dtMat[,vis_class:=res2$vis_class]
-% dtMat[,foggy:=training$foggy]
-% 
-% 
-% ###In sample testing#####
-% predictedRWS<-predict(modelDarch,dataMatTrain, type = "bin")
-% #predict(net,matRWS)
-% #
-% predictedRWS<-data.table(predictedRWS)
-% #
-% # #predictedRWS[,predictedLabels:=colnames(predictedRWS)[max.col(predictedRWS, ties.method = "first")]]
-% predictedRWS[,fog:=V2>0]
-% predictedRWS[,file:=files]
-% 
+
+
+
 % 
 % 
 % confusion<-data.table(predicted=predictedRWS$fog,fogSensor=dtMat$foggy)
@@ -256,79 +271,80 @@ knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
 % 
 % % 
 % 
-% <<confusionDraw, echo=FALSE>>=
-% 
-% draw_confusion_matrix <- function(cm) {
-% 
-%   layout(matrix(c(1,1,2)))
-%   par(mar=c(2,2,2,2))
-%   plot(c(100, 345), c(300, 450), type = "n", xlab="", ylab="", xaxt='n', yaxt='n')
-%   title('CONFUSION MATRIX', cex.main=2)
-% 
-%   # create the matrix
-%   rect(150, 430, 240, 370, col='#3F97D0')
-%   text(195, 435, 'FALSE', cex=1.2)
-%   rect(250, 430, 340, 370, col='#F7AD50')
-%   text(295, 435, 'TRUE', cex=1.2)
-%   text(125, 370, 'Predicted', cex=1.3, srt=90, font=2)
-%   text(245, 450, 'Actual', cex=1.3, font=2)
-%   rect(150, 305, 240, 365, col='#F7AD50')
-%   rect(250, 305, 340, 365, col='#3F97D0')
-%   text(140, 400, 'FALSE', cex=1.2, srt=90)
-%   text(140, 335, 'TRUE', cex=1.2, srt=90)
-% 
-%   # add in the cm results
-%   res <- as.numeric(cm$table)
-%   text(195, 400, res[1], cex=1.6, font=2, col='white')
-%   text(195, 335, res[2], cex=1.6, font=2, col='white')
-%   text(295, 400, res[3], cex=1.6, font=2, col='white')
-%   text(295, 335, res[4], cex=1.6, font=2, col='white')
-% 
-%   # add in the specifics
-%   plot(c(100, 0), c(100, 0), type = "n", xlab="", ylab="", main = "DETAILS", xaxt='n', yaxt='n')
-%   text(10, 85, names(cm$byClass[1]), cex=1.2, font=2)
-%   text(10, 70, round(as.numeric(cm$byClass[1]), 3), cex=1.2)
-%   text(30, 85, names(cm$byClass[2]), cex=1.2, font=2)
-%   text(30, 70, round(as.numeric(cm$byClass[2]), 3), cex=1.2)
-%   text(50, 85, names(cm$byClass[5]), cex=1.2, font=2)
-%   text(50, 70, round(as.numeric(cm$byClass[5]), 3), cex=1.2)
-%   text(70, 85, names(cm$byClass[6]), cex=1.2, font=2)
-%   text(70, 70, round(as.numeric(cm$byClass[6]), 3), cex=1.2)
-%   text(90, 85, names(cm$byClass[7]), cex=1.2, font=2)
-%   text(90, 70, round(as.numeric(cm$byClass[7]), 3), cex=1.2)
-% 
-%   # add in the accuracy information
-%   text(50, 35, names(cm$overall[1]), cex=1.5, font=2)
-%   text(50, 20, round(as.numeric(cm$overall[1]), 3), cex=1.4)
-%   #text(70, 35, names(cm$overall[2]), cex=1.5, font=2)
-%   #text(70, 20, round(as.numeric(cm$overall[2]), 3), cex=1.4)
-% }
-% @
-% 
-% 
-% 
-% \begin{frame}{New Results (new continued)}
-% \begin{textblock*}{8cm}(0.2cm,3.5cm)
-% \begin{center}
-% \begin{itemize}
-% \item Test set: 4000 random non-fog images, 334 foggy images (not part of training set, obviously)
-% \item Pre-processing of images:
-% \begin{itemize}
-% \item Scaling to 28x28 px to reduce feature space
-% \item Image blurring/smoothing to help against overfitting
-% \end{itemize}
-% \end{itemize}
-% \end{center}
-% \end{textblock*}
-% 
-% \begin{textblock*}{8cm}(6cm,2.5cm)
-% \begin{center}
-% \includegraphics[width=4cm]{private/original1.png}\\
-% \includegraphics[width=1cm]{private/resize1.png}\\
-% \includegraphics[width=1cm]{private/blurr1.png}
-% \end{center}
-% \end{textblock*}
-% \end{frame}
+<<confusionDraw, echo=FALSE>>=
+draw_confusion_matrix_binary <- function(cm) {
+   
+     layout(matrix(c(1,1,2)))
+     par(mar=c(2,2,2,2))
+     plot(c(100, 345), c(300, 450), type = "n", xlab="", ylab="", xaxt='n', yaxt='n')
+     title('CONFUSION MATRIX', cex.main=2)
+   
+     # create the matrix
+     rect(150, 430, 240, 370, col='#3F97D0')
+     text(195, 435, 'FALSE', cex=1.2)
+     rect(250, 430, 340, 370, col='#F7AD50')
+     text(295, 435, 'TRUE', cex=1.2)
+     text(125, 370, 'Predicted', cex=1.3, srt=90, font=2)
+     text(245, 450, 'Actual', cex=1.3, font=2)
+     rect(150, 305, 240, 365, col='#F7AD50')
+     rect(250, 305, 340, 365, col='#3F97D0')
+     text(140, 400, 'FALSE', cex=1.2, srt=90)
+     text(140, 335, 'TRUE', cex=1.2, srt=90)
+   
+     # add in the cm results
+     res <- as.numeric(cm$table)
+     text(195, 400, res[1], cex=1.6, font=2, col='white')
+     text(195, 335, res[2], cex=1.6, font=2, col='white')
+     text(295, 400, res[3], cex=1.6, font=2, col='white')
+     text(295, 335, res[4], cex=1.6, font=2, col='white')
+   
+     # add in the specifics
+     plot(c(100, 0), c(100, 0), type = "n", xlab="", ylab="", main = "DETAILS", xaxt='n', yaxt='n')
+     text(10, 85, names(cm$byClass[1]), cex=1.2, font=2)
+     text(10, 70, round(as.numeric(cm$byClass[1]), 3), cex=1.2)
+     text(30, 85, names(cm$byClass[2]), cex=1.2, font=2)
+     text(30, 70, round(as.numeric(cm$byClass[2]), 3), cex=1.2)
+     text(50, 85, names(cm$byClass[5]), cex=1.2, font=2)
+     text(50, 70, round(as.numeric(cm$byClass[5]), 3), cex=1.2)
+     text(70, 85, names(cm$byClass[6]), cex=1.2, font=2)
+     text(70, 70, round(as.numeric(cm$byClass[6]), 3), cex=1.2)
+     text(90, 85, names(cm$byClass[7]), cex=1.2, font=2)
+     text(90, 70, round(as.numeric(cm$byClass[7]), 3), cex=1.2)
+   
+     # add in the accuracy information
+     text(50, 35, names(cm$overall[1]), cex=1.5, font=2)
+     text(50, 20, round(as.numeric(cm$overall[1]), 3), cex=1.4)
+     #text(70, 35, names(cm$overall[2]), cex=1.5, font=2)
+     #text(70, 20, round(as.numeric(cm$overall[2]), 3), cex=1.4)
+   }
+ @
+
+
+\begin{frame}{Pre-processing and network architecture}
+\begin{textblock*}{8cm}(0.2cm,3.5cm)
+\begin{center}
+\begin{itemize}
+\item Pre-processing of images:
+\begin{itemize}
+\item Scaling to 28x28 px to reduce feature space
+\item Image blurring/smoothing to help against overfitting
+\end{itemize}
+\item Deep Neural Network: L$_{input}$: 2352, L$_1$:800, L$_2$:500, L$_3$:100, L$_{out}$:2
+\end{itemize}
+\end{center}
+\end{textblock*}
+
+\begin{textblock*}{8cm}(6cm,2.5cm)
+\begin{center}
+\includegraphics[width=4cm]{private/original1.png}\\
+\includegraphics[width=1cm]{private/resize1.png}\\
+\includegraphics[width=1cm]{private/blurr1.png}\\
+\includegraphics[width=5cm]{DNN.png}
+\end{center}
+\end{textblock*}
+\end{frame}
+
+
 % 
 % \begin{frame}{New Results (new continued)}
 % \begin{itemize}
