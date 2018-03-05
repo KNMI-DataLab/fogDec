@@ -8,9 +8,10 @@ library(jsonlite)
 library(caret)
 library(darch)
 library(stringr)
+library(fogDec)
 
 
-
+setwd("~/development/fogDec/")
 #the coupling contains also the locations of the station itself of course
 coupling<-coupleCamerasAndKNMInearStations(maxDistance = 7500)
 
@@ -47,6 +48,104 @@ imagesAndMeteoGeneral<-function(dtImages, dtMeteo, multiCat){
 }
 
 
+draw_confusion_matrix <- function(cm) {
+  layout(matrix(c(1,1,2)))
+  par(mar=c(2,2,2,2))
+  plot(c(20, 350), c(200, 650), type = "n", xlab="", ylab="", xaxt='n', yaxt='n')
+  title('CONFUSION MATRIX', cex.main=2)
+  
+  # create the matrix
+  
+  text(100, 575, 'CLASS A', cex=1.2)
+  text(175, 575, 'CLASS B', cex=1.2)
+  text(250, 575, 'CLASS C', cex=1.2)
+  text(325, 575, 'CLASS D', cex=1.2)
+  rect(75, 500, 125, 550, col='#024411')
+  rect(75, 430, 125, 480, col='#990100')
+  rect(75, 360, 125, 410, col='#990100')
+  rect(75, 290, 125, 340, col='#990100')
+  
+  rect(150, 500, 200, 550, col='#990100')
+  rect(150, 430, 200, 480, col='#024411')
+  rect(150, 360, 200, 410, col='#990100')
+  rect(150, 290, 200, 340, col='#990100')
+  
+  rect(225, 500, 275, 550, col='#990100')
+  rect(225, 430, 275, 480, col='#990100')
+  rect(225, 360, 275, 410, col='#024411')
+  rect(225, 290, 275, 340, col='#990100')
+  
+  rect(300, 500, 350, 550, col='#990100')
+  rect(300, 430, 350, 480, col='#990100')
+  rect(300, 360, 350, 410, col='#990100')
+  rect(300, 290, 350, 340, col='#024411')
+  
+  text(30, 425, 'Predicted', cex=1.3, srt=90, font=2)
+  text(212, 625, 'Actual', cex=1.3, font=2)
+  #rect(150, 305, 240, 365, col='#F7AD50')
+  #rect(250, 305, 340, 365, col='#3F97D0')
+  text(60, 525, 'CLASS A', cex=1.2)#, srt=90)
+  text(60, 455, 'CLASS B', cex=1.2)
+  text(60, 385, 'CLASS C', cex=1.2)
+  text(60, 315, 'CLASS D', cex=1.2)
+  
+  # add in the cm results
+  res <- as.numeric(cm$table)
+  text(100, 525, res[1], cex=1.6, font=2, col='white')
+  text(100, 455, res[2], cex=1.6, font=2, col='white')
+  text(100, 385, res[3], cex=1.6, font=2, col='white')
+  text(100, 315, res[4], cex=1.6, font=2, col='white')
+  
+  text(175, 525, res[5], cex=1.6, font=2, col='white')
+  text(175, 455, res[6], cex=1.6, font=2, col='white')
+  text(175, 385, res[7], cex=1.6, font=2, col='white')
+  text(175, 315, res[8], cex=1.6, font=2, col='white')
+  
+  text(250, 525, res[9], cex=1.6, font=2, col='white')
+  text(250, 455, res[10], cex=1.6, font=2, col='white')
+  text(250, 385, res[11], cex=1.6, font=2, col='white')
+  text(250, 315, res[12], cex=1.6, font=2, col='white')
+  
+  text(325, 525, res[13], cex=1.6, font=2, col='white')
+  text(325, 455, res[14], cex=1.6, font=2, col='white')
+  text(325, 385, res[15], cex=1.6, font=2, col='white')
+  text(325, 315, res[16], cex=1.6, font=2, col='white')
+  
+  # add in the specifics
+  plot(c(160, -40), c(200, 0), type = "n", xlab="", ylab="", main = "DETAILS", xaxt='n', yaxt='n')
+  text(30, 180, dimnames(cm$byClass)[[1]][1], cex=1.2, font=2)
+  text(70, 180, dimnames(cm$byClass)[[1]][2], cex=1.2, font=2)
+  text(110, 180, dimnames(cm$byClass)[[1]][3], cex=1.2, font=2)
+  text(150, 180, dimnames(cm$byClass)[[1]][4], cex=1.2, font=2)
+  
+  text(5, 150, dimnames(cm$byClass)[[2]][5], cex=1.2, font=2)
+  text(5, 100, dimnames(cm$byClass)[[2]][6], cex=1.2, font=2)
+  text(5, 50, dimnames(cm$byClass)[[2]][7], cex=1.2, font=2)
+  
+  #Precision
+  text(30, 150, round(as.numeric(cm$byClass[17]), 3), cex=1.2)
+  text(70, 150, round(as.numeric(cm$byClass[18]), 3), cex=1.2)
+  text(110, 150, round(as.numeric(cm$byClass[19]), 3), cex=1.2)
+  text(150, 150, round(as.numeric(cm$byClass[20]), 3), cex=1.2)
+  
+  #Recall
+  text(30, 100, round(as.numeric(cm$byClass[21]), 3), cex=1.2)
+  text(70, 100, round(as.numeric(cm$byClass[22]), 3), cex=1.2)
+  text(110, 100, round(as.numeric(cm$byClass[23]), 3), cex=1.2)
+  text(150, 100, round(as.numeric(cm$byClass[24]), 3), cex=1.2)     
+  
+  #F1
+  text(30, 50, round(as.numeric(cm$byClass[25]), 3), cex=1.2)
+  text(70, 50, round(as.numeric(cm$byClass[26]), 3), cex=1.2)
+  text(110, 50, round(as.numeric(cm$byClass[27]), 3), cex=1.2)
+  text(150, 50, round(as.numeric(cm$byClass[28]), 3), cex=1.2)  
+  
+  # add in the accuracy information
+  text(-30, 150, paste("Overall\n",names(cm$overall[1])), cex=1.5, font=2)
+  text(-30, 75, round(as.numeric(cm$overall[1]), 3), cex=1.4)
+  #text(70, 35, names(cm$overall[2]), cex=1.5, font=2)
+  #text(70, 20, round(as.numeric(cm$overall[2]), 3), cex=1.4)
+}
 
 
 
@@ -265,7 +364,7 @@ darch1<- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, r
 saveRDS(darch1,"~/development/fogNNmodels/NNmodelTraine4Classes.RDS")
 
 
-saveRDS(matRWS,"~/development/fogNNmodels/training4Classes.RDS")
+saveRDS(matRWS,"~/development/fogNNmodels/matRWSTrain.RDS")
 
 
 predictedRWS<-predict(darch1,matRWS, type = "class")
@@ -279,11 +378,11 @@ predictedRWS[,file:=files]
 
 setnames(predictedRWS, "predictedRWS", "predictedClass")
 
-confusion<-data.table(predicted=predictedRWS$predictedClass,fogSensorClass=dtMat$visClass)
+confusion<-data.table(predicted=predictedRWS$predictedClass,fogSensorClass=dtMat$visClass,file=predictedRWS$file)
 
 table(confusion$predicted,confusion$fogSensorClass)
 
-confusionInSample<-confusionMatrix(confusion$predicted,confusion$fog, mode = "prec_recall", positive = "TRUE")
+confusionInSample<-confusionMatrix(confusion$predicted,confusion$fogSensorClass, mode = "prec_recall", positive = "TRUE")
 
 
 draw_confusion_matrix(confusionInSample)
@@ -379,113 +478,16 @@ predictedRWSTest[,file:=filesTest]
 
 
 
-confusionTest<-data.table(predicted=predictedRWSTest$predictedClass,fogSensor=testing$visClass)
+confusionTest<-data.table(predicted=predictedRWSTest$predictedClass,fogSensor=testing$visClass, file=predictedRWSTest$file)
 
 table(confusionTest$predicted,confusionTest$fogSensor)
 
-confMatTestSet<-confusionMatrix(confusionTest$predicted,confusionTest$fog, mode = "prec_recall", positive = "TRUE")
+confMatTestSet<-confusionMatrix(confusionTest$predicted,confusionTest$fogSensor, mode = "prec_recall", positive = "TRUE")
 
 draw_confusion_matrix(confMatTestSet)
 
 
-draw_confusion_matrix <- function(cm) {
-     layout(matrix(c(1,1,2)))
-     par(mar=c(2,2,2,2))
-     plot(c(20, 350), c(200, 650), type = "n", xlab="", ylab="", xaxt='n', yaxt='n')
-     title('CONFUSION MATRIX', cex.main=2)
-   
-     # create the matrix
-     
-     text(100, 575, 'CLASS A', cex=1.2)
-     text(175, 575, 'CLASS B', cex=1.2)
-     text(250, 575, 'CLASS C', cex=1.2)
-     text(325, 575, 'CLASS D', cex=1.2)
-     rect(75, 500, 125, 550, col='#024411')
-     rect(75, 430, 125, 480, col='#990100')
-     rect(75, 360, 125, 410, col='#990100')
-     rect(75, 290, 125, 340, col='#990100')
-     
-     rect(150, 500, 200, 550, col='#990100')
-     rect(150, 430, 200, 480, col='#024411')
-     rect(150, 360, 200, 410, col='#990100')
-     rect(150, 290, 200, 340, col='#990100')
-     
-     rect(225, 500, 275, 550, col='#990100')
-     rect(225, 430, 275, 480, col='#990100')
-     rect(225, 360, 275, 410, col='#024411')
-     rect(225, 290, 275, 340, col='#990100')
-     
-     rect(300, 500, 350, 550, col='#990100')
-     rect(300, 430, 350, 480, col='#990100')
-     rect(300, 360, 350, 410, col='#990100')
-     rect(300, 290, 350, 340, col='#024411')
-     
-     text(30, 425, 'Predicted', cex=1.3, srt=90, font=2)
-     text(212, 625, 'Actual', cex=1.3, font=2)
-     #rect(150, 305, 240, 365, col='#F7AD50')
-     #rect(250, 305, 340, 365, col='#3F97D0')
-     text(60, 525, 'CLASS A', cex=1.2)#, srt=90)
-     text(60, 455, 'CLASS B', cex=1.2)
-     text(60, 385, 'CLASS C', cex=1.2)
-     text(60, 315, 'CLASS D', cex=1.2)
-   
-     # add in the cm results
-     res <- as.numeric(cm$table)
-     text(100, 525, res[1], cex=1.6, font=2, col='white')
-     text(100, 455, res[2], cex=1.6, font=2, col='white')
-     text(100, 385, res[3], cex=1.6, font=2, col='white')
-     text(100, 315, res[4], cex=1.6, font=2, col='white')
-     
-     text(175, 525, res[5], cex=1.6, font=2, col='white')
-     text(175, 455, res[6], cex=1.6, font=2, col='white')
-     text(175, 385, res[7], cex=1.6, font=2, col='white')
-     text(175, 315, res[8], cex=1.6, font=2, col='white')
-     
-     text(250, 525, res[9], cex=1.6, font=2, col='white')
-     text(250, 455, res[10], cex=1.6, font=2, col='white')
-     text(250, 385, res[11], cex=1.6, font=2, col='white')
-     text(250, 315, res[12], cex=1.6, font=2, col='white')
-     
-     text(325, 525, res[12], cex=1.6, font=2, col='white')
-     text(325, 455, res[14], cex=1.6, font=2, col='white')
-     text(325, 385, res[15], cex=1.6, font=2, col='white')
-     text(325, 315, res[16], cex=1.6, font=2, col='white')
-   
-     # add in the specifics
-     plot(c(160, -40), c(200, 0), type = "n", xlab="", ylab="", main = "DETAILS", xaxt='n', yaxt='n')
-     text(30, 180, dimnames(cm$byClass)[[1]][1], cex=1.2, font=2)
-     text(70, 180, dimnames(cm$byClass)[[1]][2], cex=1.2, font=2)
-     text(110, 180, dimnames(cm$byClass)[[1]][3], cex=1.2, font=2)
-     text(150, 180, dimnames(cm$byClass)[[1]][4], cex=1.2, font=2)
-     
-     text(5, 150, dimnames(cm$byClass)[[2]][5], cex=1.2, font=2)
-     text(5, 100, dimnames(cm$byClass)[[2]][6], cex=1.2, font=2)
-     text(5, 50, dimnames(cm$byClass)[[2]][7], cex=1.2, font=2)
-     
-     #Precision
-     text(30, 150, round(as.numeric(cm$byClass[17]), 3), cex=1.2)
-     text(70, 150, round(as.numeric(cm$byClass[18]), 3), cex=1.2)
-     text(110, 150, round(as.numeric(cm$byClass[19]), 3), cex=1.2)
-     text(150, 150, round(as.numeric(cm$byClass[20]), 3), cex=1.2)
-     
-     #Recall
-     text(30, 100, round(as.numeric(cm$byClass[21]), 3), cex=1.2)
-     text(70, 100, round(as.numeric(cm$byClass[22]), 3), cex=1.2)
-     text(110, 100, round(as.numeric(cm$byClass[23]), 3), cex=1.2)
-     text(150, 100, round(as.numeric(cm$byClass[24]), 3), cex=1.2)     
-    
-     #F1
-     text(30, 50, round(as.numeric(cm$byClass[25]), 3), cex=1.2)
-     text(70, 50, round(as.numeric(cm$byClass[26]), 3), cex=1.2)
-     text(110, 50, round(as.numeric(cm$byClass[27]), 3), cex=1.2)
-     text(150, 50, round(as.numeric(cm$byClass[28]), 3), cex=1.2)  
-   
-     # add in the accuracy information
-     text(-30, 150, paste("Overall\n",names(cm$overall[1])), cex=1.5, font=2)
-     text(-30, 75, round(as.numeric(cm$overall[1]), 3), cex=1.4)
-     #text(70, 35, names(cm$overall[2]), cex=1.5, font=2)
-     #text(70, 20, round(as.numeric(cm$overall[2]), 3), cex=1.4)
-   }
+
 
 
 
