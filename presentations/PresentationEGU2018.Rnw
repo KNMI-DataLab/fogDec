@@ -186,31 +186,35 @@ knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
 #results for presentation
 
 
-modelDarch<-readRDS("~/development/fogNNmodels/model1.rds")
-dataMatTrain<-readRDS("~/development/fogNNmodels/trainingDataMat.RDS")
-dataMatTest<-readRDS("~/development/fogNNmodels/testingDataMat.RDS")
+modelDarch<-readRDS("~/development/fogNNmodels/NNmodelTrainedWithStationCouplingEGU.RDS")
+dataMatTrain<-readRDS("~/development/fogNNmodels/trainingDataMatEGU.RDS")
+dataMatTest<-readRDS("~/development/fogNNmodels/testingDataMatEGU.RDS")
 
-testing<-readRDS("~/development/fogNNmodels/testingDataLabels.RDS")
-training<-readRDS("~/development/fogNNmodels/trainingDataLabels.RDS")
+testing<-readRDS("~/development/fogNNmodels/testingDataLabelsEGU.RDS")
+training<-readRDS("~/development/fogNNmodels/trainingDataLabelsEGU.RDS")
 
-filesTest<-readRDS("~/development/fogNNmodels/filenamesTest.RDS")
-files<-readRDS("~/development/fogNNmodels/trainingFileNames.RDS")
-
-
-dtMat<-data.table(dataMatTrain)
-#dtMat[,vis_class:=res2$vis_class]
-dtMat[,foggy:=training$foggy]
+filesTest<-readRDS("~/development/fogNNmodels/filenamesTestEGU.RDS")
+files<-readRDS("~/development/fogNNmodels/trainingFileNamesEGU.RDS")
 
 
-###In sample testing#####
-predictedRWS<-predict(modelDarch,dataMatTrain, type = "bin")
-#predict(net,matRWS)
-#
+
+predictedRWS<-predict(darch1,dataMatTrain, type = "bin")
+  #predict(net,matRWS)
+# 
 predictedRWS<-data.table(predictedRWS)
-#
+# 
 # #predictedRWS[,predictedLabels:=colnames(predictedRWS)[max.col(predictedRWS, ties.method = "first")]]
 predictedRWS[,fog:=V2>0]
 predictedRWS[,file:=files]
+
+
+
+confusion<-data.table(predicted=predictedRWS$fog,fogSensor=dtMat$foggy)
+
+table(confusion$predicted,confusion$fog)
+
+confMatrixTraining<-confusionMatrix(confusion$predicted,confusion$fog, mode = "prec_recall", positive = "TRUE")
+
 
 @
 
@@ -236,41 +240,29 @@ predictedRWS[,file:=files]
 \end{textblock*}
 \end{frame}
 
+<<TestSet performance,echo=FALSE>>=
+ 
+####OUT of sample testing##
+
+predictedRWSTest<-predict(darch1,dataMatTest, type = "bin")#predict(net,matRWSTest)
+# 
+predictedRWSTest<-data.table(predictedRWSTest)
+# 
+# #predictedRWS[,predictedLabels:=colnames(predictedRWS)[max.col(predictedRWS, ties.method = "first")]]
+predictedRWSTest[,fog:=V2>0]
+predictedRWSTest[,file:=filesTest]
+
+confusionTest<-data.table(predicted=predictedRWSTest$fog,fogSensor=testing$foggy)
+
+table(confusionTest$predicted,confusionTest$fogSensor)
+
+confMatrixTest<-confusionMatrix(confusionTest$predicted,confusionTest$fog, mode = "prec_recall", positive = "TRUE")
 
 
-% 
-% 
-% confusion<-data.table(predicted=predictedRWS$fog,fogSensor=dtMat$foggy)
-% 
-% #table(confusion$predicted,confusion$fogSensor)
-% 
-% confInSample<-confusionMatrix(confusion$predicted,confusion$fog, mode = "prec_recall", positive = "TRUE")
-% 
-% 
-% 
-% 
-% ####OUT of sample testing##
-% predictedRWSTest<-predict(modelDarch,dataMatTest, type = "bin")#predict(net,matRWSTest)
-% #
-% predictedRWSTest<-data.table(predictedRWSTest)
-% #
-% # #predictedRWS[,predictedLabels:=colnames(predictedRWS)[max.col(predictedRWS, ties.method = "first")]]
-% predictedRWSTest[,fog:=V2>0]
-% predictedRWSTest[,file:=filesTest]
-% 
-% 
-% 
-% confusionTest<-data.table(predicted=predictedRWSTest$fog,fogSensor=testing$foggy)
-% 
-% #table(confusionTest$predicted,confusionTest$fogSensor)
-% 
-% confOutSample<-confusionMatrix(confusionTest$predicted,confusionTest$fog, mode = "prec_recall", positive = "TRUE")
-% 
-% 
-% @
-% 
-% % 
-% 
+#draw_confusion_matrix_binary(confMatrixTest)
+@
+
+
 <<confusionDraw, echo=FALSE>>=
 draw_confusion_matrix_binary <- function(cm) {
    
@@ -345,32 +337,30 @@ draw_confusion_matrix_binary <- function(cm) {
 \end{frame}
 
 
-% 
-% \begin{frame}{New Results (new continued)}
-% \begin{itemize}
-% \item Results:
-% \begin{itemize}
-% \item In-sample:
-% <<inSampleConfusion, echo=FALSE, fig.height=4, fig.width=7>>=
-% draw_confusion_matrix(confInSample)
-% @
-% \end{itemize}
-% \end{itemize}
-% \end{frame}
-% 
-%  \begin{frame}{New Results (new continued)}
-%  \begin{itemize}
-% \item Results:
-%  \begin{itemize}
-%  \item Out-of-sample:
-%  <<outOfSamepleConfusion, echo=FALSE, fig.height=4, fig.width=7>>=
-%  draw_confusion_matrix(confOutSample)
-%  @
-% 
-%  \end{itemize}
-%  \end{itemize}
-% 
-%  \end{frame}
+
+\begin{frame}{Results}
+\begin{itemize}
+\item Results:
+\begin{itemize}
+\item In-sample:
+<<inSampleConfusion, echo=FALSE, fig.height=4, fig.width=7>>=
+draw_confusion_matrix_binary(confInSample)
+@
+\end{itemize}
+\end{itemize}
+\end{frame}
+ 
+\begin{frame}{New Results (new continued)}
+\begin{itemize}
+\item Results:
+\begin{itemize}
+\item Out-of-sample:
+ <<outOfSamepleConfusion, echo=FALSE, fig.height=4, fig.width=7>>=
+  draw_confusion_matrix(confOutSample)
+@
+ \end{itemize}
+ \end{itemize}
+ \end{frame}
 % 
 % % 
 % \begin{frame}{Next steps: many!}
