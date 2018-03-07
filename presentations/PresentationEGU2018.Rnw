@@ -29,17 +29,25 @@ camera images}
 
 \begin{frame}
  \titlepage
+ \begin{textblock*}{5cm}(7cm,8.4cm)
+ \begin{tiny}
+ \textit{
+ EGU 2018 - Big data and machine learning in geosciences session\\
+ April 9, 2018
+ }
+ \end{tiny}
+ \end{textblock*}
 \end{frame}
 
 \begin{frame}{Outline}
 \begin{itemize}
   \item Motivation for Fog research
    \item Purpose
-   \item Approach
-   \item Results (till Dec 2016)
-   \item RWS project phase (since Jan 2017)
-   \item New results
-   \item Conclusion
+   \item Sensors vs. cameras
+   \item Data sets
+   \item Neural Networks
+   \item Results
+   \item Next steps
 \end{itemize}
 \end{frame}
 
@@ -148,7 +156,6 @@ knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
 \item Inspired by the functioning and firing of neurons in the brain
 \item Allow the fitting of complex non-linear classification tasks
 \item With many input high order interaction terms would explode (e.g., 25x25px gray-scale image and we want quadratic interaction terms requires 3 millions features)
-\item Used proficiently in image processing and image classification
 \item Training to find the right weights can be long if networks are big and deep
 \item Activation function can be customized (usually sigmoid-like function)
 \end{itemize}
@@ -163,12 +170,13 @@ knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
 
 
 \begin{frame}{Why Neural Networks?}
-\begin{textblock*}{9.5cm}(0.1cm,2.2cm)
+\begin{textblock*}{9.5cm}(0.5cm,3.2cm)
 \begin{itemize}
+\item Used proficiently in image processing and image classification
 \item New more general idea of fog detection than our previous attempt with decision trees and picture features
 \item Reason to use: scenery are too different also for the same camera (e.g., zoom)
 \item Features is the whole picture: each pixel (of each of the RGB layers)
-\item Use a deep neural network (InputL:2352,L1:800,L2:500,L3:100,L5:10,OutputL:2) to fit the model
+%\item Use a deep neural network (InputL:2352,L1:800,L2:500,L3:100,L5:10,OutputL:2) to fit the model
 \end{itemize}
 \end{textblock*}
 \begin{textblock*}{8cm}(7.5cm,2.2cm)
@@ -180,87 +188,6 @@ knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
 \end{textblock*}
 \end{frame}
 
-
-
-<<NN highways, echo=FALSE>>=
-#results for presentation
-
-
-modelDarch<-readRDS("~/development/fogNNmodels/NNmodelTrainedWithStationCouplingEGU.RDS")
-dataMatTrain<-readRDS("~/development/fogNNmodels/trainingDataMatEGU.RDS")
-dataMatTest<-readRDS("~/development/fogNNmodels/testingDataMatEGU.RDS")
-
-testing<-readRDS("~/development/fogNNmodels/testingDataLabelsEGU.RDS")
-training<-readRDS("~/development/fogNNmodels/trainingDataLabelsEGU.RDS")
-
-filesTest<-readRDS("~/development/fogNNmodels/filenamesTestEGU.RDS")
-files<-readRDS("~/development/fogNNmodels/trainingFileNamesEGU.RDS")
-
-
-
-predictedRWS<-predict(darch1,dataMatTrain, type = "bin")
-  #predict(net,matRWS)
-# 
-predictedRWS<-data.table(predictedRWS)
-# 
-# #predictedRWS[,predictedLabels:=colnames(predictedRWS)[max.col(predictedRWS, ties.method = "first")]]
-predictedRWS[,fog:=V2>0]
-predictedRWS[,file:=files]
-
-
-
-confusion<-data.table(predicted=predictedRWS$fog,fogSensor=dtMat$foggy)
-
-table(confusion$predicted,confusion$fog)
-
-confMatrixTraining<-confusionMatrix(confusion$predicted,confusion$fog, mode = "prec_recall", positive = "TRUE")
-
-
-@
-
-
-
-\begin{frame}{Training and Test sets}
-\begin{textblock*}{9.5cm}(0.1cm,3.5cm)
-\begin{itemize}
-\item Labels: from forward scatter visibility sensor that provides mteorological optical range (MOR)
-\item Fog considered if visibility is $\leq$250m
-\item Point of concern: labels for highway cameras are given by a KNMI station in a radius of 7.5km
-\item Training set: \Sexpr{length(sum(training$foggy))} +-5600 random fog and \Sexpr{length(sum(training$foggy==FALSE))}+-5600 non-fog pictures from 96 cameras 
-\item Test set: \Sexpr{length(sum(testing$foggy))} +-2400 fog and  \Sexpr{length(sum(testing$foggy==FALSE))} non-fog pictures
-
-\end{itemize}
-\end{textblock*}
-
-\begin{textblock*}{8cm}(7.5cm,2.2cm)
-\begin{center}
-\includegraphics[width=2.3cm]{training.png}\\
-\includegraphics[width=2.3cm]{test.png}
-\end{center}
-\end{textblock*}
-\end{frame}
-
-<<TestSet performance,echo=FALSE>>=
- 
-####OUT of sample testing##
-
-predictedRWSTest<-predict(darch1,dataMatTest, type = "bin")#predict(net,matRWSTest)
-# 
-predictedRWSTest<-data.table(predictedRWSTest)
-# 
-# #predictedRWS[,predictedLabels:=colnames(predictedRWS)[max.col(predictedRWS, ties.method = "first")]]
-predictedRWSTest[,fog:=V2>0]
-predictedRWSTest[,file:=filesTest]
-
-confusionTest<-data.table(predicted=predictedRWSTest$fog,fogSensor=testing$foggy)
-
-table(confusionTest$predicted,confusionTest$fogSensor)
-
-confMatrixTest<-confusionMatrix(confusionTest$predicted,confusionTest$fog, mode = "prec_recall", positive = "TRUE")
-
-
-#draw_confusion_matrix_binary(confMatrixTest)
-@
 
 
 <<confusionDraw, echo=FALSE>>=
@@ -312,8 +239,91 @@ draw_confusion_matrix_binary <- function(cm) {
  @
 
 
+
+
+
+
+
+
+
+
+<<NN highways, echo=FALSE>>=
+#results for presentation
+
+darch1<-readRDS("~/development/fogNNmodels/NNmodelTrainedWithStationCouplingEGU.RDS")
+dataMatTrain<-readRDS("~/development/fogNNmodels/trainingDataMatEGU.RDS")
+dataMatTest<-readRDS("~/development/fogNNmodels/testingDataMatEGU.RDS")
+
+testing<-readRDS("~/development/fogNNmodels/testingDataLabelsEGU.RDS")
+training<-readRDS("~/development/fogNNmodels/trainingDataLabelsEGU.RDS")
+
+filesTest<-readRDS("~/development/fogNNmodels/filenamesTestEGU.RDS")
+files<-readRDS("~/development/fogNNmodels/trainingFileNamesEGU.RDS")
+
+predictedRWS<-predict(darch1,dataMatTrain, type = "bin")
+predictedRWS<-data.table(predictedRWS)
+predictedRWS[,fog:=V2>0]
+predictedRWS[,file:=files]
+
+confusion<-data.table(predicted=predictedRWS$fog,fogSensor=training$foggy)
+
+#table(confusion$predicted,confusion$fog)
+
+confMatrixTraining<-confusionMatrix(confusion$predicted,confusion$fog, mode = "prec_recall", positive = "TRUE")
+
+
+@
+
+
+
+\begin{frame}{Training and Test sets}
+\begin{textblock*}{9.5cm}(0.5cm,3.5cm)
+\begin{itemize}
+\item Labels: from forward scatter visibility sensor that provides mteorological optical range (MOR)
+\item Fog considered if visibility is $\leq$250m
+\item Point of concern: labels for highway cameras are given by a KNMI station in a radius of 7.5km
+\item Training set: +-\Sexpr{round(sum(training$foggy/100))*100} random fog and +-\Sexpr{round(sum(training$foggy==FALSE)/100)*100} non-fog pictures from \Sexpr{length(unique(training$camera_id))} cameras 
+\item Test set: +-\Sexpr{round(sum(testing$foggy)/100)*100} fog and  +-\Sexpr{round(sum(testing$foggy==FALSE)/100)*100} non-fog pictures
+
+\end{itemize}
+\end{textblock*}
+
+\begin{textblock*}{8cm}(7.5cm,3.75cm)
+\begin{center}
+\includegraphics[width=2.3cm]{training.jpg}\\
+\includegraphics[width=2.3cm]{test.jpg}
+\end{center}
+\end{textblock*}
+\end{frame}
+
+<<TestSet performance,echo=FALSE>>=
+ 
+####OUT of sample testing##
+#darch1<-readRDS("~/development/fogNNmodels/NNmodelTrainedWithStationCouplingEGU.RDS")
+
+predictedRWSTest<-predict(darch1,dataMatTest, type = "bin")#predict(net,matRWSTest)
+# 
+predictedRWSTest<-data.table(predictedRWSTest)
+# 
+# #predictedRWS[,predictedLabels:=colnames(predictedRWS)[max.col(predictedRWS, ties.method = "first")]]
+predictedRWSTest[,fog:=V2>0]
+predictedRWSTest[,file:=filesTest]
+
+confusionTest<-data.table(predicted=predictedRWSTest$fog,fogSensor=testing$foggy)
+
+#table(confusionTest$predicted,confusionTest$fogSensor)
+
+confMatrixTest<-confusionMatrix(confusionTest$predicted,confusionTest$fog, mode = "prec_recall", positive = "TRUE")
+
+
+#draw_confusion_matrix_binary(confMatrixTest)
+@
+
+
+
+
 \begin{frame}{Pre-processing and network architecture}
-\begin{textblock*}{8cm}(0.2cm,3.5cm)
+\begin{textblock*}{8cm}(0.2cm,2.5cm)
 \begin{center}
 \begin{itemize}
 \item Pre-processing of images:
@@ -330,11 +340,36 @@ draw_confusion_matrix_binary <- function(cm) {
 \begin{center}
 \includegraphics[width=4cm]{private/original1.png}\\
 \includegraphics[width=1cm]{private/resize1.png}\\
-\includegraphics[width=1cm]{private/blurr1.png}\\
+\includegraphics[width=1cm]{private/blurr1.png}
+\end{center}
+\end{textblock*}
+
+\begin{textblock*}{8cm}(0.7cm,5.75cm)
+\begin{center}
 \includegraphics[width=5cm]{DNN.png}
 \end{center}
 \end{textblock*}
 \end{frame}
+
+
+
+\begin{frame}{Evaluation of performance}
+\begin{textblock*}{6cm}(0.5cm,2.75cm)
+\begin{itemize}
+\item Accuracy can be misleading especially in unbalanced datasets like this one.
+\item Better to use:
+\begin{itemize}
+\item Precision: fraction of items selected that are relevant (correct) ($Prec=\frac{TP}{TP+FP}$)
+\item Recall: fraction of items correctly selected on all the relevant items  ($Rec=\frac{TP}{TP+FN}$)
+\end{itemize}
+\end{itemize}
+\end{textblock*}
+\begin{textblock*}{4.8cm}(7.5cm,2cm)
+ \includegraphics[width=4cm]{private/precisionRecall.png}
+\end{textblock*}
+\end{frame}
+
+
 
 
 
@@ -344,38 +379,38 @@ draw_confusion_matrix_binary <- function(cm) {
 \begin{itemize}
 \item In-sample:
 <<inSampleConfusion, echo=FALSE, fig.height=4, fig.width=7>>=
-draw_confusion_matrix_binary(confInSample)
+draw_confusion_matrix_binary(confMatrixTraining)
 @
 \end{itemize}
 \end{itemize}
 \end{frame}
  
-\begin{frame}{New Results (new continued)}
+\begin{frame}{Results (continued)}
 \begin{itemize}
 \item Results:
 \begin{itemize}
 \item Out-of-sample:
  <<outOfSamepleConfusion, echo=FALSE, fig.height=4, fig.width=7>>=
-  draw_confusion_matrix(confOutSample)
+  draw_confusion_matrix_binary(confMatrixTest)
 @
  \end{itemize}
  \end{itemize}
  \end{frame}
-% 
-% % 
-% \begin{frame}{Next steps: many!}
-% \begin{itemize}
-% \item Wait for the foggy period to get more images :-)
-% \item Test the approach on other highways and manually examine the labels (labor intensive, any volunteers??)
-% \item Get more for images for training the network from UK MetOffice (contacts at EGU2017)
+
+
+\begin{frame}{Next steps}
+\begin{itemize}
+\item Wait for the foggy period to get more images :-)
+\item Manual labelling of the pictures far from meteo stations (labor intensive, any volunteers??)
+\item Get more foggy images for training the network (partners welcome)
 % \item Test a more advanced technique for image processing: convolutional neural networks
-% \item Test with more classes of visibility
-% \item Fog at night time (?)
-% \item Add meteo-related features
-% \end{itemize}
-% \end{frame}
+\item Test with more classes of visibility (initial results)
+\item Add meteo-related features
+\item Fog at night time (?)
+\end{itemize}
+\end{frame}
 % 
-% 
+
 % \begin{frame}{Conclusion}
 % \begin{itemize}
 % \item We are transitioning from a one-scene to \textbf{dynamic-scene} fog recognition
@@ -386,6 +421,22 @@ draw_confusion_matrix_binary(confInSample)
 % 
 % \end{itemize}
 % \end{frame}
+
+\begin{frame}
+\begin{textblock*}{8cm}(0.5cm,1.2cm)
+\begin{center}
+\includegraphics[width=9.3cm]{thanks.jpg}
+\end{center}
+\end{textblock*}
+
+\begin{textblock*}{8cm}(5.5cm,6.2cm)
+\begin{center}
+\includegraphics[width=4.3cm]{knmiDataLabLogoMail.png}
+\end{center}
+\end{textblock*}
+\end{frame}
+
+
 
 \end{document}
 
