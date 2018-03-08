@@ -180,8 +180,8 @@ evaluateModel<-function(model,dataSet,resolutionImg=28)
   
   setwd("~/share/")
   
-  
-  cl <- makeCluster(16)
+  cores<-24
+  cl <- makeCluster(24)
   registerDoParallel(cl)
   
   clusterEvalQ(cl, library("imager"))
@@ -321,8 +321,8 @@ setwd("~/share/")
 
 
 
-
-cl <- makeCluster(16)
+cores<-24
+cl <- makeCluster(24)
 registerDoParallel(cl)
 
 clusterEvalQ(cl, library("imager"))
@@ -400,31 +400,44 @@ tasks<-list(
 )
 
 
+m1<-future({m1Int<-darch(trainData, trainTargets, rbm.numEpochs = 0, 
+                     rbm.batchSize = 500, rbm.lastLayer = 0, 
+                     layers = c(2352,500,100,10), darch.batchSize = 500, 
+                     darch.numEpochs = 200, bp.learnRate = 0.5 )}) %plan% multiprocess
+
+m2<-future({m2Int<-darch(trainData, trainTargets, rbm.numEpochs = 0, 
+                          rbm.batchSize = 500, rbm.lastLayer = 0, 
+                          layers = c(2352,500,100,10), darch.batchSize = 500, 
+                          darch.numEpochs = 200, bp.learnRate = 0.5,darch.dither = TRUE)}) %plan% multiprocess
+
+m3<-future({darch(trainData, trainTargets, rbm.numEpochs = 0, 
+                                         rbm.batchSize = 500, rbm.lastLayer = 0, 
+                                         layers = c(2352,500,100,50,10), darch.batchSize = 500, 
+                                         darch.numEpochs = 200, bp.learnRate = 0.5)})
+m4<-future({darch(trainData, trainTargets, rbm.numEpochs = 0, 
+                  rbm.batchSize = 500, rbm.lastLayer = 0, 
+                  layers = c(2352,500,100,50,10), darch.batchSize = 500, 
+                  darch.numEpochs = 200, bp.learnRate = 0.5,darch.dither = TRUE )})
+
+m5 <-future({darch(trainData, trainTargets, rbm.numEpochs = 0, 
+                                             rbm.batchSize = 500, rbm.lastLayer = 0, 
+                                             layers = c(2352,1200,500,100,50,10), darch.batchSize = 500, 
+                                             darch.numEpochs = 200, bp.learnRate = 0.5 )})
+
+m6 <-future({darch(trainData, trainTargets, rbm.numEpochs = 0, 
+                   rbm.batchSize = 500, rbm.lastLayer = 0, 
+                   layers = c(2352,1200,500,100,50,10), darch.batchSize = 500, 
+                   darch.numEpochs = 200, bp.learnRate = 0.5,darch.dither = TRUE )})
 
 
-# Using fork()
-out <- mclapply( 
-  tasks, 
-  function(f) f(), 
-  mc.cores = 8 
-)
 
+c1<-evaluateModel(value(m1),crossValidating)
+c2<-evaluateModel(value(m2),crossValidating)
+c3<-evaluateModel(value(m3),crossValidating)
+c4<-evaluateModel(value(m4),crossValidating)
+c5<-evaluateModel(value(m5),crossValidating)
+c6<-evaluateModel(value(m6),crossValidating)
 
-tasksVal<-list(
-
-cv1 = function() evaluateModel(tasks[1],crossValidating),
-cv2 = function() evaluateModel(tasks[2],crossValidating)
-)
-
-out <- mclapply( 
-  tasksVal, 
-  function(f) f(), 
-  mc.cores = 8 
-)
-
-
-
-cv1<-evaluateModel(tasks[1],crossValidating)
 ####TO PUT LATER
 ###saveRDS(darch1,"~/development/fogNNmodels/NNmodelTrainedWithStationCouplingEGU.RDS")
 
