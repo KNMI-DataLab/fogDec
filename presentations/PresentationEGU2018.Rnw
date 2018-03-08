@@ -17,11 +17,12 @@
 % ---------------
 \graphicspath{{../figure/}}
 
-\title[NN for automatic fog detection]{Neural network approach for automatic fog detection using surveillance
-camera images}
-%\subtitle{KNMI DataLab Meeting}
+
+\title[NN for automatic fog detection]{Neural network approach for automatic fog detection using surveillance camera images}
+%\Subtitletrue
+%\subtitle{abc}
 \date{April 9, 2018}
-\author[Pagani, Noteboom, Wauben]{Pagani, Noteboom and Wauben}
+\author[Pagani, Noteboom and Wauben]{Pagani, Noteboom and Wauben}
 
 \begin{document}
 \tikzstyle{every picture}+=[remember picture]
@@ -31,14 +32,11 @@ camera images}
  \titlepage
  \begin{textblock*}{5cm}(7cm,8.4cm)
  \begin{tiny}
- \textit{
- EGU 2018 - Big data and machine learning in geosciences session\\
- April 9, 2018
- }
+ \textit{EGU 2018 - Big data and machine learning in geosciences session
+ April 9, 2018}
  \end{tiny}
  \end{textblock*}
 \end{frame}
-
 
 
 % \begin{frame}{Outline}
@@ -54,7 +52,8 @@ camera images}
 % \end{frame}
 
 
-<< Libraries, include=FALSE>>=
+
+<<Libraries, include=FALSE>>=
 library(data.table)
 library(imager)
 library(visDec)
@@ -72,12 +71,11 @@ library(darch)
 
 
 knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
+knitr::opts_chunk$set(error = TRUE)
 
 #setwd("~/development/fogDec/")
 
 @
-
-
 
 
 \begin{frame}{Fog as hazard}
@@ -95,13 +93,14 @@ knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
   \item Form and dissipate suddenly
   %\item Often  local phenomenon
   \item Not easy to accurately forecast
-  
+
  \end{itemize}
   \end{textblock*}
 \end{frame}
 
 
-\begin{frame}{Goal & Scope}
+
+\begin{frame}{Goal \& Scope}
 \begin{itemize}
 \item \textbf{Purpose:} use cameras to identify fog conditions to issue safety warnings
 \item \textbf{Value:}
@@ -123,19 +122,22 @@ knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
 \end{itemize}
 \end{frame}
 
+
+
+
 \begin{frame}{Traditional sensors vs. traffic cameras}
-\begin{itemize}
+%\begin{itemize}
 % \item Satellites are not pointing to NL 24/7
 %   \item But maybe other ubiquitous ``sensors'' can be used e.g., traffic cameras
 %   \end{itemize}
-   \begin{textblock*}{5cm}(0.2cm,3.0cm)
-  \includegraphics[width=3cm]{fogSat.jpg}
+   \begin{textblock*}{5cm}(0.5cm,4.0cm)
+  \includegraphics[width=4cm]{fogSat.jpg}
  \end{textblock*}
- \begin{textblock*}{5cm}(1.2cm,3.0cm)
+ \begin{textblock*}{5cm}(4.95cm,4.0cm)
   \includegraphics[width=3cm]{SensorPlacement.png}
  \end{textblock*}
- \begin{textblock*}{5cm}(7.0cm,3.7cm)
-  \includegraphics[width=3cm]{CameraPlacement.jpg}
+ \begin{textblock*}{5cm}(8.4cm,4cm)
+  \includegraphics[width=4cm]{CameraPlacement.jpg}
  \end{textblock*}
 \end{frame}
 
@@ -146,8 +148,8 @@ knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
 \item 6 KNMI stations: 10 cameras (since 04/2016)
 \item 160 cameras along Dutch highways (since 07/2018)
 \item image sampling every 10 minutes
-\item \pm 7 million images archived
-\item \pm 1.5 million labeled
+\item $\pm$ 7 million images archived
+\item $\pm$ 1.5 million labeled
 \end{itemize}
 \column{0.4\textwidth}
    \includegraphics[width=4.5cm]{schiphol.jpg}
@@ -160,7 +162,7 @@ knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
 
 
 \begin{frame}{Approach: Neural Network (in a nutshell)}
-\begin{textblock*}{8cm}(0.5cm,2.2cm)
+\begin{textblock*}{8cm}(0.5cm,3cm)
 \begin{itemize}
 \item Inspired by the functioning and firing of neurons in the brain
 \item Allows the fitting of complex non-linear classification tasks
@@ -200,7 +202,9 @@ knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
 
 
 
-<<confusionDraw, echo=FALSE>>=
+
+
+<<confusionDraw, echo=FALSE, include=FALSE>>=
 draw_confusion_matrix_binary <- function(cm) {
 
      layout(matrix(c(1,1,2)))
@@ -246,11 +250,11 @@ draw_confusion_matrix_binary <- function(cm) {
      #text(70, 35, names(cm$overall[2]), cex=1.5, font=2)
      #text(70, 20, round(as.numeric(cm$overall[2]), 3), cex=1.4)
    }
- @
-
-
-
-<<NN highways, echo=FALSE>>=
+@
+% 
+% 
+% 
+<<NN highways, echo=FALSE, include=FALSE>>=
 #results for presentation
 
 darch1<-readRDS("~/development/fogNNmodels/NNmodelTrainedWithStationCouplingEGU.RDS")
@@ -275,6 +279,7 @@ confusion<-data.table(predicted=predictedRWS$fog,fogSensor=training$foggy)
 confMatrixTraining<-confusionMatrix(confusion$predicted,confusion$fog, mode = "prec_recall", positive = "TRUE")
 @
 
+
 \begin{frame}{Training and Test sets}
 \begin{textblock*}{9.5cm}(0.5cm,3.5cm)
 \begin{itemize}
@@ -294,6 +299,10 @@ confMatrixTraining<-confusionMatrix(confusion$predicted,confusion$fog, mode = "p
 \end{center}
 \end{textblock*}
 \end{frame}
+
+
+
+
 
 <<TestSet performance,echo=FALSE>>=
 
@@ -376,7 +385,7 @@ confMatrixTest<-confusionMatrix(confusionTest$predicted,confusionTest$fog, mode 
 \begin{itemize}
 \item Results:
 \begin{itemize}
-\item In-sample:
+\item Training set:
 <<inSampleConfusion, echo=FALSE, fig.height=4, fig.width=7>>=
 draw_confusion_matrix_binary(confMatrixTraining)
 @
@@ -386,9 +395,8 @@ draw_confusion_matrix_binary(confMatrixTraining)
 
 \begin{frame}{Results (continued)}
 \begin{itemize}
-\item Results:
 \begin{itemize}
-\item Out-of-sample:
+\item Test set:
  <<outOfSamepleConfusion, echo=FALSE, fig.height=4, fig.width=7>>=
   draw_confusion_matrix_binary(confMatrixTest)
 @
@@ -397,12 +405,18 @@ draw_confusion_matrix_binary(confMatrixTraining)
  \end{frame}
 
 
-\begin{frame}{Next steps}
+\begin{frame}{Conclusion and Outlook}
+\begin{itemize}
+\item Results looks promising, but better performance are needed for an operational service
+\item Possibilities
 \begin{itemize}
 \item Wait for the foggy period to get more images :-)
 \item Manual labelling of the images far from meteo stations (labor intensive, any volunteers??)
 \item Get more foggy images for training the network (partners welcome)
 % \item Test a more advanced technique for image processing: convolutional neural networks
+\end{itemize}
+\item Next steps:
+\begin{itemize}
 \item Test with more classes of visibility (initial results)
 \item Add meteo-related features
 \item Fog at night time (?)
