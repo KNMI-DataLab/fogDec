@@ -251,9 +251,7 @@ draw_confusion_matrix_binary <- function(cm) {
      #text(70, 20, round(as.numeric(cm$overall[2]), 3), cex=1.4)
    }
 @
-% 
-% 
-% 
+
 <<NN highways, echo=FALSE, include=FALSE>>=
 #results for presentation
 
@@ -346,9 +344,9 @@ confMatrixTest<-confusionMatrix(confusionTest$predicted,confusionTest$fog, mode 
 
 \begin{textblock*}{8cm}(6cm,2.5cm)
 \begin{center}
-\includegraphics[width=4cm]{private/original1.png}\\
-\includegraphics[width=1cm]{private/resize1.png}\\
-\includegraphics[width=1cm]{private/blurr1.png}
+\includegraphics[width=3cm]{private/original1.png}\\
+\includegraphics[width=3cm]{private/resize1.png}\\
+\includegraphics[width=3cm]{private/blurr1.png}
 \end{center}
 \end{textblock*}
 
@@ -361,6 +359,61 @@ confMatrixTest<-confusionMatrix(confusionTest$predicted,confusionTest$fog, mode 
 
 
 
+
+
+<<confusionDraw, echo=FALSE, include=FALSE>>=
+draw_confusion_matrix_binary_explanation <- function() {
+
+     layout(matrix(c(1,1,2)))
+     par(mar=c(2,2,2,2))
+     plot(c(100, 345), c(300, 450), type = "n", xlab="", ylab="", xaxt='n', yaxt='n')
+     title('CONFUSION MATRIX', cex.main=2)
+
+     # create the matrix
+     rect(150, 430, 240, 370, col='#3F97D0')
+     text(195, 435, 'FALSE', cex=1.2)
+     rect(250, 430, 340, 370, col='#F7AD50')
+     text(295, 435, 'TRUE', cex=1.2)
+     text(125, 370, 'Predicted', cex=1.3, srt=90, font=2)
+     text(245, 450, 'Actual', cex=1.3, font=2)
+     rect(150, 305, 240, 365, col='#F7AD50')
+     rect(250, 305, 340, 365, col='#3F97D0')
+     text(140, 400, 'FALSE', cex=1.2, srt=90)
+     text(140, 335, 'TRUE', cex=1.2, srt=90)
+
+     # add in the cm results
+     #res <- as.numeric(cm$table)
+     text(195, 400, "TN", cex=1.6, font=2, col='white')
+     text(195, 335, "FP", cex=1.6, font=2, col='white')
+     text(295, 400, "FN", cex=1.6, font=2, col='white')
+     text(295, 335, "TP", cex=1.6, font=2, col='white')
+
+     # add in the specifics
+     plot(c(100, 0), c(100, 0), type = "n", xlab="", ylab="", main = "DETAILS", xaxt='n', yaxt='n')
+     text(10, 85, "Precision", cex=1.4, font=2)
+     text(10, 50, TeX("\\frac{TP}{TP+FP}$"), cex=1.4)
+     text(30, 85, "Recall", cex=1.4, font=2)
+     text(30, 50, TeX("\\frac{TP}{TP+FN}$"), cex=1.4)
+     text(55, 85, "F1 Score", cex=1.4, font=2)
+     text(55, 50, TeX("\\frac{$2\\cdot$Precision$\\cdot$Recall}{Precision+Recall}"), cex=1.4)
+    
+
+     # add in the accuracy information
+     text(80, 85, "Accuracy", cex=1.4, font=2)
+     text(80, 50, TeX("\\frac{TP+TN}{TP+TN+FP+FN}$"), cex=1.4)
+     #text(70, 35, names(cm$overall[2]), cex=1.5, font=2)
+     #text(70, 20, round(as.numeric(cm$overall[2]), 3), cex=1.4)
+   }
+@
+
+
+
+
+
+
+
+
+
 \begin{frame}{Evaluation of performance}
 \begin{textblock*}{6cm}(0.5cm,2.75cm)
 \begin{itemize}
@@ -369,11 +422,14 @@ confMatrixTest<-confusionMatrix(confusionTest$predicted,confusionTest$fog, mode 
 \begin{itemize}
 \item Precision: fraction of items selected that are relevant (correct) ($Prec=\frac{TP}{TP+FP}$)
 \item Recall: fraction of items correctly selected on all the relevant items  ($Rec=\frac{TP}{TP+FN}$)
+\item F1 Score: harmonic mean of precision and recall
 \end{itemize}
 \end{itemize}
 \end{textblock*}
 \begin{textblock*}{4.8cm}(7.5cm,2cm)
- \includegraphics[width=4cm]{private/precisionRecall.png}
+ <<inSampleConfusion, echo=FALSE, fig.height=3, fig.width=6>>=
+draw_confusion_matrix_binary_explanation()
+@
 \end{textblock*}
 \end{frame}
 
@@ -383,24 +439,19 @@ confMatrixTest<-confusionMatrix(confusionTest$predicted,confusionTest$fog, mode 
 
 \begin{frame}{Results}
 \begin{itemize}
-\item Results:
-\begin{itemize}
 \item Training set:
 <<inSampleConfusion, echo=FALSE, fig.height=4, fig.width=7>>=
 draw_confusion_matrix_binary(confMatrixTraining)
 @
 \end{itemize}
-\end{itemize}
 \end{frame}
 
 \begin{frame}{Results (continued)}
-\begin{itemize}
 \begin{itemize}
 \item Test set:
  <<outOfSamepleConfusion, echo=FALSE, fig.height=4, fig.width=7>>=
   draw_confusion_matrix_binary(confMatrixTest)
 @
- \end{itemize}
  \end{itemize}
  \end{frame}
 
