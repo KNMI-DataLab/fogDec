@@ -1,5 +1,5 @@
 \documentclass[10pt,fleqn]{beamer}
-
+ 
 \usepackage{lmodern}
 \usepackage{knmiBeamer}
 \usepackage{multirow}
