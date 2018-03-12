@@ -361,7 +361,7 @@ confMatrixTest<-confusionMatrix(confusionTest$predicted,confusionTest$fog, mode 
 
 
 
-<<confusionDraw, echo=FALSE, include=FALSE>>=
+<<confusionDrawExplanation, echo=FALSE, include=FALSE>>=
 draw_confusion_matrix_binary_explanation <- function() {
 
      layout(matrix(c(1,1,2)))
@@ -427,7 +427,7 @@ draw_confusion_matrix_binary_explanation <- function() {
 \end{itemize}
 \end{textblock*}
 \begin{textblock*}{4.8cm}(7.5cm,2cm)
- <<inSampleConfusion, echo=FALSE, fig.height=3, fig.width=6>>=
+ <<confusionExplanation, echo=FALSE, fig.height=3, fig.width=6>>=
 draw_confusion_matrix_binary_explanation()
 @
 \end{textblock*}
