@@ -1,26 +1,5 @@
-# shinyUI(fluidPage(
-#   titlePanel(fluidRow(column(12,"Fog Detection from Camera Images"))),
-#   sidebarLayout(
-#     sidebarPanel(
-#       fileInput(inputId = 'file', 
-#                 label = 'Select an Image',
-#                 multiple = TRUE,
-#                 accept=c('image/png', 'image/jpeg')),
-#      h5(strong("Analyze the image selected")),
-#       actionButton("goButton", "Analyze the image")
-#       #look here fr enable/disable buttons
-#       #https://stackoverflow.com/questions/40621393/disabling-buttons-in-shiny
-#     ),
-#     mainPanel(
-#       h4("The app works as follows..."),
-#       tableOutput('files'),
-#       uiOutput('images')
-#     )
-#   )   
-# ))
-
-
 library(shinydashboard)
+library(shinyFiles)
 
 
 dashboardPage(
@@ -30,24 +9,9 @@ dashboardPage(
                                     the detection of fog conditions from camera images DataLab project."),
                    h5("Select a file in the upload menu below and then click \"Analyze the image\" 
                       to have an automatic answer of the presence of fog." ),
-    fluidRow(
-     #shinyjs::useShinyjs(),
-      #sess <- getSession(),
-      #id <- sess$ns(id),
-      #shinyjs::toggleState('goButton'),
-      
-      #shinyjs::disable("goButton"),
-     
-    res<-fileInput(inputId = 'file', 
-              label = 'Select an Image',
-              multiple = TRUE,
-              accept=c('image/png', 'image/jpeg'))
-    #if(){
-              
-    #}
-    #look here fr enable/disable buttons
-    #https://stackoverflow.com/questions/40621393/disabling-buttons-in-shiny
-  ),
+    #fluidRow(
+    res<-shinyFilesButton('file', label='File select', title='Please select a file', multiple=FALSE),
+    #),
   
   
   
@@ -67,12 +31,14 @@ dashboardPage(
     # Boxes need to be put in a row (or column)
     tabsetPanel(
       tabPanel("Analysis",tableOutput('files'),
-               fluidRow(column(12,uiOutput('images')
-               )),
+               htmlOutput("images"),
+               #fluidRow(column(12,uiOutput('images')
+               #)),
                fluidRow(column(12,
                uiOutput("FOG")))
                ),
-      tags$style(type='text/css', "#FOG { margin-top: 300px; text-align: center; font-size: 80px; font-family: Comic Sans MS, cursive, sans-serif;}"),
+      tags$style(type="text/css", "#images { display: flex; justify-content: center;}"),
+      tags$style(type='text/css', "#FOG { margin-top: 80px; text-align: center; font-size: 80px; font-family: Comic Sans MS, cursive, sans-serif;}"),
       
       
       
@@ -102,39 +68,3 @@ dashboardPage(
   )
 )
 )
-#)
-
-
-
-
-
-
-# fluidPage(
-#   
-#   title = "Diamonds Explorer",
-#   
-#   plotOutput('plot'),
-#   
-#   hr(),
-#   
-#   fluidRow(
-#     column(3,
-#            h4("Diamonds Explorer"),
-#            sliderInput('sampleSize', 'Sample Size', 
-#                        min=1, max=nrow(dataset), value=min(1000, nrow(dataset)), 
-#                        step=500, round=0),
-#            br(),
-#            checkboxInput('jitter', 'Jitter'),
-#            checkboxInput('smooth', 'Smooth')
-#     ),
-#     column(4, offset = 1,
-#            selectInput('x', 'X', names(dataset)),
-#            selectInput('y', 'Y', names(dataset), names(dataset)[[2]]),
-#            selectInput('color', 'Color', c('None', names(dataset)))
-#     ),
-#     column(4,
-#            selectInput('facet_row', 'Facet Row', c(None='.', names(dataset))),
-#            selectInput('facet_col', 'Facet Column', c(None='.', names(dataset)))
-#     )
-#   )
-# )
