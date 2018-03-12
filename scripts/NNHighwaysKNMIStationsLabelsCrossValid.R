@@ -215,16 +215,15 @@ evaluateModel<-function(model,dataSet,resolutionImg=28)
   stopCluster(cl)
   
   
+  #not inside the function
+  #saveRDS(matRWSTest,"~/development/fogNNmodels/testingDataMatEGU.RDS")
   
-  saveRDS(matRWSTest,"~/development/fogNNmodels/testingDataMatEGU.RDS")
   
   
+  predictedRWSTest<-predict(model,matRWSTest, type = "bin")
   
-  predictedRWSTest<-predict(model,matRWSTest, type = "bin")#predict(net,matRWSTest)
-  # 
   predictedRWSTest<-data.table(predictedRWSTest)
-  # 
-  # #predictedRWS[,predictedLabels:=colnames(predictedRWS)[max.col(predictedRWS, ties.method = "first")]]
+  
   predictedRWSTest[,fog:=V2>0]
   predictedRWSTest[,file:=fileList]
   
@@ -245,6 +244,12 @@ evaluateModel<-function(model,dataSet,resolutionImg=28)
 total<-coupleImagesAndMeteoToDate(dateStr)
 
 set.seed(11)
+
+
+nFog<-dim(total[foggy==TRUE])[[1]]
+nNonFog<-dim(total[foggy==FALSE])[[1]]
+
+fogNonFogRatio<-nFog/nNonFog
 
 
 #FOGGY CASES
@@ -284,7 +289,12 @@ inCrossVal<-sample(nrow(remaining),0.2*nrow(foggyData))
 nonFoggyCrossValidating<-remaining[inCrossVal]
 
 ######TEST SET
-nonFoggyTesting<-remaining[-inCrossVal]
+foggyInTest<-dim(testing[foggy==TRUE])[[1]]
+nonFoggyForRealisticRatio<-foggyInTest*1/fogNonFogRatio
+inTestNoFog<-sample(nrow(remaining[-inCrossVal]),nonFoggyForRealisticRatio)
+
+nonFoggyTesting<-remaining[-inCrossVal][inTestNoFog]
+
 
 sum(duplicated(rbind(nonFoggyCrossValidating,nonFoggyTesting)))
 sum(duplicated(rbind(nonFoggyTraining,nonFoggyTesting)))
@@ -373,61 +383,37 @@ trainTargets<-complete[,groundTruth:groundTruth]
 
 
 #############GENERATE MODELS WITH SEVERAL PARAMS TO CROSS-VALIDATE################################
-m1<<-"old"
-m2<<-"old"
 
-tasks<-list(
-  m11 = function() {m1Int<-darch(trainData, trainTargets, rbm.numEpochs = 0, 
-                               rbm.batchSize = 500, rbm.lastLayer = 0, 
-                               layers = c(2352,500,100,10), darch.batchSize = 500, 
-                               darch.numEpochs = 5, bp.learnRate = 0.5 )
-  assign("m1",m1Int, envir = .GlobalEnv )
-                    },
-  m21 = function() {m2Int<-darch(trainData, trainTargets, rbm.numEpochs = 0, 
-                        rbm.batchSize = 500, rbm.lastLayer = 0, 
-                        layers = c(2352,500,100,10), darch.batchSize = 500, 
-                        darch.numEpochs = 5, bp.learnRate = 0.5,darch.dither = TRUE)
-  assign("m2",m2Int, envir = .GlobalEnv )
-                    }
-  # m2 = function() darch(trainData, trainTargets, rbm.numEpochs = 0, 
-  #                       rbm.batchSize = 500, rbm.lastLayer = 0, 
-  #                       layers = c(2352,500,100,50,10), darch.batchSize = 500, 
-  #                       darch.numEpochs = 200, bp.learnRate = 0.5 ),
-  # m3 = function() darch(trainData, trainTargets, rbm.numEpochs = 0, 
-  #                       rbm.batchSize = 500, rbm.lastLayer = 0, 
-  #                       layers = c(2352,1200,500,100,50,10), darch.batchSize = 500, 
-  #                       darch.numEpochs = 200, bp.learnRate = 0.5 )
-)
 
 
 m1<-future({m1Int<-darch(trainData, trainTargets, rbm.numEpochs = 0, 
                      rbm.batchSize = 500, rbm.lastLayer = 0, 
                      layers = c(2352,500,100,10), darch.batchSize = 500, 
-                     darch.numEpochs = 200, bp.learnRate = 0.5 )}) %plan% multiprocess
+                     darch.numEpochs = 1000, bp.learnRate = 3,darch.dither = TRUE )}) %plan% multiprocess
 
 m2<-future({m2Int<-darch(trainData, trainTargets, rbm.numEpochs = 0, 
                           rbm.batchSize = 500, rbm.lastLayer = 0, 
-                          layers = c(2352,500,100,10), darch.batchSize = 500, 
-                          darch.numEpochs = 200, bp.learnRate = 0.5,darch.dither = TRUE)}) %plan% multiprocess
+                          layers = c(2352,500,100,10), darch.batchSize = 750, 
+                          darch.numEpochs = 850, bp.learnRate = 7.5,darch.dither = TRUE)}) %plan% multiprocess
 
 m3<-future({darch(trainData, trainTargets, rbm.numEpochs = 0, 
                                          rbm.batchSize = 500, rbm.lastLayer = 0, 
                                          layers = c(2352,500,100,50,10), darch.batchSize = 500, 
-                                         darch.numEpochs = 200, bp.learnRate = 0.5)})
+                                         darch.numEpochs = 650, bp.learnRate = 3)}) %plan% multiprocess
 m4<-future({darch(trainData, trainTargets, rbm.numEpochs = 0, 
                   rbm.batchSize = 500, rbm.lastLayer = 0, 
                   layers = c(2352,500,100,50,10), darch.batchSize = 500, 
-                  darch.numEpochs = 200, bp.learnRate = 0.5,darch.dither = TRUE )})
+                  darch.numEpochs = 650, bp.learnRate =3,darch.dither = TRUE )}) %plan% multiprocess
 
-m5 <-future({darch(trainData, trainTargets, rbm.numEpochs = 0, 
-                                             rbm.batchSize = 500, rbm.lastLayer = 0, 
-                                             layers = c(2352,1200,500,100,50,10), darch.batchSize = 500, 
-                                             darch.numEpochs = 200, bp.learnRate = 0.5 )})
-
-m6 <-future({darch(trainData, trainTargets, rbm.numEpochs = 0, 
-                   rbm.batchSize = 500, rbm.lastLayer = 0, 
-                   layers = c(2352,1200,500,100,50,10), darch.batchSize = 500, 
-                   darch.numEpochs = 200, bp.learnRate = 0.5,darch.dither = TRUE )})
+# m5 <-future({darch(trainData, trainTargets, rbm.numEpochs = 0, 
+#                                              rbm.batchSize = 500, rbm.lastLayer = 0, 
+#                                              layers = c(2352,1200,500,100,50,10), darch.batchSize = 500, 
+#                                              darch.numEpochs = 500, bp.learnRate = 0.5 )}) %plan% multiprocess
+# 
+# m6 <-future({darch(trainData, trainTargets, rbm.numEpochs = 0, 
+#                    rbm.batchSize = 500, rbm.lastLayer = 0, 
+#                    layers = c(2352,1200,500,100,50,10), darch.batchSize = 500, 
+#                    darch.numEpochs = 500, bp.learnRate = 0.5,darch.dither = TRUE )}) %plan% multiprocess
 
 
 
