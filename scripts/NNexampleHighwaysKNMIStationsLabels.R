@@ -171,12 +171,14 @@ training<-foggyData[inTraining]
 
 
 nonFoggyData<-total[foggy==FALSE]
-training<-rbind(training,nonFoggyData[sample(nrow(nonFoggyData),nrow(training))])
+inTrainingNoFog<-sample(nrow(nonFoggyData),nrow(training))
+training<-rbind(training,nonFoggyData[inTrainingNoFog])
 
 
 
 testing<-foggyData[-inTraining]
-testing<-rbind(testing,nonFoggyData[sample(nrow(nonFoggyData),6000)])
+testingNoFog<-nonFoggyData[-inTrainingNoFog]
+testing<-rbind(testing,testingNoFog[sample(nrow(testingNoFog),6000)])
 
 #inTrain<-createDataPartition(total$foggy, p=0.7, list = FALSE)
 
@@ -219,7 +221,7 @@ setwd("~/share/")
 
 
 
-cl <- makeCluster(16)
+cl <- makeCluster(24)
 registerDoParallel(cl)
 
 clusterEvalQ(cl, library("imager"))
@@ -291,8 +293,8 @@ trainTargets<-complete[,groundTruth:groundTruth]
 #1st mod
 #darch1<- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 500, rbm.trainOutputLayer = F, layers = c(2352,800, 500,100,10), darch.batchSize = 250, darch.numEpochs = 200 )
 
-#2nd mod
-darch1<- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 500, rbm.lastLayer = 0, layers = c(2352,800, 500,100,10), darch.batchSize = 500, darch.numEpochs = 800, bp.learnRate = 0.5 )
+#2nd mod MODEL USED IN THE EGU
+#darch1<- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 500, rbm.lastLayer = 0, layers = c(2352,800, 500,100,10), darch.batchSize = 500, darch.numEpochs = 800, bp.learnRate = 0.5 )
 
 #3rd mod
 #darch1<- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 500, rbm.trainOutputLayer = F, layers = c(2352,800, 500,100,10), darch.batchSize = 750, darch.numEpochs = 650 )
@@ -304,8 +306,9 @@ darch1<- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 500, 
 #darch3  <- darch(trainData, trainTargets, rbm.numEpochs = 0, rbm.batchSize = 50, rbm.trainOutputLayer = F, layers = c(2352,100,10), darch.batchSize = 50, darch.learnRate = 2, darch.retainData = F, darch.numEpochs = 500 )
 
 
-
-saveRDS(darch1,"~/development/fogNNmodels/NNmodelTrainedWithStationCouplingEGU.RDS")
+#NOT SAVING, WORKING WITH MODEL FOUND
+#saveRDS(darch1,"~/development/fogNNmodels/NNmodelTrainedWithStationCouplingEGU.RDS")
+darch1<-readRDS("~/development/fogNNmodels/NNmodelTrainedWithStationCouplingEGU.RDS")
 
 
 saveRDS(matRWS,"~/development/fogNNmodels/trainingDataMatEGU.RDS")
@@ -369,7 +372,7 @@ setwd("~/share/")
 
 
 
-cl <- makeCluster(16)
+cl <- makeCluster(24)
 registerDoParallel(cl)
 
 clusterEvalQ(cl, library("imager"))

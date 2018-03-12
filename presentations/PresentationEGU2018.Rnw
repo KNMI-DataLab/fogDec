@@ -68,6 +68,7 @@ library(jsonlite)
 library(data.table)
 library(caret)
 library(darch)
+library(latex2exp)
 
 
 knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
@@ -86,7 +87,7 @@ knitr::opts_chunk$set(error = TRUE)
   \includegraphics[width=5cm]{airplane.jpg}
  \end{textblock*}
 
-\begin{textblock*}{7cm}(0.2cm,3cm)
+\begin{textblock*}{7cm}(0.2cm,4.25cm)
 \begin{itemize}
   \item Substantial impact on air, marine, and road traffic
   %\item Loss of life comparable to that of tornadoes or even winter storms\footnote{Gultepe, I. et al. (2007): Fog research: A review of past achievements and future perspectives. \emph{Pure and Applied Geophysics}, \textbf{164}, 1121--1159.}
@@ -233,20 +234,20 @@ draw_confusion_matrix_binary <- function(cm) {
 
      # add in the specifics
      plot(c(100, 0), c(100, 0), type = "n", xlab="", ylab="", main = "DETAILS", xaxt='n', yaxt='n')
-     text(10, 85, names(cm$byClass[1]), cex=1.2, font=2)
-     text(10, 70, round(as.numeric(cm$byClass[1]), 3), cex=1.2)
-     text(30, 85, names(cm$byClass[2]), cex=1.2, font=2)
-     text(30, 70, round(as.numeric(cm$byClass[2]), 3), cex=1.2)
-     text(50, 85, names(cm$byClass[5]), cex=1.2, font=2)
-     text(50, 70, round(as.numeric(cm$byClass[5]), 3), cex=1.2)
-     text(70, 85, names(cm$byClass[6]), cex=1.2, font=2)
-     text(70, 70, round(as.numeric(cm$byClass[6]), 3), cex=1.2)
-     text(90, 85, names(cm$byClass[7]), cex=1.2, font=2)
-     text(90, 70, round(as.numeric(cm$byClass[7]), 3), cex=1.2)
+     #text(10, 85, names(cm$byClass[1]), cex=1.2, font=2)
+     #text(10, 70, round(as.numeric(cm$byClass[1]), 3), cex=1.2)
+     #text(30, 85, names(cm$byClass[2]), cex=1.2, font=2)
+     #text(30, 70, round(as.numeric(cm$byClass[2]), 3), cex=1.2)
+     text(10, 85, names(cm$byClass[5]), cex=1.4, font=2)
+     text(10, 65, round(as.numeric(cm$byClass[5]), 3), cex=1.4)
+     text(30, 85, names(cm$byClass[6]), cex=1.4, font=2)
+     text(30, 65, round(as.numeric(cm$byClass[6]), 3), cex=1.4)
+     text(50, 85, names(cm$byClass[7]), cex=1.4, font=2)
+     text(50, 65, round(as.numeric(cm$byClass[7]), 3), cex=1.4)
 
      # add in the accuracy information
-     text(50, 35, names(cm$overall[1]), cex=1.5, font=2)
-     text(50, 20, round(as.numeric(cm$overall[1]), 3), cex=1.4)
+     text(80, 85, names(cm$overall[1]), cex=1.4, font=2)
+     text(80, 65, round(as.numeric(cm$overall[1]), 3), cex=1.4)
      #text(70, 35, names(cm$overall[2]), cex=1.5, font=2)
      #text(70, 20, round(as.numeric(cm$overall[2]), 3), cex=1.4)
    }
@@ -282,11 +283,10 @@ confMatrixTraining<-confusionMatrix(confusion$predicted,confusion$fog, mode = "p
 \begin{textblock*}{9.5cm}(0.5cm,3.5cm)
 \begin{itemize}
 \item Labels: from forward scatter visibility sensor that provides mteorological optical range (MOR)
-\item Fog considered if visibility is $\leq$250m
+\item Fog considered if visibility is $\leq$ 250m
 \item Point of concern: labels for highway cameras are given by a KNMI station in a radius of 7.5km
-\item Balanced training set: \pm \Sexpr{round(sum(training$foggy/100))*100} random fog and \pm \Sexpr{round(sum(training$foggy==FALSE)/100)*100} non-fog images from \Sexpr{length(unique(training$camera_id))} cameras
-\item Test set: +-\Sexpr{round(sum(testing$foggy)/100)*100} fog and  +-\Sexpr{round(sum(testing$foggy==FALSE)/100)*100} non-fog images
-
+\item Balanced training set: $\pm$ \Sexpr{round(sum(training$foggy/100))*100} random fog and $\pm$ \Sexpr{round(sum(training$foggy==FALSE)/100)*100} non-fog images from \Sexpr{length(unique(training$camera_id))} cameras
+\item Test set: $\pm$ \Sexpr{round(sum(testing$foggy)/100)*100} fog and  $\pm$ \Sexpr{round(sum(testing$foggy==FALSE)/100)*100} non-fog images
 \end{itemize}
 \end{textblock*}
 
@@ -344,9 +344,9 @@ confMatrixTest<-confusionMatrix(confusionTest$predicted,confusionTest$fog, mode 
 
 \begin{textblock*}{8cm}(6cm,2.5cm)
 \begin{center}
-\includegraphics[width=3cm]{private/original1.png}\\
-\includegraphics[width=3cm]{private/resize1.png}\\
-\includegraphics[width=3cm]{private/blurr1.png}
+\includegraphics[width=2cm]{private/original1.png}\\
+\includegraphics[width=2cm]{private/resize1.png}\\
+\includegraphics[width=2cm]{private/blurr1.png}
 \end{center}
 \end{textblock*}
 
@@ -396,7 +396,7 @@ draw_confusion_matrix_binary_explanation <- function() {
      text(30, 50, TeX("\\frac{TP}{TP+FN}$"), cex=1.4)
      text(55, 85, "F1 Score", cex=1.4, font=2)
      text(55, 50, TeX("\\frac{$2\\cdot$Precision$\\cdot$Recall}{Precision+Recall}"), cex=1.4)
-    
+
 
      # add in the accuracy information
      text(80, 85, "Accuracy", cex=1.4, font=2)
@@ -408,14 +408,8 @@ draw_confusion_matrix_binary_explanation <- function() {
 
 
 
-
-
-
-
-
-
 \begin{frame}{Evaluation of performance}
-\begin{textblock*}{6cm}(0.5cm,2.75cm)
+\begin{textblock*}{5.3cm}(0.2cm,2.75cm)
 \begin{itemize}
 \item Accuracy can be misleading especially in unbalanced datasets like this one.
 \item Better to use:
@@ -426,8 +420,8 @@ draw_confusion_matrix_binary_explanation <- function() {
 \end{itemize}
 \end{itemize}
 \end{textblock*}
-\begin{textblock*}{4.8cm}(7.5cm,2cm)
- <<confusionExplanation, echo=FALSE, fig.height=3, fig.width=6>>=
+\begin{textblock*}{7cm}(5.5cm,3.75cm)
+ <<confusionExplanation, echo=FALSE, fig.height=5, fig.width=8>>=
 draw_confusion_matrix_binary_explanation()
 @
 \end{textblock*}
@@ -459,7 +453,7 @@ draw_confusion_matrix_binary(confMatrixTraining)
 \begin{frame}{Conclusion and Outlook}
 \begin{itemize}
 \item Results looks promising, but better performance are needed for an operational service
-\item Possibilities
+\item Possibilities:
 \begin{itemize}
 \item Wait for the foggy period to get more images :-)
 \item Manual labelling of the images far from meteo stations (labor intensive, any volunteers??)
@@ -471,6 +465,7 @@ draw_confusion_matrix_binary(confMatrixTraining)
 \item Test with more classes of visibility (initial results)
 \item Add meteo-related features
 \item Fog at night time (?)
+\end{itemize}
 \end{itemize}
 \end{frame}
 %
