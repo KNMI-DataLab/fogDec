@@ -8,6 +8,8 @@ coupleCamerasAndKNMInearStations(maxDistance = 5000, dbConfigDir)
 }
 \arguments{
 \item{maxDistance}{Numeric distance radius from the KNMI station}
+
+\item{dbConfigDir}{String of path with directory containing the DB param access config file}
 }
 \description{
 Couple cameras and KNMI nearby stations

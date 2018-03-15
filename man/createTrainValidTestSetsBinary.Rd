@@ -11,6 +11,8 @@ createTrainValidTestSetsBinary(dataDir, dateMax = "'2018-02-28 00:00:00'",
 \item{dataDir}{String of directory containing the cameras}
 
 \item{dateMax}{String of latest date do use for fetching data}
+
+\item{dbConfigDir}{String of path with directory containing the DB param access config file}
 }
 \description{
 Create training, validation and test datasets
