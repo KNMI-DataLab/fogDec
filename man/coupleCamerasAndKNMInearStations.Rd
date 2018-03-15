@@ -4,7 +4,7 @@
 \alias{coupleCamerasAndKNMInearStations}
 \title{Couple cameras and KNMI nearby stations}
 \usage{
-coupleCamerasAndKNMInearStations(maxDistance = 5000)
+coupleCamerasAndKNMInearStations(maxDistance = 5000, dbConfigDir)
 }
 \arguments{
 \item{maxDistance}{Numeric distance radius from the KNMI station}
@@ -12,3 +12,4 @@ coupleCamerasAndKNMInearStations(maxDistance = 5000)
 \description{
 Couple cameras and KNMI nearby stations
 }
+
