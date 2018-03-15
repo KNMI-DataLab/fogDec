@@ -1,5 +1,6 @@
 #' Couple cameras and KNMI nearby stations
 #' @param maxDistance Numeric distance radius from the KNMI station
+#' @param dbConfigDir String of path with directory containing the DB param access config file
 #' @import jsonlite DBI postGIStools geosphere data.table stats
 #' @export
 coupleCamerasAndKNMInearStations<-function(maxDistance = 5000,dbConfigDir){
