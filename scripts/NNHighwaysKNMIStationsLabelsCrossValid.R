@@ -180,13 +180,13 @@ evaluateModel<-function(model,dataSet,resolutionImg=28)
   
   setwd("~/share/")
   
-  cores<-24
-  cl <- makeCluster(24)
+  cores<-40
+  cl <- makeCluster(40)
   registerDoParallel(cl)
   
   clusterEvalQ(cl, library("imager"))
   
-  matRWSTest<-foreach(i=1:length(fileList), .combine = rbind) %dopar%{
+  matRWSTest<-foreach(i=1:length(fileList)) %dopar%{
     message(fileList[[i]])
     image<-tryCatch(
       load.image(fileList[[i]]),
@@ -213,6 +213,8 @@ evaluateModel<-function(model,dataSet,resolutionImg=28)
   }
   
   stopCluster(cl)
+  
+  matRWSTest<-do.call(rbind,matRWSTest)
   
   
   #not inside the function
@@ -257,7 +259,11 @@ fogNonFogRatio<-nFog/nNonFog
 
 foggyData<-total[foggy==TRUE]
 inTraining<-sample(nrow(foggyData),0.6*nrow(foggyData))
-training<-foggyData[inTraining]
+trainingSmall<-foggyData[inTraining]
+inTrainingMore<-sample(nrow(trainingSmall),200000, replace = T)
+training<-trainingSmall[inTrainingMore]
+
+
 
 
 #####CROSS VALIDATION
@@ -273,8 +279,8 @@ testing<-remaining[-inCrossVal]
 
 #check that are disjoint datasets
 sum(duplicated(rbind(crossValidating,testing)))
-sum(duplicated(rbind(training,testing)))
-sum(duplicated(rbind(training,crossValidating)))
+sum(duplicated(rbind(unique(training),testing)))
+sum(duplicated(rbind(unique(training),crossValidating)))
 
 #####NON-FOGGY CASES
 #####TRAINING
@@ -331,8 +337,8 @@ setwd("~/share/")
 
 
 
-cores<-24
-cl <- makeCluster(24)
+cores<-40
+cl <- makeCluster(cores)
 registerDoParallel(cl)
 
 clusterEvalQ(cl, library("imager"))
@@ -384,11 +390,18 @@ trainTargets<-complete[,groundTruth:groundTruth]
 
 #############GENERATE MODELS WITH SEVERAL PARAMS TO CROSS-VALIDATE################################
 
+m1Int<-darch(trainData, trainTargets, rbm.numEpochs = 0, 
+             rbm.batchSize = 500, rbm.lastLayer = 0, 
+             layers = c(2352,500,100,10), darch.batchSize = 5000, 
+             darch.numEpochs = 1000, bp.learnRate = 3,darch.dither = TRUE)
+
+
+
 
 
 m1<-future({m1Int<-darch(trainData, trainTargets, rbm.numEpochs = 0, 
                      rbm.batchSize = 500, rbm.lastLayer = 0, 
-                     layers = c(2352,500,100,10), darch.batchSize = 500, 
+                     layers = c(2352,500,100,10), darch.batchSize = 5000, 
                      darch.numEpochs = 1000, bp.learnRate = 3,darch.dither = TRUE )}) %plan% multiprocess
 
 m2<-future({m2Int<-darch(trainData, trainTargets, rbm.numEpochs = 0, 
