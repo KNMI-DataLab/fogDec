@@ -258,10 +258,11 @@ fogNonFogRatio<-nFog/nNonFog
 #####TRAINING
 
 foggyData<-total[foggy==TRUE]
-inTraining<-sample(nrow(foggyData),0.6*nrow(foggyData))
+inTraining<-sample(nrow(foggyData),0.6*nrow(foggyData)/2)
 trainingSmall<-foggyData[inTraining]
-inTrainingMore<-sample(nrow(trainingSmall),200000, replace = T)
-training<-trainingSmall[inTrainingMore]
+### SMALL FOG DTATASET FOR EXPERIMENT 
+#inTrainingMore<-sample(nrow(trainingSmall),100000, replace = T)
+training<-trainingSmall#[inTrainingMore]
 
 
 
@@ -269,7 +270,7 @@ training<-trainingSmall[inTrainingMore]
 #####CROSS VALIDATION
 
 remaining<-foggyData[-inTraining]
-inCrossVal<-sample(nrow(remaining),0.2*nrow(foggyData))
+inCrossVal<-sample(nrow(remaining),0.2*nrow(foggyData)/2)
 
 crossValidating<-remaining[inCrossVal]
 
@@ -285,7 +286,7 @@ sum(duplicated(rbind(unique(training),crossValidating)))
 #####NON-FOGGY CASES
 #####TRAINING
 nonFoggyData<-total[foggy==FALSE]
-inTrainNoFog<-sample(nrow(nonFoggyData),nrow(training))
+inTrainNoFog<-sample(nrow(nonFoggyData), nrow(training)/fogNonFogRatio)
 nonFoggyTraining<-nonFoggyData[inTrainNoFog]
 
 #####CROSS VALIDATION
@@ -337,13 +338,13 @@ setwd("~/share/")
 
 
 
-cores<-40
+cores<-60
 cl <- makeCluster(cores)
 registerDoParallel(cl)
 
 clusterEvalQ(cl, library("imager"))
 
-matRWS<-foreach(i=1:length(files), .combine = rbind) %dopar%{
+matRWS<-foreach(i=1:length(files)) %dopar%{
   message(files[[i]])
   image<-tryCatch(
     load.image(files[[i]]),
@@ -371,10 +372,18 @@ matRWS<-foreach(i=1:length(files), .combine = rbind) %dopar%{
 
 stopCluster(cl)
 
+matRWS<-do.call(rbind,matRWS)
+
+
 
 dtMat<-data.table(matRWS)
 #dtMat[,vis_class:=res2$vis_class]
 dtMat[,foggy:=training$foggy]
+
+
+
+saveRDS(dtMat,paste0("~/development/fogNNmodels/dtMat",timeNowString,".RDS"))
+
 
 
 complete<-dtMat[complete.cases(dtMat)]
@@ -391,9 +400,9 @@ trainTargets<-complete[,groundTruth:groundTruth]
 #############GENERATE MODELS WITH SEVERAL PARAMS TO CROSS-VALIDATE################################
 
 m1Int<-darch(trainData, trainTargets, rbm.numEpochs = 0, 
-             rbm.batchSize = 500, rbm.lastLayer = 0, 
-             layers = c(2352,500,100,10), darch.batchSize = 5000, 
-             darch.numEpochs = 1000, bp.learnRate = 3,darch.dither = TRUE)
+             rbm.batchSize = 1500, rbm.lastLayer = 0, 
+             layers = c(2352,500,100,10), darch.batchSize = 500, 
+             darch.numEpochs = 250, bp.learnRate = 3,darch.dither = TRUE)
 
 
 
