@@ -22,7 +22,7 @@
 %\Subtitletrue
 %\subtitle{abc}
 \date{April 9, 2018}
-\author[Pagani, Noteboom and Wauben]{Pagani, Noteboom and Wauben}
+\author[Pagani, Noteboom and Wauben]{\scriptsize{Pagani, Noteboom and Wauben}}
 
 \begin{document}
 \tikzstyle{every picture}+=[remember picture]
@@ -91,7 +91,7 @@ knitr::opts_chunk$set(error = TRUE)
 \begin{itemize}
   \item Substantial impact on air, marine, and road traffic
   %\item Loss of life comparable to that of tornadoes or even winter storms\footnote{Gultepe, I. et al. (2007): Fog research: A review of past achievements and future perspectives. \emph{Pure and Applied Geophysics}, \textbf{164}, 1121--1159.}
-  \item Form and dissipate suddenly
+  \item Forms and dissipates suddenly
   %\item Often  local phenomenon
   \item Not easy to accurately forecast
 
