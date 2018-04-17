@@ -246,8 +246,15 @@ prepareMeteoTableStationMapping<-function(variable,newval, stationMapping){
     noMeteoSelection2<-noMeteoSelection[,.(dateOnly=as.Date(timestamp)), by=KISstations]
   }else{
     #TO BE LOOKED INTO
-    test<-meteoFeaturesTable[location_id==location & is.na(get(variable)),c("location_id","timestamp")]
-    datesRequired<-unique(as.Date(test[,timestamp]))
+    noVarButOtherObs<-meteoFeaturesTable[is.na(get(variable)),c("location_id","timestamp")]
+    datesRequired<-unique(as.Date(noVarButOtherObs[,timestamp]))
+    setkey(noVarButOtherObs,location_id)
+    setkey(KNMIstationsTable,location_id)
+    noMeteoSelection<-KNMIstationsTable[noVarButOtherObs,]
+    setnames(noMeteoSelection,"knmi_kis_id", "KISstations")
+    noMeteoSelection<-noMeteoSelection[,KISstations,timestamp]
+    noMeteoSelection2<-noMeteoSelection[,.(dateOnly=as.Date(timestamp)), by=KISstations]
+    noMeteoSelection2<-unique(noMeteoSelection2,by = c("dateOnly","KISstations"))
     
     #values<-lapply(datesRequired, getValueFromKIS, 1, variable)
     #tmp <- within(values, rm(DS_CODE, "TOW.Q_FF_10M_10"))
@@ -353,12 +360,16 @@ prepareMeteoTableStationMapping<-function(variable,newval, stationMapping){
 #corresponding date and time
 updateExistingMeteo<-function(){
 variables<-c("air_temp","dew_point","mor_visibility","wind_speed","rel_humidity")
-locations<-c(1,3,6,7,8) #schiphol at the moment is waiting,9)
+
+variables<-c("wind_speed")#,"dew_point","mor_visibility","wind_speed","rel_humidity")
+
+
+stationMapping<-coupleCamerasAndKNMInearStations(maxDistance = 7500)
+
 
 for(var in variables){
-  for(loc in locations){
-    tmp<-prepareMeteoTable(loc, var, FALSE)
-    message(paste("FINISHED location ",loc, " and variable ", var))
+    tmp<-prepareMeteoTableStationMapping(variable =var, newval = FALSE, stationMapping)
+    message(paste("Looking in variable ", var))
     
     dbConfig <- fromJSON("config.json")
 
@@ -369,14 +380,14 @@ for(var in variables){
     tryCatch(
      {
 
-    postgis_update(con,tmp,"meteo_features_stations",id_cols = "meteo_feature_id",update_cols = var)
+    postgis_update(con,tmp,"meteo_features_copy",id_cols = "meteo_feature_id",update_cols = var)
+       message(paste("table updated with values for", var))
       },
      error=function(cond) {
        message("data not available to update table")
        message(cond)
      })
    dbDisconnect(con)
-  }
 }
 
 }
@@ -389,17 +400,28 @@ for(var in variables){
 #locationsMeteo<-c(1,3,6,7,8,9)
 
 
-stationMapping<-coupleCamerasAndKNMInearStations(maxDistance = 7500)
-table<-prepareMeteoTableStationMapping(variable = "mor_visibility", newval = TRUE, stationMapping)
-dbConfig <- fromJSON("config.json")
-con <- dbConnect(RPostgreSQL::PostgreSQL(),
-                   dbname = "FOGDB",
-                  host = dbConfig[["host"]], port = 9418,
-                  user = dbConfig[["user"]], password = dbConfig[["pw"]])
-dbWriteTable(con, "meteo_features_copy", table, append = TRUE, row.names = FALSE, match.cols = TRUE)
-dbDisconnect(con)
 
 
+
+
+
+# stationMapping<-coupleCamerasAndKNMInearStations(maxDistance = 7500)
+# table<-prepareMeteoTableStationMapping(variable ="mor_visibility", newval = TRUE, stationMapping)
+# dbConfig <- fromJSON("config.json")
+# con <- dbConnect(RPostgreSQL::PostgreSQL(),
+#                    dbname = "FOGDB",
+#                   host = dbConfig[["host"]], port = 9418,
+#                   user = dbConfig[["user"]], password = dbConfig[["pw"]])
+# dbWriteTable(con, "meteo_features_copy", table, append = TRUE, row.names = FALSE, match.cols = TRUE)
+# dbDisconnect(con)
+
+
+
+
+
+
+
+#################OLD
 # dbConfig <- fromJSON("config.json")
 # 
 # con <- dbConnect(RPostgreSQL::PostgreSQL(),
