@@ -14,3 +14,4 @@ FileNameParser(fullFilename, pattern)
 \description{
 Extracts name and date time from filename
 }
+

@@ -1,14 +1,15 @@
 #' Couple cameras and KNMI nearby stations
 #' @param maxDistance Numeric distance radius from the KNMI station
+#' @param dbConfigDir String of path with directory containing the DB param access config file
 #' @import jsonlite DBI postGIStools geosphere data.table stats
 #' @export
-coupleCamerasAndKNMInearStations<-function(maxDistance = 5000){
+coupleCamerasAndKNMInearStations<-function(maxDistance = 5000,dbConfigDir){
 
 distanceUsableSensor<-maxDistance
 
 Sys.setenv(TZ = "UTC")
 
-dbConfig <- fromJSON("config.json")
+dbConfig <- fromJSON(paste0(dbConfigDir,"config.json"))
 
 con <- dbConnect(RPostgreSQL::PostgreSQL(),
                  dbname = "FOGDB",
