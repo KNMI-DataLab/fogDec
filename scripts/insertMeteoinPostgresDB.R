@@ -361,8 +361,6 @@ prepareMeteoTableStationMapping<-function(variable,newval, stationMapping){
 updateExistingMeteo<-function(){
 variables<-c("air_temp","dew_point","mor_visibility","wind_speed","rel_humidity")
 
-variables<-c("wind_speed")#,"dew_point","mor_visibility","wind_speed","rel_humidity")
-
 
 stationMapping<-coupleCamerasAndKNMInearStations(maxDistance = 7500)
 
@@ -392,6 +390,21 @@ for(var in variables){
 
 }
 
+
+
+
+addNewObservationInDB<-function(allowedMeteoVar){
+stationMapping<-coupleCamerasAndKNMInearStations(maxDistance = 7500)
+table<-prepareMeteoTableStationMapping(variable = allowedMeteoVar, newval = TRUE, stationMapping)
+dbConfig <- fromJSON("config.json")
+con <- dbConnect(RPostgreSQL::PostgreSQL(),
+                   dbname = "FOGDB",
+                  host = dbConfig[["host"]], port = 9418,
+                  user = dbConfig[["user"]], password = dbConfig[["pw"]])
+dbWriteTable(con, "meteo_features_copy", table, append = TRUE, row.names = FALSE, match.cols = TRUE)
+dbDisconnect(con)
+  
+}
 
 
 

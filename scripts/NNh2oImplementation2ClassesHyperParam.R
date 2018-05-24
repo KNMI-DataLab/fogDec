@@ -4,8 +4,7 @@ library(imager)
 library(data.table)
 library(fogDec)
 
-h2o.init(nthreads=-1, max_mem_size="120G")
-h2o.removeAll() ## clean slate - just in case the cluster was already running
+
 
 
 photoDir<-"~/share"
@@ -16,8 +15,15 @@ set.seed(11)
 trainValTestSetList<-createTrainValidTestSetsBinary("~/share/", dateMax= "\'2018-05-14 00:00:00\'", dbConfigDir = "~/development/fogDec/",maxDist=2500)
 
 trainSet<-trainValTestSetList[[1]]
+trainSet<-trainSet[sample(nrow(trainSet)),]
+
 validSet<-trainValTestSetList[[2]]
+validSet<-validSet[sample(nrow(validSet)),]
+
+
 testSet<-trainValTestSetList[[3]]
+testSet<-testSet[sample(nrow(testSet)),]
+
 
 #training<-trainSet[sample(nrow(trainSet),20000),]
 training<-trainSet
@@ -36,7 +42,7 @@ setwd("~/share/")
 
 resolutionImg<-28
 
-cl <- makeCluster(24)
+cl <- makeCluster(36)
 registerDoParallel(cl)
 
 clusterEvalQ(cl, library("imager"))
@@ -75,34 +81,103 @@ matRWS<-do.call(rbind,matRWS)
 
 dtMat<-data.table(matRWS)
 dtMat[,foggy:=training$foggy]
+dtMat[,filepath:=training$filepath]
 complete<-dtMat[complete.cases(dtMat)]
 lastFeature<-resolutionImg*resolutionImg*3
-trainData<-complete[,1:lastFeature]
-groundTruth<-lastFeature+1
-trainTargets<-complete[,groundTruth:groundTruth]
+#trainData<-complete[,1:lastFeature]
+#groundTruth<-lastFeature+1
+#trainTargets<-complete[,groundTruth:groundTruth]
 
 #shuffle rows just to avoid learning on inserted data (initial fog after no fog)
 #completeTraining<-complete[sample(nrow(complete),size = 200000),]
 completeTraining<-complete
 
+
+h2o.init(nthreads=-1, max_mem_size="120G")
+h2o.removeAll() ## clean slate - just in case the cluster was already running
+
+
 h2oTrainingFrame<-as.h2o(completeTraining)
 
-saveRDS(completeTraining,"~/nndataH2O/trainingH2O.RDS")
+saveRDS(completeTraining,"~/nndataH2O/trainingH2O_realRatio.RDS")
+
+h2o.exportFile(h2oTrainingFrame,"/home/pagani/nndataH2O/h2oFrames/trainingh2o.csv", force = T)
 
 
 #interesting to know and not clear from the documentation: https://groups.google.com/forum/#!topic/h2ostream/Szov_rHgduU
 # https://groups.google.com/forum/#!topic/h2ostream/yKPBdb38hdU
 
-testh2oDL<-h2o.deeplearning(1:2352,"foggy",training_frame = h2oTrainingFrame, score_training_samples = 0, 
-                            activation = "RectifierWithDropout",
-                            hidden=c(1000,500,200,100,10), input_dropout_ratio = 0.1, 
-                            hidden_dropout_ratios = c(0.5,0.5,0.5,0.5,0.5))
 
 
-confMat<-h2o.confusionMatrix(testh2oDL)
+h2oTrainingFrame<-h2o.importFile("/home/pagani/nndataH2O/h2oFrames/trainingh2o.csv")
 
-confMat
-predictions <- h2o.predict(testh2oDL, h2oTrainingFrame)
+
+hyper_params <- list(
+  activation = c("Rectifier", "Maxout", "Tanh", "RectifierWithDropout", "MaxoutWithDropout", "TanhWithDropout"),
+  hidden = list(c(2000, 1000, 500, 200, 10), c(1000, 500, 100, 10), c(200, 100, 50), c(1000, 100, 10), c(2000,1000, 800, 500, 300, 100, 50, 10)),
+  epochs = c(50, 100, 200, 500, 1000),
+  l1 = c(0, 0.00001, 0.0001, 0.001),
+  l2 = c(0, 0.00001, 0.0001, 0.001),
+  rate = c(0, 0.05, 0.01, 0.005, 0.001),
+  rate_annealing = c(1e-8, 1e-7, 1e-6),
+  rho = c(0.9, 0.95, 0.99, 0.999),
+  epsilon = c(1e-10, 1e-8, 1e-6, 1e-4),
+  momentum_start = c(0, 0.25, 0.5),
+  momentum_stable = c(0.99, 0.5, 0, 0.75),
+  input_dropout_ratio = c(0, 0.1, 0.2),
+  max_w2 = c(10, 100, 1000, 3.4028235e+38)
+  #balance_classes = TRUE
+)
+
+# search_criteria <- list(strategy = "RandomDiscrete",
+#                         max_models = 1000,
+#                         max_runtime_secs = 900,
+#                         stopping_tolerance = 0.0001,
+#                         stopping_rounds = 2500,
+#                         seed = 42
+# )
+
+search_criteria <- list(strategy = "RandomDiscrete",
+                        max_models = 1000,
+                        max_runtime_secs = 900,
+                        stopping_tolerance = 0.0001,
+                        stopping_rounds = 2500,
+                        seed = 42
+)
+
+
+
+dl_grid <- h2o.grid(algorithm = "deeplearning",
+                    x = 1:2352,
+                    y = "foggy",
+                    #weights_column = weights,
+                    grid_id = "dl_grid",
+                    training_frame = h2oTrainingFrame,
+                    #validation_frame = valid,
+                    #nfolds = 25,                          
+                    #fold_assignment = "Stratified",
+                    hyper_params = hyper_params,
+                    search_criteria = search_criteria,
+                    seed = 42
+)
+
+
+
+
+grid<-h2o.getGrid("dl_grid")
+#sort_options_1 <- c("mean_per_class_error", "mse", "err")
+grid <- h2o.getGrid("dl_grid", sort_by = "f1", decreasing = TRUE)
+modelID<-grid@model_ids
+best_model <- h2o.getModel(modelID[[1]])
+h2o.confusionMatrix(best_model)
+h2o.performance(best_model,h2oTrainingFrame)
+#,h2oValidating)
+
+
+
+
+
+#predictions <- h2o.predict(testh2oDL, h2oTrainingFrame)
 
 
 
@@ -111,7 +186,7 @@ predictions <- h2o.predict(testh2oDL, h2oTrainingFrame)
 
 ##CROSS VALID SET - doing it on a propert fog to non-fog ratio##
 
-validating<-testSet
+validating<-validSet
 
 
 files<-sapply(validating$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveDEBILT/",x))
@@ -247,4 +322,5 @@ draw_confusion_matrix_binaryH20 <- function(cm) {
   #text(70, 35, names(cm$overall[2]), cex=1.5, font=2)
   #text(70, 20, round(as.numeric(cm$overall[2]), 3), cex=1.4)
 }
+
 

@@ -2,14 +2,15 @@
 #' @param dataDir String of directory containing the cameras
 #' @param dateMax String of latest date do use for fetching data
 #' @param dbConfigDir String of path with directory containing the DB param access config file
+#' @param maxDist Numerical maximum distance between camera and KNMI station
 #' @import data.table
 #' @export
-createTrainValidTestSetsBinary<-function(dataDir,dateMax= "\'2018-02-28 00:00:00\'",dbConfigDir){
+createTrainValidTestSetsBinary<-function(dataDir,dateMax= "\'2018-02-28 00:00:00\'",dbConfigDir,maxDist=2500){
 
 Sys.setenv(TZ = "UTC")
 #resolutionImg<-28
 
-total<-coupleImagesAndMeteoToDate(dateMax,dbConfigDir)
+total<-coupleImagesAndMeteoToDate(dateMax,dbConfigDir,maxDist)
 
 set.seed(11)
 
@@ -25,8 +26,9 @@ fogNonFogRatio<-nFog/nNonFog
 foggyData<-total[foggy==TRUE]
 inTraining<-sample(nrow(foggyData),0.6*nrow(foggyData))
 trainingSmall<-foggyData[inTraining]
-inTrainingMore<-sample(nrow(trainingSmall),200000, replace = T)
-training<-trainingSmall[inTrainingMore]
+#inTrainingMore<-sample(nrow(trainingSmall),200000, replace = T)
+#training<-trainingSmall[inTrainingMore]
+training<-trainingSmall
 
 
 #####CROSS VALIDATION
@@ -48,21 +50,25 @@ sum(duplicated(rbind(unique(training),crossValidating)))
 #####NON-FOGGY CASES
 #####TRAINING
 nonFoggyData<-total[foggy==FALSE]
-inTrainNoFog<-sample(nrow(nonFoggyData),nrow(training))
+#inTrainNoFog<-sample(nrow(nonFoggyData),nrow(training))
+inTrainNoFog<-sample(nrow(nonFoggyData),0.6*nrow(nonFoggyData))
+
 nonFoggyTraining<-nonFoggyData[inTrainNoFog]
 
 #####CROSS VALIDATION
 remaining<-nonFoggyData[-inTrainNoFog]
-inCrossVal<-sample(nrow(remaining),0.2*nrow(foggyData))
+inCrossVal<-sample(nrow(remaining),0.2*nrow(nonFoggyData))
 
 nonFoggyCrossValidating<-remaining[inCrossVal]
 
 ######TEST SET
-foggyInTest<-dim(testing[foggy==TRUE])[[1]]
-nonFoggyForRealisticRatio<-foggyInTest*1/fogNonFogRatio
-inTestNoFog<-sample(nrow(remaining[-inCrossVal]),nonFoggyForRealisticRatio)
+#foggyInTest<-dim(testing[foggy==TRUE])[[1]]
+#nonFoggyForRealisticRatio<-foggyInTest*1/fogNonFogRatio
+#inTestNoFog<-sample(nrow(remaining[-inCrossVal]),nonFoggyForRealisticRatio)
+inTestNoFog<-remaining[-inCrossVal]
 
-nonFoggyTesting<-remaining[-inCrossVal][inTestNoFog]
+#nonFoggyTesting<-remaining[-inCrossVal][inTestNoFog]
+nonFoggyTesting<-inTestNoFog
 
 
 sum(duplicated(rbind(nonFoggyCrossValidating,nonFoggyTesting)))
@@ -98,11 +104,12 @@ imagesAndMeteoFogBinary<-function(dtImages, dtMeteo){
 #' Couple cameras and KNMI nearby stations
 #' @param dateStr String of latest date do use for fetching data
 #' @param dbConfigDir String of path with directory containing the DB param access config file
+#' @param maxDist Numerical containing max distance from KNMI station
 #' @import data.table jsonlite DBI
 #' @export
-coupleImagesAndMeteoToDate<-function(dateStr,dbConfigDir){
+coupleImagesAndMeteoToDate<-function(dateStr,dbConfigDir,maxDist){
   #the coupling contains also the locations of the station itself
-  coupling<-coupleCamerasAndKNMInearStations(maxDistance = 7500,dbConfigDir)
+  coupling<-coupleCamerasAndKNMInearStations(maxDistance = maxDist, dbConfigDir)
   dbConfig <- fromJSON(paste0(dbConfigDir,"config.json"))
   con <- dbConnect(RPostgreSQL::PostgreSQL(),
                    dbname = "FOGDB",
