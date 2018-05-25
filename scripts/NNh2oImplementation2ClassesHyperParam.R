@@ -139,9 +139,9 @@ hyper_params <- list(
 
 search_criteria <- list(strategy = "RandomDiscrete",
                         max_models = 1000,
-                        max_runtime_secs = 900,
-                        stopping_tolerance = 0.0001,
-                        stopping_rounds = 2500,
+                        max_runtime_secs = 9000,
+                        stopping_tolerance = 0.000001,
+                        stopping_rounds = 25000,
                         seed = 42
 )
 
@@ -154,7 +154,7 @@ dl_grid <- h2o.grid(algorithm = "deeplearning",
                     grid_id = "dl_grid",
                     training_frame = h2oTrainingFrame,
                     #validation_frame = valid,
-                    #nfolds = 25,                          
+                    #nfolds = 25,                         
                     #fold_assignment = "Stratified",
                     hyper_params = hyper_params,
                     search_criteria = search_criteria,
@@ -202,7 +202,7 @@ setwd("~/share/")
 
 resolutionImg<-28
 
-cl <- makeCluster(24)
+cl <- makeCluster(36)
 registerDoParallel(cl)
 
 clusterEvalQ(cl, library("imager"))
@@ -250,7 +250,18 @@ testTargets<-completeValid[,groundTruth:groundTruth]
 saveRDS(completeValid,"~/nndataH2O/crossValH2O.RDS")
 
 
+
+h2o.init(nthreads=-1, max_mem_size="120G")
+h2o.removeAll() ## clean slate - just in case the cluster was already running
+
+
 h2oValidating<-as.h2o(completeValid)
+
+
+h2o.exportFile(h2oValidating,"/home/pagani/nndataH2O/h2oFrames/validatingh2o.csv", force = T)
+
+
+
 
 h2o.performance(testh2oDL,h2oValidating)
 
@@ -322,5 +333,6 @@ draw_confusion_matrix_binaryH20 <- function(cm) {
   #text(70, 35, names(cm$overall[2]), cex=1.5, font=2)
   #text(70, 20, round(as.numeric(cm$overall[2]), 3), cex=1.4)
 }
+
 
 
