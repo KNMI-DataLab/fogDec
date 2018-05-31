@@ -40,9 +40,9 @@ setwd("~/share/")
 #files<-test
 
 
-resolutionImg<-28
+resolutionImg<-50
 
-cl <- makeCluster(36)
+cl <- makeCluster(35)
 registerDoParallel(cl)
 
 clusterEvalQ(cl, library("imager"))
@@ -91,39 +91,42 @@ lastFeature<-resolutionImg*resolutionImg*3
 #shuffle rows just to avoid learning on inserted data (initial fog after no fog)
 #completeTraining<-complete[sample(nrow(complete),size = 200000),]
 completeTraining<-complete
+saveRDS(completeTraining,"~/nndataH2O/trainingH2O_realRatio_50px.RDS")
 
-
-h2o.init(nthreads=-1, max_mem_size="120G")
+h2o.init(nthreads=-1, max_mem_size="100G")
 h2o.removeAll() ## clean slate - just in case the cluster was already running
 
 
 h2oTrainingFrame<-as.h2o(completeTraining)
 
-saveRDS(completeTraining,"~/nndataH2O/trainingH2O_realRatio.RDS")
 
-h2o.exportFile(h2oTrainingFrame,"/home/pagani/nndataH2O/h2oFrames/trainingh2o.csv", force = T)
+
+h2o.exportFile(h2oTrainingFrame,"/home/pagani/nndataH2O/h2oFrames/trainingh2o_50px.csv", force = T)
 
 
 #interesting to know and not clear from the documentation: https://groups.google.com/forum/#!topic/h2ostream/Szov_rHgduU
 # https://groups.google.com/forum/#!topic/h2ostream/yKPBdb38hdU
 
 
-
-h2oTrainingFrame<-h2o.importFile("/home/pagani/nndataH2O/h2oFrames/trainingh2o.csv")
+h2o.init(nthreads=-1, max_mem_size="100G")
+h2o.removeAll() ## clean slate - just in cas
+h2oTrainingFrame<-h2o.importFile("/data_enc/trainingh2o.csv")
+h2oValidating<-h2o.importFile("/data_enc/validatingh2o.csv")
+best_model<-h2o.loadModel("/workspace/andrea/exports/models/dl_grid_model_35")
 
 
 hyper_params <- list(
   activation = c("Rectifier", "Maxout", "Tanh", "RectifierWithDropout", "MaxoutWithDropout", "TanhWithDropout"),
-  hidden = list(c(2000, 1000, 500, 200, 10), c(1000, 500, 100, 10), c(200, 100, 50), c(1000, 100, 10), c(2000,1000, 800, 500, 300, 100, 50, 10)),
-  epochs = c(50, 100, 200, 500, 1000),
-  l1 = c(0, 0.00001, 0.0001, 0.001),
-  l2 = c(0, 0.00001, 0.0001, 0.001),
-  rate = c(0, 0.05, 0.01, 0.005, 0.001),
+  hidden = list( c(10, 10, 10, 10), c(10,10,10,10,10), c(10,10,10,10,10,10), c(10,10,10,10,10,5)),
+  epochs = c(100, 200, 300),
+  l1 = c(0, 0.00001, 0.0001),
+  l2 = c(0, 0.00001, 0.0001),
+  rate = c(0, 0.05, 0.01),
   rate_annealing = c(1e-8, 1e-7, 1e-6),
   rho = c(0.9, 0.95, 0.99, 0.999),
   epsilon = c(1e-10, 1e-8, 1e-6, 1e-4),
-  momentum_start = c(0, 0.25, 0.5),
-  momentum_stable = c(0.99, 0.5, 0, 0.75),
+  momentum_start = c(0, 0.5),
+  momentum_stable = c(0.99, 0.5, 0),
   input_dropout_ratio = c(0, 0.1, 0.2),
   max_w2 = c(10, 100, 1000, 3.4028235e+38)
   #balance_classes = TRUE
@@ -138,10 +141,10 @@ hyper_params <- list(
 # )
 
 search_criteria <- list(strategy = "RandomDiscrete",
-                        max_models = 1000,
-                        max_runtime_secs = 9000,
-                        stopping_tolerance = 0.000001,
-                        stopping_rounds = 25000,
+                        max_models = 500,
+                        max_runtime_secs = 900,
+                        stopping_tolerance = 0.01,
+                        stopping_rounds = 250,
                         seed = 42
 )
 
@@ -154,7 +157,7 @@ dl_grid <- h2o.grid(algorithm = "deeplearning",
                     grid_id = "dl_grid",
                     training_frame = h2oTrainingFrame,
                     #validation_frame = valid,
-                    #nfolds = 25,                         
+                    #nfolds = 25,                       
                     #fold_assignment = "Stratified",
                     hyper_params = hyper_params,
                     search_criteria = search_criteria,
@@ -167,21 +170,24 @@ dl_grid <- h2o.grid(algorithm = "deeplearning",
 grid<-h2o.getGrid("dl_grid")
 #sort_options_1 <- c("mean_per_class_error", "mse", "err")
 grid <- h2o.getGrid("dl_grid", sort_by = "f1", decreasing = TRUE)
+grid
 modelID<-grid@model_ids
 best_model <- h2o.getModel(modelID[[1]])
 h2o.confusionMatrix(best_model)
 h2o.performance(best_model,h2oTrainingFrame)
-#,h2oValidating)
+
+h2o.performance(best_model,h2oValidating)
 
 
 
+predictionsTrain <- h2o.predict(best_model, h2oTrainingFrame)
 
+predTrainDT<-as.data.table(predictionsTrain)
 
-#predictions <- h2o.predict(testh2oDL, h2oTrainingFrame)
+trainDT<-fread("/data_enc/trainingh2o.csv")
 
-
-
-
+totalTrainDT<-trainDT[,c("foggy","filepath")]
+totalTrainDT<-cbind(totalTrainDT,predTrainDT)
 
 
 ##CROSS VALID SET - doing it on a propert fog to non-fog ratio##
@@ -202,7 +208,7 @@ setwd("~/share/")
 
 resolutionImg<-28
 
-cl <- makeCluster(36)
+cl <- makeCluster(40)
 registerDoParallel(cl)
 
 clusterEvalQ(cl, library("imager"))
@@ -241,13 +247,14 @@ matRWSvalid<-do.call(rbind,matRWSvalid)
 
 dtMatValid<-data.table(matRWSvalid)
 dtMatValid[,foggy:=validating$foggy]
+dtMatValid[,filepath:=validating$filepath]
 completeValid<-dtMatValid[complete.cases(dtMatValid)]
 lastFeature<-resolutionImg*resolutionImg*3
 trainData<-completeValid[,1:lastFeature]
 groundTruth<-lastFeature+1
 testTargets<-completeValid[,groundTruth:groundTruth]
 
-saveRDS(completeValid,"~/nndataH2O/crossValH2O.RDS")
+saveRDS(completeValid,"~/nndataH2O/crossValH2O_64px.RDS")
 
 
 
@@ -258,7 +265,7 @@ h2o.removeAll() ## clean slate - just in case the cluster was already running
 h2oValidating<-as.h2o(completeValid)
 
 
-h2o.exportFile(h2oValidating,"/home/pagani/nndataH2O/h2oFrames/validatingh2o.csv", force = T)
+h2o.exportFile(h2oValidating,"/home/pagani/nndataH2O/h2oFrames/validatingh2o_64px.csv", force = T)
 
 
 
@@ -333,6 +340,8 @@ draw_confusion_matrix_binaryH20 <- function(cm) {
   #text(70, 35, names(cm$overall[2]), cex=1.5, font=2)
   #text(70, 20, round(as.numeric(cm$overall[2]), 3), cex=1.4)
 }
+
+
 
 
 
