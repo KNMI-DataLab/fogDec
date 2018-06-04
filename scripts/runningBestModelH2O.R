@@ -7,7 +7,7 @@ library(fogDec)
 
 
 
-h2o.init(nthreads=-1, max_mem_size="100G")
+h2o.init(nthreads=-1, max_mem_size="136G")
 h2o.removeAll() ## clean slate - just in cas
 h2oTrainingFrame<-h2o.importFile("/data_enc/trainingh2o.csv")
 h2oValidating<-h2o.importFile("/data_enc/validatingh2o.csv")
@@ -27,3 +27,24 @@ h2o.performance(best_model,h2oValidating)
 
 
 predictionsTrain <- h2o.predict(best_model, h2oTrainingFrame)
+
+
+#getting falsepos and false neg
+
+h2oValidatingFN<-h2o.importFile("/data_enc/validatingh2oWithFilename.csv")
+best_model<-h2o.loadModel("/workspace/andrea/exports/models/dl_grid_model_35")
+h2o.performance(best_model,h2oValidatingFN)
+validPredFileName<-h2o.predict(best_model,h2oValidatingFN)
+validPredDT<-as.data.table(validPredFileName)
+validationFilenames<-fread("/data_enc/validatingh2oWithFilename.csv")
+
+validFilenamesDT<-validationFilenames[,c("foggy","filepath")]
+
+
+validPredFilenames_total_DT<-cbind(validFilenamesDT,validPredDT)
+FN_valid_dt<-validPredFilenames_total_DT[foggy==TRUE & TRUE.<0.208267]
+FP_valid_dt<-validPredFilenames_total_DT[foggy==FALSE & TRUE.>=0.208267]
+write.csv(FN_valid_dt,"/workspace/andrea/exports/falseNegValid.csv")
+write.csv(FP_valid_dt,"/workspace/andrea/exports/falsePosValid.csv")
+
+

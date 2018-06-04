@@ -310,8 +310,8 @@ draw_confusion_matrix_binaryH20 <- function(cm) {
   # add in the cm results
   res <- as.numeric(cm$table)
   TN<-cm[1,1]
-  FN<-cm[1,2]
-  FP<-cm[2,1]
+  FN<-cm[2,1]
+  FP<-cm[1,2]
   TP<-cm[2,2]
   precision<-TP/(TP+FP)
   recall<-TP/(TP+FN)
