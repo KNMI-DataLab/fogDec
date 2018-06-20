@@ -123,6 +123,35 @@ def extractCameras(confJson):
 
 
 
+def filterDayPhase():
+    nowUTC = datetime.datetime.utcnow()
+
+    completeDateTime = datetime.datetime.strptime(
+        str(nowUTC.year) + str(nowUTC.month) + str(nowUTC.day) + str(nowUTC.hour) + str(nowUTC.minute), "%Y%m%d%H%M")
+    dayPhaseNow = computeDayPhase(lonDeBilt, latDeBilt, completeDateTime)
+    dayPhaseNow=11
+
+    # way to call R in python subprocess.call (["/usr/bin/Rscript", "--vanilla", "/pathto/MyrScript.r"])
+    callToRScript = {11: ["/usr/bin/Rscript", "--vanilla", "/usr/people/pagani/development/fogVisibility/fogDec/scripts/execution.R"]}
+
+    result = callToRScript.get(dayPhaseNow, None)
+
+    print("pippo")
+
+    return result
+
+
+def filterMessage(message, locationToProcess, camerasToProcess):
+    if any(s for s in locationToProcess if s in exampleMessageBody):
+        if any(ss for ss in camerasToProcess if ss in exampleMessageBody):
+            return (message)
+        else:
+            return(None)
+    else:
+        return(None)
+
+#==0 and message.find(camerasToProcess)==0):
+#print("location camera should be processed")
 
 
 #at the moment assuming De Bilt as the location where we assess the dayphase
@@ -153,13 +182,6 @@ confFile = "MVPCameras.json"
 #read the config file in JSON
 
 
-
-
-
-
-
-
-
 camerasMVPConf = readJson(confFile)
 
 locationToProcess = extractLocations(camerasMVPConf)
@@ -181,41 +203,7 @@ print("abc")
 # channel.start_consuming()
 
 
-exampleMessageBody = "/nas-research.knmi.nl/sensordata/CAMERA/RWS/A2/HM776/ID10915/201806/A2-HM776-ID10915_20180606_0801.jpg"
-
-
-
-def filterDayPhase():
-    nowUTC = datetime.datetime.utcnow()
-
-    completeDateTime = datetime.datetime.strptime(
-        str(nowUTC.year) + str(nowUTC.month) + str(nowUTC.day) + str(nowUTC.hour) + str(nowUTC.minute), "%Y%m%d%H%M")
-    dayPhaseNow = computeDayPhase(lonDeBilt, latDeBilt, completeDateTime)
-    dayPhaseNow=11
-
-    # way to call R in python subprocess.call (["/usr/bin/Rscript", "--vanilla", "/pathto/MyrScript.r"])
-    callToRScript = {1: ["/usr/bin/Rscript", "--vanilla", "/pathto/MyrScript.r"]}
-
-    result = callToRScript.get(dayPhaseNow, None)
-
-    print("pippo")
-
-    return result
-
-
-def filterMessage(message, locationToProcess, camerasToProcess):
-    if any(s for s in locationToProcess if s in exampleMessageBody):
-        if any(ss for ss in camerasToProcess if ss in exampleMessageBody):
-            return (message)
-        else:
-            return(None)
-    else:
-        return(None)
-
-#==0 and message.find(camerasToProcess)==0):
-#print("location camera should be processed")
-
-
+exampleMessageBody = "/nas-research.knmi.nl/sensordata/CAMERA/RWS/A2/HM776/ID10912/201806/A2-HM776-ID10912_20180606_0801.jpg"
 
 
 
@@ -223,4 +211,5 @@ message = filterMessage(exampleMessageBody, locationToProcess, camerasToProcess)
 if (message != None):
     callParams = filterDayPhase()
     if (callParams != None):
-        subprocess.call(["/usr/bin/Rscript", "--vanilla", "/pathto/MyrScript.r", message])
+        callParams.append(exampleMessageBody)
+        subprocess.call(callParams)
