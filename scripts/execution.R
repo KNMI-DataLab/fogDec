@@ -62,7 +62,8 @@ library(imager)
 library(h2o)
 
 featuresImage<-fromImageToFeatures(fileLocation)
-prediction<-predictFogClass(t(featuresImage))
+featuresImage<-t(featuresImage)
+prediction<-predictFogClass(featuresImage)
 
 
 
@@ -110,7 +111,7 @@ Sys.setenv(JAVA_HOME="/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.171-3.b10.fc26.x86_6
  h2o.removeAll()
   best_model<-h2o.loadModel(paste0(home,"fogDec/results/models/dl_grid_model_35"))
   predictions <- h2o.predict(best_model, as.h2o(features))
-predDFFF<-data.frame(predictions)
+predDF<-data.frame(predictions)
 }
 
 
