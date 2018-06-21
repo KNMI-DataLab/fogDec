@@ -101,6 +101,7 @@ library(h2o)
 
 featuresImage<-fromImageToFeatures(fileLocation)
 featuresImage<-t(featuresImage)
+jsonDeatures<-toJSON(featuresImage)
 prediction<-predictFogClass(featuresImage)
 fogClass<-prediction$predict
 
