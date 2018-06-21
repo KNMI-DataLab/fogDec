@@ -20,7 +20,7 @@ list1[[3]] <- fileToAnalyze
 #       [^\/]*\.(jpg|jpeg)
 
 
-fileToAnalyze<-"/nas-research.knmi.nl/sensordata/CAMERA/RWS/A2/HM776/ID10912/201806/A2-HM776-ID10912_20180606_0805.jpg"
+fileToAnalyze<-"/nas-research.knmi.nl/sensordata/CAMERA/RWS/A2/HM776/ID10915/201806/A2-HM776-ID10915_20180606_0801.jpg"
 
 library(stringr)
 fileLocation<-gsub(".*/nas-research.knmi.nl/sensordata/CAMERA/", "~/share/", fileToAnalyze)
@@ -38,7 +38,7 @@ originalPath<-fileToAnalyze
 locationAndID<-timeStampTemp[1]
 
 
-home<-"/home/andrea/development/KNMI/" #/usr/people/pagani/development/fogVisibility/
+home<-"/usr/people/pagani/development/fogVisibility/"
 
 jsonCameras<-paste0(home,"fogDec/inst/extScripts/python/MVPCameras.json")
 
@@ -59,10 +59,10 @@ cbind(cameraTarget,fileLocation,originalPath, timeStamp)
 print(fileLocation)
 
 library(imager)
-library(h20)
+library(h2o)
 
 featuresImage<-fromImageToFeatures(fileLocation)
-prediction<-predictFogClass(featuresImage)
+prediction<-predictFogClass(t(featuresImage))
 
 
 
@@ -105,10 +105,12 @@ fromImageToFeatures<-function(filename){
 }
 
 predictFogClass<-function(features){
-  h2o.init(nthreads=1, max_mem_size="0.1G")
+Sys.setenv(JAVA_HOME="/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.171-3.b10.fc26.x86_64/")
+  h2o.init(nthreads=1)
+ h2o.removeAll()
   best_model<-h2o.loadModel(paste0(home,"fogDec/results/models/dl_grid_model_35"))
-  predictions <- h2o.predict(best_model, h2oTrainingFrame)
-  predictions
+  predictions <- h2o.predict(best_model, as.h2o(features))
+predDFFF<-data.frame(predictions)
 }
 
 
