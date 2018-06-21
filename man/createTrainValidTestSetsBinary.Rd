@@ -5,7 +5,7 @@
 \title{Create training, validation and test datasets}
 \usage{
 createTrainValidTestSetsBinary(dataDir, dateMax = "'2018-02-28 00:00:00'",
-  dbConfigDir)
+  dbConfigDir, maxDist = 2500)
 }
 \arguments{
 \item{dataDir}{String of directory containing the cameras}
@@ -13,8 +13,9 @@ createTrainValidTestSetsBinary(dataDir, dateMax = "'2018-02-28 00:00:00'",
 \item{dateMax}{String of latest date do use for fetching data}
 
 \item{dbConfigDir}{String of path with directory containing the DB param access config file}
+
+\item{maxDist}{Numerical maximum distance between camera and KNMI station}
 }
 \description{
 Create training, validation and test datasets
 }
-

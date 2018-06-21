@@ -59,13 +59,13 @@ cbind(cameraTarget,fileLocation,originalPath, timeStamp)
 print(fileLocation)
 
 library(imager)
+library(h20)
 
 featuresImage<-fromImageToFeatures(fileLocation)
+prediction<-predictFogClass(featuresImage)
 
 
-# df <- data.frame(matrix(ncol = 7, nrow = 0))
-# x <- c("TimeStamp", "FileLocation", "OriginalPath", "CameraLocation", "Latitude", "Longitude", "VisibilityClass")
-# colnames(df) <- x
+
 
 
 
@@ -104,5 +104,11 @@ fromImageToFeatures<-function(filename){
   }
 }
 
+predictFogClass<-function(features){
+  h2o.init(nthreads=1, max_mem_size="0.1G")
+  best_model<-h2o.loadModel(paste0(home,"fogDec/results/models/dl_grid_model_35"))
+  predictions <- h2o.predict(best_model, h2oTrainingFrame)
+  predictions
+}
 
 

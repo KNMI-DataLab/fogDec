@@ -14,4 +14,3 @@ imagesAndMeteoFogBinary(dtImages, dtMeteo)
 \description{
 Assign images a binary fog property (foggy=TRUE/FALSE)
 }
-

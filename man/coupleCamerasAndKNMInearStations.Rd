@@ -14,4 +14,3 @@ coupleCamerasAndKNMInearStations(maxDistance = 5000, dbConfigDir)
 \description{
 Couple cameras and KNMI nearby stations
 }
-
