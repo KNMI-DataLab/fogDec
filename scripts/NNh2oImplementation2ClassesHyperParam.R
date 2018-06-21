@@ -40,7 +40,7 @@ setwd("~/share/")
 #files<-test
 
 
-resolutionImg<-50
+resolutionImg<-28
 
 cl <- makeCluster(35)
 registerDoParallel(cl)

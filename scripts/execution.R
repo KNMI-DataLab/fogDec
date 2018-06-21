@@ -38,7 +38,11 @@ originalPath<-fileToAnalyze
 locationAndID<-timeStampTemp[1]
 
 
-camerasDF<-jsonlite::fromJSON("/usr/people/pagani/development/fogVisibility/fogDec/inst/extScripts/python/MVPCameras.json")
+home<-"/home/andrea/development/KNMI/" #/usr/people/pagani/development/fogVisibility/
+
+jsonCameras<-paste0(home,"fogDec/inst/extScripts/python/MVPCameras.json")
+
+camerasDF<-jsonlite::fromJSON(jsonCameras)
 
 camerasRWS<-camerasDF$cameras$RWS
 
@@ -49,17 +53,19 @@ location<-substring(locationAndID,1,lastDash-1)
 cameraID<-substring(locationAndID,lastDash+1,str_length(locationAndID))
 
 
-#to continue from here
-camerasRWS[camerasRWS$location=="A2-HM742",]
-cameraInfo<-camerasRWS["location"==location & "cameraID"==cameraID,]
-
+cameraTarget<-camerasRWS[camerasRWS$location==location & camerasRWS$cameraID==cameraID,]
+cbind(cameraTarget,fileLocation,originalPath, timeStamp)
 
 print(fileLocation)
 
+library(imager)
 
-df <- data.frame(matrix(ncol = 7, nrow = 0))
-x <- c("TimeStamp", "FileLocation", "OriginalPath", "CameraLocation", "Latitude", "Longitude", "VisibilityClass")
-colnames(df) <- x
+featuresImage<-fromImageToFeatures(fileLocation)
+
+
+# df <- data.frame(matrix(ncol = 7, nrow = 0))
+# x <- c("TimeStamp", "FileLocation", "OriginalPath", "CameraLocation", "Latitude", "Longitude", "VisibilityClass")
+# colnames(df) <- x
 
 
 
@@ -68,3 +74,35 @@ colnames(df) <- x
 
 exportJson <- toJSON(list1, pretty = TRUE)
 write(exportJson, "/usr/people/pagani/development/fogVisibility/fogDec/results/test.json")
+
+
+
+
+fromImageToFeatures<-function(filename){
+  resolutionImg<-28
+  image<-tryCatch(
+    load.image(filename),
+    
+    error=function(error_message) {
+      #message("Yet another error message.")
+      #message("Here is the actual R error message:")
+      #next
+      return(NA)
+    }
+  )
+  if(is.na(image[[1]])){
+    v<-NA*1:(resolutionImg*resolutionImg)
+    message("Image not available error in acquisition")
+    v
+  }else{
+    image<-resize(image,resolutionImg,resolutionImg)
+    image<-blur_anisotropic(image, amplitude = 10000)
+    df<-as.data.frame(image)
+    v<-df$value
+    #mat<-rbind(mat,v)
+    v
+  }
+}
+
+
+
