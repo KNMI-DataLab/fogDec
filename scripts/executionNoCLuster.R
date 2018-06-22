@@ -42,17 +42,7 @@ fromImageToFeatures<-function(filename){
   }
 }
 
-predictFogClass<-function(features){
-  Sys.setenv(JAVA_HOME="/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.171-3.b10.fc26.x86_64/")
-  h2o.init(nthreads=1)
-  h2o.removeAll()
-  best_model<-h2o.loadModel(paste0(home,"fogDec/results/models/dl_grid_model_35"))
-  h2ofeatures<-as.h2o(features)
-  prediction <- h2o.predict(best_model,h2ofeatures)
-  predictionDF<-as.data.frame(prediction)
-  h2o.shutdown(prompt=F)
-  predictionDF
-}
+
 
 
 
@@ -62,6 +52,10 @@ fileToAnalyze<-"/nas-research.knmi.nl/sensordata/CAMERA/RWS/A2/HM776/ID10915/201
 
 library(stringr)
 fileLocation<-gsub(".*/nas-research.knmi.nl/sensordata/CAMERA/", "~/share/", fileToAnalyze)
+#for amazon###
+fileLocation<-"/workspace/andrea/exports/A2-HM776-ID10915_20180606_0801.jpg"
+#####
+
 partial<-str_extract(pattern = "[^/]*$", string =  fileToAnalyze)
 partial<-str_extract(string = partial, pattern = ".*(?=\\.)")
 timeStampTemp<-unlist(strsplit(partial, split = "_"))
@@ -76,7 +70,7 @@ originalPath<-fileToAnalyze
 locationAndID<-timeStampTemp[1]
 
 
-home<-"/usr/people/pagani/development/fogVisibility/"
+home<-"/workspace/andrea/"
 
 jsonCameras<-paste0(home,"fogDec/inst/extScripts/python/MVPCameras.json")
 
@@ -101,21 +95,85 @@ library(h2o)
 
 featuresImage<-fromImageToFeatures(fileLocation)
 featuresImage<-t(featuresImage)
-jsonDeatures<-toJSON(featuresImage)
-prediction<-predictFogClass(featuresImage)
+
+prediction <- h2o.mojo_predict_df(featuresImage,
+                    mojo_zip_path =  "/workspace/andrea/exports/models/dl_grid_model_35.zip", 
+                    classpath = "/usr/local/lib/R/site-library/h2o/java/h2o.jar", 
+                    genmodel_jar_path = "/usr/local/lib/R/site-library/h2o/java/h2o.jar")
+
+
+
+
 fogClass<-prediction$predict
 
 
 final<-cbind(cameraTarget,fileLocation,originalPath, timeStamp,fogClass)
 
 
-
-
-
 exportJson <- toJSON(final, pretty = TRUE)
-write(exportJson, "/usr/people/pagani/development/fogVisibility/fogDec/results/test.json")
+write(exportJson, "/workspace/andrea/exports/results/predictions/test.json")
+
+
+jsoninput<-jsonlite::fromJSON("/workspace/andrea/exports/results/predictions/test.json")
 
 
 
+
+
+###FIRST ATTEMPT OF VISUALIZATION
+
+library(leaflet)
+library(unixtools)
+library(plyr)
+
+set.tempdir("/workspace/andrea/tmp")
+
+factpal <- colorFactor(topo.colors(2), c(TRUE,FALSE))
+
+
+
+icon.bad <- makeAwesomeIcon( markerColor = 'red', icon = "camera")
+icon.good <- makeAwesomeIcon(markerColor = 'green', icon = "camera")
+myIcons<-awesomeIconList(noFog = icon.good, fog = icon.bad)
+
+inputDF<-data.frame(jsoninput,stringsAsFactors = F)
+inputDF
+
+inputDF<-inputDF[rep(1:nrow(inputDF),each=2),] 
+
+inputDF[2,10]=TRUE
+
+inputDF[2,3]=5.1115
+
+inputDF
+
+inputDF$fogClass<-as.factor(inputDF$fogClass)
+#inputDF$graphicClass<if(inputDF$fogClass==FALSE){"noFog"}
+#inputDF$graphicClass<-as.factor(inputDF$graphicClass)
+#inputDF$fogClass<-revalue(inputDF$fogClass, c("FALSE"="nofog", "TRUE"="fog"))
+
+inputDF$icon <- factor(inputDF$fogClass,
+                    levels = c("TRUE","FALSE"),
+                    labels = c("red", "green")) 
+
+inputDF
+inputDF$longitude<-as.numeric(inputDF$longitude)
+inputDF$latitude<-as.numeric(inputDF$latitude)
+
+
+icons <- awesomeIcons(icon = "camera",
+                      iconColor = "black",
+                      library = "ion",
+                      markerColor = inputDF$icon)
+
+
+
+inputDF$hyperink<-paste0('<a href="',inputDF$ipAddr,'">View Camera ', inputDF$location," " ,inputDF$cameraID,'</a>')
+
+#icon11<-myIcons[inputDF$graphicClass]
+m <- leaflet(inputDF) %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addAwesomeMarkers( ~longitude, ~latitude, icon = icons, popup = ~hyperink)
+m  # Print the map
 
 
