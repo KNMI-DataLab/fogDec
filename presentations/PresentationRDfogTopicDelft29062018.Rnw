@@ -32,7 +32,7 @@
  \titlepage
  \begin{textblock*}{5cm}(7cm,8.4cm)
  \begin{tiny}
- \textit{R\&D meeting: fog forecacast, Delft June 29, 2018}
+ \textit{R\&D meeting: fog forecacast \\Delft, June 29, 2018}
  \end{tiny}
  \end{textblock*}
 \end{frame}
@@ -166,7 +166,7 @@ their knowledge or performance with experience.
 \item 160 cameras along Dutch highways (since 07/2018)
 \item image sampling every 10 minutes
 \item $\pm$ 9 million images archived
-\item $\pm$ 1.5 million labeled
+\item $\pm$ 2 million labeled
 \end{itemize}
 \column{0.4\textwidth}
    \includegraphics[width=4.5cm]{schiphol.jpg}
@@ -466,7 +466,7 @@ draw_confusion_matrix_binary(confMatrixTraining)
  \end{frame}
 
 
-\begin{frame}{Conclusion and Outlook}
+\begin{frame}{Current situation and Outlook}
 \begin{itemize}
 \item Results looks promising, but better performance are needed for an operational service
 \item Possibilities:
@@ -476,11 +476,20 @@ draw_confusion_matrix_binary(confMatrixTraining)
 \item Get more foggy images for training the network (partners welcome)
 % \item Test a more advanced technique for image processing: convolutional neural networks
 \end{itemize}
+
+\item Current steps:
+\begin{itemize}
+\item Real time fog detection for POC application for Weather/Traffic-Room
+\item More cameras of ``spitsstook'' available for POC
+\item UvA data science student master thesis at KNMI
+\end{itemize}
+
 \item Next steps:
 \begin{itemize}
 \item Test with more classes of visibility (initial results)
 \item Add meteo-related features
 \item Fog at night time (?)
+\item Collaboration with J{\"u}lich Supercomputing Center on CNN model
 \end{itemize}
 \end{itemize}
 \end{frame}
