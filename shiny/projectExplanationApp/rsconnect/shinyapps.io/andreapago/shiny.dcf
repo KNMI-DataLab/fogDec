@@ -1,0 +1,11 @@
+name: shiny
+title: shiny
+account: andreapago
+server: shinyapps.io
+appId: 205620
+bundleId: 944442
+url: https://andreapago.shinyapps.io/shiny/
+when: 1502982691.92093
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: shinyPreparation.R|picturesForApp/Meetterrein_20151102_0740.jpg|picturesForApp/Meetterrein_20160123_0940.jpg|picturesForApp/Meetterrein_20160219_1000.jpg

@@ -52,9 +52,7 @@ fileToAnalyze<-"/nas-research.knmi.nl/sensordata/CAMERA/RWS/A2/HM776/ID10915/201
 
 library(stringr)
 fileLocation<-gsub(".*/nas-research.knmi.nl/sensordata/CAMERA/", "~/share/", fileToAnalyze)
-#for amazon###
-fileLocation<-"/workspace/andrea/exports/A2-HM776-ID10915_20180606_0801.jpg"
-#####
+
 
 partial<-str_extract(pattern = "[^/]*$", string =  fileToAnalyze)
 partial<-str_extract(string = partial, pattern = ".*(?=\\.)")
@@ -70,11 +68,38 @@ originalPath<-fileToAnalyze
 locationAndID<-timeStampTemp[1]
 
 
-home<-"/workspace/andrea/"
 
-jsonCameras<-paste0(home,"fogDec/inst/extScripts/python/MVPCameras.json")
+remote=FALSE
 
-camerasDF<-jsonlite::fromJSON(jsonCameras)
+if(remote==TRUE){
+  model_zip_path = "/workspace/andrea/exports/models/dl_grid_model_35.zip"
+  h2o_jar_path = "/usr/local/lib/R/site-library/h2o/java/h2o.jar"
+  devel_dir<-"/workspace/andrea/"
+  #for amazon###
+  fileLocation<-"/workspace/andrea/exports/A2-HM776-ID10915_20180606_0801.jpg"
+  #####
+  results_json<-"/workspace/andrea/exports/results/predictions/test.json"
+  temp_directory<-"/workspace/andrea/tmp"
+  
+}else{
+  model_zip_path = "/home/pagani/nndataH2O/frozenModels/dl_grid_model_35.zip"
+  h2o_jar_path = "/home/pagani/R/x86_64-redhat-linux-gnu-library/3.4/h2o/java/h2o.jar"
+  devel_dir<-"/home/pagani/development/"
+  results_json<-"/home/pagani/nndataH2O/frozenModels/results/predictions/test.json"
+  temp_directory<-"/home/pagani/temp/Rtemp/"
+  queue_conf_file<-"/home/pagani/development/fogDec/inst/extScripts/python/queueConfig.json"
+  
+}
+
+
+
+
+
+
+
+jsonCameras<-paste0(devel_dir,"fogDec/inst/extScripts/python/MVPCameras.json")
+
+camerasDF<-jsonlite::fromJSON(txt = jsonCameras)
 
 camerasRWS<-camerasDF$cameras$RWS
 
@@ -96,10 +121,14 @@ library(h2o)
 featuresImage<-fromImageToFeatures(fileLocation)
 featuresImage<-t(featuresImage)
 
+
+
+
+
 prediction <- h2o.mojo_predict_df(featuresImage,
-                    mojo_zip_path =  "/workspace/andrea/exports/models/dl_grid_model_35.zip", 
-                    classpath = "/usr/local/lib/R/site-library/h2o/java/h2o.jar", 
-                    genmodel_jar_path = "/usr/local/lib/R/site-library/h2o/java/h2o.jar")
+                    mojo_zip_path =  model_zip_path, 
+                    classpath = h2o_jar_path, 
+                    genmodel_jar_path = h2o_jar_path)
 
 
 
@@ -111,69 +140,99 @@ final<-cbind(cameraTarget,fileLocation,originalPath, timeStamp,fogClass)
 
 
 exportJson <- toJSON(final, pretty = TRUE)
-write(exportJson, "/workspace/andrea/exports/results/predictions/test.json")
+write(exportJson, results_json)
 
 
-jsoninput<-jsonlite::fromJSON("/workspace/andrea/exports/results/predictions/test.json")
+jsoninput<-jsonlite::fromJSON(results_json)
 
 
+library(messageQueue)
 
 
+jsonQueue<-jsonlite::fromJSON(queue_conf_file)
 
-###FIRST ATTEMPT OF VISUALIZATION
+#set of options not working at the moment
 
-library(leaflet)
-library(unixtools)
-library(plyr)
+system('~/temp/rabbitmqadmin -H 145.23.219.231 -P 5672 -U guest -p guest publish routing_key=RTvisual payload="hello, world"')
 
-set.tempdir("/workspace/andrea/tmp")
-
-factpal <- colorFactor(topo.colors(2), c(TRUE,FALSE))
+system('~/temp/rabbitmqadmin --host=145.23.219.231 --port=5671 -U test -p test declare queue name=RTvisual')
 
 
+system('curl -u test:test -H "content-type:application/json" -X POST -d\'{"properties":{"delivery_mode":1},"routing_key":"RTvisual","declare_queue":"RTvisual","payload":"hello,world","payload_encoding":"string"}\' http://145.23.219.231:5672/api/exchanges/%2f/amq.default/publish')
 
-icon.bad <- makeAwesomeIcon( markerColor = 'red', icon = "camera")
-icon.good <- makeAwesomeIcon(markerColor = 'green', icon = "camera")
-myIcons<-awesomeIconList(noFog = icon.good, fog = icon.bad)
+#messageQueue library not working(?)
+queueUrl <- ""
 
-inputDF<-data.frame(jsoninput,stringsAsFactors = F)
-inputDF
+jsonQueue$host
 
-inputDF<-inputDF[rep(1:nrow(inputDF),each=2),] 
+# create a queue producer
+queueAproducer <- messageQueue.factory.getProducerFor("145.23.219.231","RTvisual","rabbitMQ")
 
-inputDF[2,10]=TRUE
+# ... do some stuff ...
 
-inputDF[2,3]=5.1115
+# put a message on the queue
+textMessage <- "this is the message I want to send"
+status <- messageQueue.producer.putText(queueAproducer, textMessage)
 
-inputDF
-
-inputDF$fogClass<-as.factor(inputDF$fogClass)
-#inputDF$graphicClass<if(inputDF$fogClass==FALSE){"noFog"}
-#inputDF$graphicClass<-as.factor(inputDF$graphicClass)
-#inputDF$fogClass<-revalue(inputDF$fogClass, c("FALSE"="nofog", "TRUE"="fog"))
-
-inputDF$icon <- factor(inputDF$fogClass,
-                    levels = c("TRUE","FALSE"),
-                    labels = c("red", "green")) 
-
-inputDF
-inputDF$longitude<-as.numeric(inputDF$longitude)
-inputDF$latitude<-as.numeric(inputDF$latitude)
-
-
-icons <- awesomeIcons(icon = "camera",
-                      iconColor = "black",
-                      library = "ion",
-                      markerColor = inputDF$icon)
+# close the producer
+status <- messageQueue.producer.close(queueAproducer)
 
 
 
-inputDF$hyperink<-paste0('<a href="',inputDF$ipAddr,'">View Camera ', inputDF$location," " ,inputDF$cameraID,'</a>')
-
-#icon11<-myIcons[inputDF$graphicClass]
-m <- leaflet(inputDF) %>%
-  addTiles() %>%  # Add default OpenStreetMap map tiles
-  addAwesomeMarkers( ~longitude, ~latitude, icon = icons, popup = ~hyperink)
-m  # Print the map
+# ###FIRST ATTEMPT OF VISUALIZATION
+# 
+# library(leaflet)
+# library(unixtools)
+# library(plyr)
+# 
+# set.tempdir(temp_directory)
+# 
+# factpal <- colorFactor(topo.colors(2), c(TRUE,FALSE))
+# 
+# 
+# 
+# icon.bad <- makeAwesomeIcon( markerColor = 'red', icon = "camera")
+# icon.good <- makeAwesomeIcon(markerColor = 'green', icon = "camera")
+# myIcons<-awesomeIconList(noFog = icon.good, fog = icon.bad)
+# 
+# inputDF<-data.frame(jsoninput,stringsAsFactors = F)
+# inputDF
+# 
+# inputDF<-inputDF[rep(1:nrow(inputDF),each=2),] 
+# 
+# inputDF[2,10]=TRUE
+# 
+# inputDF[2,3]=5.1115
+# 
+# inputDF
+# 
+# inputDF$fogClass<-as.factor(inputDF$fogClass)
+# #inputDF$graphicClass<if(inputDF$fogClass==FALSE){"noFog"}
+# #inputDF$graphicClass<-as.factor(inputDF$graphicClass)
+# #inputDF$fogClass<-revalue(inputDF$fogClass, c("FALSE"="nofog", "TRUE"="fog"))
+# 
+# inputDF$icon <- factor(inputDF$fogClass,
+#                     levels = c("TRUE","FALSE"),
+#                     labels = c("red", "green")) 
+# 
+# inputDF
+# inputDF$longitude<-as.numeric(inputDF$longitude)
+# inputDF$latitude<-as.numeric(inputDF$latitude)
+# 
+# 
+# icons <- awesomeIcons(icon = "camera",
+#                       iconColor = "black",
+#                       library = "ion",
+#                       markerColor = inputDF$icon)
+# 
+# 
+# 
+# inputDF$hyperink<-paste0('<a href="',inputDF$ipAddr,'">View Camera ', inputDF$location," " ,inputDF$cameraID,'</a>')
+# 
+# #icon11<-myIcons[inputDF$graphicClass]
+# m <- leaflet(inputDF) %>%
+#   addTiles() %>%  # Add default OpenStreetMap map tiles
+#   addAwesomeMarkers( ~longitude, ~latitude, icon = icons, popup = ~hyperink)
+# m  # Print the map
 
 
