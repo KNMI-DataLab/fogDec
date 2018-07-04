@@ -1,13 +1,13 @@
-# #!/usr/bin/env Rscript
-# args = commandArgs(trailingOnly=TRUE)
-# 
-# 
-# # test if there is at least one argument: if not, return an error
-# if (length(args)==0) {
-#   stop("At least one argument must be supplied (input file).jpg", call.=FALSE)
-# } else if (length(args)==1) {
-#   fileToAnalyze = args[1]
-# }
+#!/usr/bin/env Rscript
+args = commandArgs(trailingOnly=TRUE)
+
+
+# test if there is at least one argument: if not, return an error
+if (length(args)==0) {
+  stop("At least one argument must be supplied (input file).jpg", call.=FALSE)
+} else if (length(args)==1) {
+  fileToAnalyze = args[1]
+}
 
 
 
@@ -48,7 +48,7 @@ fromImageToFeatures<-function(filename){
 
 library(RJSONIO)
 
-fileToAnalyze<-"/nas-research.knmi.nl/sensordata/CAMERA/RWS/A2/HM776/ID10915/201806/A2-HM776-ID10915_20180606_0801.jpg"
+#fileToAnalyze<-"/nas-research.knmi.nl/sensordata/CAMERA/RWS/A2/HM776/ID10915/201806/A2-HM776-ID10915_20180606_0801.jpg"
 
 library(stringr)
 fileLocation<-gsub(".*/nas-research.knmi.nl/sensordata/CAMERA/", "~/share/", fileToAnalyze)
@@ -80,7 +80,6 @@ if(remote==TRUE){
   #####
   results_json<-"/workspace/andrea/exports/results/predictions/test.json"
   temp_directory<-"/workspace/andrea/tmp"
-  
 }else{
   model_zip_path = "/home/pagani/nndataH2O/frozenModels/dl_grid_model_35.zip"
   h2o_jar_path = "/home/pagani/R/x86_64-redhat-linux-gnu-library/3.4/h2o/java/h2o.jar"
