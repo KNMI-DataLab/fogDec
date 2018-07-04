@@ -205,7 +205,8 @@ def subscribeAndConsume():
 def callback(ch, method, properties, body):
     print(" [x] Received %r" % body)
     print("inside callback")
-    #ch.basic_ack(delivery_tag=method.delivery_tag)
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+
     message = filterMessage(body, locationToProcess, camerasToProcess)
     if (message != None):
         callParams = filterDayPhase()
