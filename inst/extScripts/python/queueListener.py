@@ -162,20 +162,6 @@ lonDeBilt = 5.1809676
 latDeBilt = 52.1092717
 
 
-confFileQueue = "queueConfig.json"
-dataConfQueue = readJson(confFileQueue)
-user = dataConfQueue["user"]
-pwd = dataConfQueue["pw"]
-ipAddr = dataConfQueue["host"]
-port = dataConfQueue["port"]
-
-
-credentials = pika.PlainCredentials(user, pwd)
-parameters = pika.ConnectionParameters(ipAddr, port, credentials=credentials)
-connection = pika.BlockingConnection(parameters)
-channel = connection.channel()
-
-channel.queue_declare(queue='test')
 
 confFile = "MVPCameras.json"
 
@@ -196,20 +182,29 @@ print("abc")
 #function to subscribe to the message queue
 #and handle the behavior when a message is received
 def subscribeAndConsume():
-    credentials = pika.PlainCredentials('guest', 'guest')
-    parameters = pika.ConnectionParameters('145.23.219.231', 5672, credentials=credentials)
+    confFileQueue = "queueConfig.json"
+    dataConfQueue = readJson(confFileQueue)
+    user = dataConfQueue["user"]
+    pwd = dataConfQueue["pw"]
+    ipAddr = dataConfQueue["host"]
+    port = dataConfQueue["port"]
+
+    credentials = pika.PlainCredentials(user, pwd)
+    parameters = pika.ConnectionParameters(ipAddr, port, credentials=credentials)
     connection = pika.BlockingConnection(parameters)
     channel = connection.channel()
+
     channel.queue_declare(queue='test', durable=False)
     #print(' [*] Waiting for messages. To exit press CTRL+C')
     channel.basic_qos(prefetch_count=1)
     channel.basic_consume(callback, queue='test')
-channel.start_consuming()
+    channel.start_consuming()
 
 
 
 def callback(ch, method, properties, body):
     print(" [x] Received %r" % body)
+    print("inside callback")
     #ch.basic_ack(delivery_tag=method.delivery_tag)
     message = filterMessage(body, locationToProcess, camerasToProcess)
     if (message != None):
