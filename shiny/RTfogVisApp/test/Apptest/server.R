@@ -7,7 +7,7 @@ shinyServer(function(input, output) {
   
   
   
-  
+#initialization (have to check what is needed after development, might not be needed)  
   remote=FALSE
   
   if(remote==TRUE){
@@ -19,41 +19,73 @@ shinyServer(function(input, output) {
     #####
     results_json<-"/workspace/andrea/exports/results/predictions/test.json"
     temp_directory<-"/workspace/andrea/tmp"
-    
   }else{
     model_zip_path = "/home/pagani/nndataH2O/frozenModels/dl_grid_model_35.zip"
     h2o_jar_path = "/home/pagani/R/x86_64-redhat-linux-gnu-library/3.4/h2o/java/h2o.jar"
     devel_dir<-"/home/pagani/development/"
     results_json<-"/home/pagani/nndataH2O/frozenModels/results/predictions/test.json"
     temp_directory<-"/home/pagani/temp/Rtemp/"
-    
+    queue_conf_file<-"/home/pagani/development/fogDec/inst/extScripts/python/queueConfig.json"
   }
+  
+  
+  
+  jsonQueue<-jsonlite::fromJSON(queue_conf_file)
+  
   
   
   ###FIRST ATTEMPT OF VISUALIZATION
   
-  jsoninput<-jsonlite::fromJSON(results_json)
+  #commandretrieve<-'curl -i -u guest:guest -H "content-type:application/json" -X POST http://145.23.219.231:8080/api/queues/%2f/RTvisual/get -d\'{"count":5,"requeue":true,"encoding":"auto","truncate":500000}\''
+  #testRec<-system(commandretrieve)
+  
+  #fetching messages
+  library(curl)
+  h <- new_handle()
+  handle_setopt(h,USERNAME=jsonQueue$user, PASSWORD=jsonQueue$pw, POST=1, POSTFIELDS='{"count":10000,"requeue":false,"encoding":"auto"}' )
+  handle_setheaders(h,
+                    "Content-Type" = "application/json"
+  )
+  
+  req <- curl_fetch_memory(paste0("http://",jsonQueue$host,":8080/api/queues/%2f/RTvisual/get"), handle = h)
+  
+  text<-rawToChar(req$content)
+  if(text!="[]"){
+        message(text)
+        pippo<-jsonlite::fromJSON(text)
+        jsoninput<-lapply(pippo$payload,jsonlite::fromJSON)
+        #reading from file to be replaced with reading from queue
+        #jsoninput<-jsonlite::fromJSON(results_json)
+        
+        
+        
+        df <- data.frame(matrix(unlist(jsoninput), nrow=length(jsoninput), byrow=T))
+        colnames(df)<-names(jsoninput[[1]])
+  }else{
+          message("Queue is empty")
+        }
+  
+  
+  
+  
   
   set.tempdir(temp_directory)
   
+  #setting icons to relevant colors and design
   factpal <- colorFactor(topo.colors(2), c(TRUE,FALSE))
-  
-  
-  
   icon.bad <- makeAwesomeIcon( markerColor = 'red', icon = "camera")
   icon.good <- makeAwesomeIcon(markerColor = 'green', icon = "camera")
   myIcons<-awesomeIconList(noFog = icon.good, fog = icon.bad)
   
+  
+  #
   inputDF<-data.frame(jsoninput,stringsAsFactors = F)
   inputDF
   
-  inputDF<-inputDF[rep(1:nrow(inputDF),each=2),] 
-  
-  inputDF[2,10]=TRUE
-  
-  inputDF[2,3]=5.1115
-  
-  inputDF
+  #inputDF<-inputDF[rep(1:nrow(inputDF),each=2),] 
+  #inputDF[2,10]=TRUE
+  #inputDF[2,3]=5.1115
+  #inputDF
   
   inputDF$fogClass<-as.factor(inputDF$fogClass)
   #inputDF$graphicClass<if(inputDF$fogClass==FALSE){"noFog"}
@@ -85,23 +117,7 @@ shinyServer(function(input, output) {
     addAwesomeMarkers( ~longitude, ~latitude, icon = icons, popup = ~hyperink)
   #m  # Print the map
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  #shinyjs::useShinyjs()
-  #shinyjs::disable("goButton")
-  
-  
-  
-  
+
   
   observeEvent(input$goButton, {
     

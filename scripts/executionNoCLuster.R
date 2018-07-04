@@ -139,7 +139,7 @@ fogClass<-prediction$predict
 final<-cbind(cameraTarget,fileLocation,originalPath, timeStamp,fogClass)
 
 
-exportJson <- toJSON(final, pretty = TRUE)
+exportJson <- jsonlite::toJSON(final)
 write(exportJson, results_json)
 
 
@@ -153,29 +153,16 @@ jsonQueue<-jsonlite::fromJSON(queue_conf_file)
 
 #set of options not working at the moment
 
-system('~/temp/rabbitmqadmin -H 145.23.219.231 -P 5672 -U guest -p guest publish routing_key=RTvisual payload="hello, world"')
 
-system('~/temp/rabbitmqadmin --host=145.23.219.231 --port=5671 -U test -p test declare queue name=RTvisual')
+charPayload<-as.character(exportJson)
+escapedPayload<-gsub("([\\\"])",'\\\\"', charPayload)
 
-
-system('curl -u test:test -H "content-type:application/json" -X POST -d\'{"properties":{"delivery_mode":1},"routing_key":"RTvisual","declare_queue":"RTvisual","payload":"hello,world","payload_encoding":"string"}\' http://145.23.219.231:5672/api/exchanges/%2f/amq.default/publish')
-
-#messageQueue library not working(?)
-queueUrl <- ""
-
-jsonQueue$host
-
-# create a queue producer
-queueAproducer <- messageQueue.factory.getProducerFor("145.23.219.231","RTvisual","rabbitMQ")
-
-# ... do some stuff ...
-
-# put a message on the queue
-textMessage <- "this is the message I want to send"
-status <- messageQueue.producer.putText(queueAproducer, textMessage)
-
-# close the producer
-status <- messageQueue.producer.close(queueAproducer)
+#putting a message in the queue via POST since R library working with rabbit is not working
+command<-paste0('curl -u ', jsonQueue$user,':', jsonQueue$pw, ' -H "Content-type: application/json" -X POST -d\'{"properties":{"delivery_mode":1, "content_type": "application/json"},
+"routing_key":"RTvisual", "declare_queue":"RTvisual","payload":"',escapedPayload,'","payload_encoding":"string"}\' http://',jsonQueue$host,':8080/api/exchanges/%2f/amq.default/publish')
+command
+system(command)
+message("prediction sent to the queue for visualization")
 
 
 
