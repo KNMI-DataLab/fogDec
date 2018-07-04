@@ -132,7 +132,7 @@ def filterDayPhase():
     dayPhaseNow=11
 
     # way to call R in python subprocess.call (["/usr/bin/Rscript", "--vanilla", "/pathto/MyrScript.r"])
-    callToRScript = {11: ["/usr/bin/Rscript", "--vanilla", "/usr/people/pagani/development/fogVisibility/fogDec/scripts/execution.R"]}
+    callToRScript = {11: ["/usr/bin/Rscript", "--vanilla", "/home/pagani/development/fogVisibility/fogDec/scripts/executionNoCluster.R"]}
 
     result = callToRScript.get(dayPhaseNow, None)
 
@@ -142,8 +142,8 @@ def filterDayPhase():
 
 
 def filterMessage(message, locationToProcess, camerasToProcess):
-    if any(s for s in locationToProcess if s in exampleMessageBody):
-        if any(ss for ss in camerasToProcess if ss in exampleMessageBody):
+    if any(s for s in locationToProcess if s in message):
+        if any(ss for ss in camerasToProcess if ss in message):
             return (message)
         else:
             return(None)
@@ -192,24 +192,34 @@ camerasToProcess = extractCameras(camerasMVPConf)
 print("abc")
 
 
-#
-# def callback(ch, method, properties, body):
-#     print(" [x] Received %r" % body)
-#     #ch.basic_ack(delivery_tag=method.delivery_tag)
-#
-# channel.basic_consume(callback, queue='test')
-#
-# print(' [*] Waiting for messages. To exit press CTRL+C')
-# channel.start_consuming()
+
+#function to subscribe to the message queue
+#and handle the behavior when a message is received
+def subscribeAndConsume():
+    credentials = pika.PlainCredentials('guest', 'guest')
+    parameters = pika.ConnectionParameters('145.23.219.231', 5672, credentials=credentials)
+    connection = pika.BlockingConnection(parameters)
+    channel = connection.channel()
+    channel.queue_declare(queue='test', durable=False)
+    #print(' [*] Waiting for messages. To exit press CTRL+C')
+    channel.basic_qos(prefetch_count=1)
+    channel.basic_consume(callback, queue='test')
+channel.start_consuming()
 
 
-exampleMessageBody = "/nas-research.knmi.nl/sensordata/CAMERA/RWS/A2/HM776/ID10912/201806/A2-HM776-ID10912_20180606_0801.jpg"
+
+def callback(ch, method, properties, body):
+    print(" [x] Received %r" % body)
+    #ch.basic_ack(delivery_tag=method.delivery_tag)
+    message = filterMessage(body, locationToProcess, camerasToProcess)
+    if (message != None):
+        callParams = filterDayPhase()
+        if (callParams != None):
+            callParams.append(body)
+            subprocess.call(callParams)
+
+#exampleMessageBody = "/nas-research.knmi.nl/sensordata/CAMERA/RWS/A2/HM776/ID10912/201806/A2-HM776-ID10912_20180606_0801.jpg"
 
 
 
-message = filterMessage(exampleMessageBody, locationToProcess, camerasToProcess)
-if (message != None):
-    callParams = filterDayPhase()
-    if (callParams != None):
-        callParams.append(exampleMessageBody)
-        subprocess.call(callParams)
+subscribeAndConsume()
