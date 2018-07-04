@@ -132,7 +132,7 @@ def filterDayPhase():
     dayPhaseNow=11
 
     # way to call R in python subprocess.call (["/usr/bin/Rscript", "--vanilla", "/pathto/MyrScript.r"])
-    callToRScript = {11: ["/usr/bin/Rscript", "--vanilla", "/home/pagani/development/fogVisibility/fogDec/scripts/executionNoCluster.R"]}
+    callToRScript = {11: ["/usr/bin/Rscript", "--vanilla", "/home/pagani/development/fogDec/scripts/executionNoCluster.R"]}
 
     result = callToRScript.get(dayPhaseNow, None)
 
