@@ -175,9 +175,6 @@ camerasToProcess = extractCameras(camerasMVPConf)
 
 
 
-print("abc")
-
-
 
 #function to subscribe to the message queue
 #and handle the behavior when a message is received
@@ -194,11 +191,15 @@ def subscribeAndConsume():
     connection = pika.BlockingConnection(parameters)
     channel = connection.channel()
 
-    channel.queue_declare(queue='test', durable=False)
-    #print(' [*] Waiting for messages. To exit press CTRL+C')
+    channel.exchange_declare(exchange='imagesTest', exchange_type='fanout')
+    channel.queue_declare(queue='RTfogDec', durable=False)
+    channel.queue_bind(exchange='imagesTest', queue='RTfogDec')
     channel.basic_qos(prefetch_count=1)
-    channel.basic_consume(callback, queue='test')
+    channel.basic_consume(callback, queue='RTfogDec')
     channel.start_consuming()
+
+
+
 
 
 
