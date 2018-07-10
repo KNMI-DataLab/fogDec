@@ -98,12 +98,12 @@ def computeDayPhase(lon, lat, dateTime):
     return(dayPhaseID)
 
 
-
 #extract the relevant section of JSON config file
 def extractFromJSON(confJson, stringForSearch):
     toSearch = parse(stringForSearch)  # info at http://goessner.net/articles/JsonPath/
     stations = toSearch.find(confJson)[0].value
     return (stations)
+
 
 #extract the locations from JSON config file
 def extractLocations(confJson):
@@ -112,6 +112,7 @@ def extractLocations(confJson):
     for match in pathToSearch.find(confJson):
         locations.append(match.value)
     return(locations)
+
 
 #extract the cameraID from JSON config file
 def extractCameras(confJson):
@@ -122,7 +123,7 @@ def extractCameras(confJson):
     return cameras
 
 
-
+#filters the dayphase and use the appropriate script (at the moment daylight only)
 def filterDayPhase():
     nowUTC = datetime.datetime.utcnow()
 
@@ -136,11 +137,10 @@ def filterDayPhase():
 
     result = callToRScript.get(dayPhaseNow, None)
 
-    print("pippo")
-
     return result
 
 
+#filter the message if belonging to the list of locations approved
 def filterMessage(message, locationToProcess, camerasToProcess):
     if any(s for s in locationToProcess if s in message):
         if any(ss for ss in camerasToProcess if ss in message):
@@ -149,31 +149,6 @@ def filterMessage(message, locationToProcess, camerasToProcess):
             return(None)
     else:
         return(None)
-
-#==0 and message.find(camerasToProcess)==0):
-#print("location camera should be processed")
-
-
-#at the moment assuming De Bilt as the location where we assess the dayphase
-#for running the model for daylight (only model at the moment) or for
-#other moment of the day (future work)
-
-lonDeBilt = 5.1809676
-latDeBilt = 52.1092717
-
-
-
-confFile = "MVPCameras.json"
-
-#read the config file in JSON
-
-
-camerasMVPConf = readJson(confFile)
-
-locationToProcess = extractLocations(camerasMVPConf)
-camerasToProcess = extractCameras(camerasMVPConf)
-
-
 
 
 #function to subscribe to the message queue
@@ -199,13 +174,9 @@ def subscribeAndConsume():
     channel.start_consuming()
 
 
-
-
-
-
+#function called at every message arrival
 def callback(ch, method, properties, body):
     print(" [x] Received %r" % body)
-    print("inside callback")
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
     message = filterMessage(body, locationToProcess, camerasToProcess)
@@ -213,10 +184,26 @@ def callback(ch, method, properties, body):
         callParams = filterDayPhase()
         if (callParams != None):
             callParams.append(body)
+            #each process is run in parallel
             subprocess.Popen(callParams)
 
 #exampleMessageBody = "/nas-research.knmi.nl/sensordata/CAMERA/RWS/A2/HM776/ID10912/201806/A2-HM776-ID10912_20180606_0801.jpg"
 
 
+
+
+#at the moment assuming De Bilt as the location where we assess the dayphase
+#for running the model for daylight (only model at the moment) or for
+#other moment of the day (future work)
+
+lonDeBilt = 5.1809676
+latDeBilt = 52.1092717
+
+confFile = "MVPCameras.json"
+
+#read the config file in JSON
+camerasMVPConf = readJson(confFile)
+locationToProcess = extractLocations(camerasMVPConf)
+camerasToProcess = extractCameras(camerasMVPConf)
 
 subscribeAndConsume()
