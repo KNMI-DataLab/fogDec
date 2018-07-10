@@ -213,7 +213,7 @@ def callback(ch, method, properties, body):
         callParams = filterDayPhase()
         if (callParams != None):
             callParams.append(body)
-            subprocess.call(callParams)
+            subprocess.Popen(callParams)
 
 #exampleMessageBody = "/nas-research.knmi.nl/sensordata/CAMERA/RWS/A2/HM776/ID10912/201806/A2-HM776-ID10912_20180606_0801.jpg"
 
