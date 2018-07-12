@@ -48,7 +48,9 @@ fromImageToFeatures<-function(filename){
 
 library(RJSONIO)
 
-#fileToAnalyze<-"/nas-research.knmi.nl/sensordata/CAMERA/RWS/A2/HM776/ID10915/201806/A2-HM776-ID10915_20180606_0801.jpg"
+#'/nas-research.knmi.nl/sensordata/CAMERA/DEBILT/TESTSITE-SNOWDEPTH/201807/DEBILT-TESTSITE-SNOWDEPTH_20180710_0811.jpg
+
+#fileToAnalyze<-"/nas-research.knmi.nl/sensordata/CAMERA/DEBILT/TESTSITE-SNOWDEPTH/201807/DEBILT-TESTSITE-SNOWDEPTH_20180710_0811.jpg"
 
 library(stringr)
 fileLocation<-gsub(".*/nas-research.knmi.nl/sensordata/CAMERA/", "~/share/", fileToAnalyze)
@@ -110,6 +112,9 @@ cameraID<-substring(locationAndID,lastDash+1,str_length(locationAndID))
 
 
 cameraTarget<-camerasRWS[camerasRWS$location==location & camerasRWS$cameraID==cameraID,]
+if(dim(cameraTarget)[1]==0){
+  stop("camera not in the list for fog detection")
+}
 cbind(cameraTarget,fileLocation,originalPath, timeStamp)
 
 print(fileLocation)

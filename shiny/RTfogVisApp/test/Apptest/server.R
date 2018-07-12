@@ -3,10 +3,10 @@ library(leaflet)
 library(unixtools)
 library(plyr)
 library(shiny)
-shinyServer(function(input, output) {
-  
-  
-  
+
+message("test alive?")
+
+shinyServer(function(input, output, session) {
 #initialization (have to check what is needed after development, might not be needed)  
   remote=FALSE
   
@@ -26,7 +26,47 @@ shinyServer(function(input, output) {
     results_json<-"/home/pagani/nndataH2O/frozenModels/results/predictions/test.json"
     temp_directory<-"/home/pagani/temp/Rtemp/"
     queue_conf_file<-"/home/pagani/development/fogDec/inst/extScripts/python/queueConfig.json"
+    cameras_for_detection_file<-"/home/pagani/development/fogDec/inst/extScripts/python/MVPCameras.json"
+    df_debug_file<-"/home/pagani/development/fogDec/shiny/debug/debugDF.csv"
+    shiny_dir<-"/home/pagani/development/fogDec/shiny"
   }
+  
+  
+  jsonCameras<-jsonlite::fromJSON(cameras_for_detection_file)
+  dfCameras<-data.frame(jsonCameras$cameras$RWS)
+  dfCameras$longitude<-as.numeric(dfCameras$longitude)
+  dfCameras$latitude<-as.numeric(dfCameras$latitude)
+  
+  iconsInit <- awesomeIcons(icon = "camera",
+                        iconColor = "black",
+                        library = "ion",
+                        markerColor = "gray")
+  
+  
+  
+  
+  
+  html_legend <- paste0("<link href='shared/font-awesome/css/font-awesome.min.css'/>
+<img src='iconGreenNoBack.png' style='width:15px;height:20px;'>  NO FOG<br/>
+<img src='iconRedNoBack.png'style='width:15px;height:20px;'>  FOG<br/>
+                        <img src='iconGreyNoBack.png' style='width:15px;height:20px;'>  NA<br/>")
+
+  
+  
+  
+  
+  
+  
+  
+  mapInit<-leaflet(dfCameras) %>% addTiles() %>%  addAwesomeMarkers( ~longitude, ~latitude, icon = iconsInit) %>% addControl(html= html_legend, position = "topright")
+
+  
+  
+  output$map<-renderLeaflet(mapInit)
+  
+
+  
+  
   
   
   
@@ -43,9 +83,16 @@ shinyServer(function(input, output) {
   library(curl)
   h <- new_handle()
   handle_setopt(h,USERNAME=jsonQueue$user, PASSWORD=jsonQueue$pw, POST=1, POSTFIELDS='{"count":10000,"requeue":false,"encoding":"auto"}' )
-  handle_setheaders(h,
-                    "Content-Type" = "application/json"
-  )
+  handle_setheaders(h,"Content-Type" = "application/json")
+  
+  
+  
+  
+  
+  
+  
+  
+  fetchNewFogDetection<-function(queueJson, handler){
   
   req <- curl_fetch_memory(paste0("http://",jsonQueue$host,":8080/api/queues/%2f/RTvisual/get"), handle = h)
   
@@ -59,65 +106,106 @@ shinyServer(function(input, output) {
         
         
         
-        df <- data.frame(matrix(unlist(jsoninput), nrow=length(jsoninput), byrow=T))
+        df <- data.frame(matrix(unlist(jsoninput), nrow=length(jsoninput), byrow=T), stringsAsFactors = F)
         colnames(df)<-names(jsoninput[[1]])
   }else{
           message("Queue is empty")
+    df<-NULL
         }
   
   
-  
+  if(is.null(df)==FALSE){
   
   
   set.tempdir(temp_directory)
   
   #setting icons to relevant colors and design
-  factpal <- colorFactor(topo.colors(2), c(TRUE,FALSE))
-  icon.bad <- makeAwesomeIcon( markerColor = 'red', icon = "camera")
-  icon.good <- makeAwesomeIcon(markerColor = 'green', icon = "camera")
-  myIcons<-awesomeIconList(noFog = icon.good, fog = icon.bad)
+  # factpal <- colorFactor(topo.colors(2), c(TRUE,FALSE))
+  # icon.bad <- makeAwesomeIcon( markerColor = 'red', icon = "camera")
+  # icon.good <- makeAwesomeIcon(markerColor = 'green', icon = "camera")
+  # icon.na<- makeAwesomeIcon(markerColor = 'gray', icon = "camera")
+  # 
+  # myIcons<-awesomeIconList(noFog = icon.good, fog = icon.bad, notAv = icon.na)
   
   
   #
-  inputDF<-data.frame(jsoninput,stringsAsFactors = F)
-  inputDF
+  #inputDF<-data.frame(jsoninput,stringsAsFactors = F)
+  #inputDF
   
   #inputDF<-inputDF[rep(1:nrow(inputDF),each=2),] 
   #inputDF[2,10]=TRUE
   #inputDF[2,3]=5.1115
   #inputDF
+    
+    
+    
+    
+    jsonCameras<-jsonlite::fromJSON(cameras_for_detection_file)
+    dfCameras<-data.frame(jsonCameras$cameras$RWS)
+    dfCameras$longitude<-as.numeric(dfCameras$longitude)
+    dfCameras$latitude<-as.numeric(dfCameras$latitude)
   
-  inputDF$fogClass<-as.factor(inputDF$fogClass)
+  df$fogClass<-as.factor(df$fogClass)
   #inputDF$graphicClass<if(inputDF$fogClass==FALSE){"noFog"}
   #inputDF$graphicClass<-as.factor(inputDF$graphicClass)
   #inputDF$fogClass<-revalue(inputDF$fogClass, c("FALSE"="nofog", "TRUE"="fog"))
   
-  inputDF$icon <- factor(inputDF$fogClass,
+  df$icon <- factor(df$fogClass,
                          levels = c("TRUE","FALSE"),
                          labels = c("red", "green")) 
   
-  inputDF
-  inputDF$longitude<-as.numeric(inputDF$longitude)
-  inputDF$latitude<-as.numeric(inputDF$latitude)
+  df
+  df$longitude<-as.numeric(df$longitude)
+  df$latitude<-as.numeric(df$latitude)
   
-  print(inputDF)
+  message("dataframe created")
+  message("saving dataframe for debug purposes")
+  write.csv(df,file = df_debug_file )
+  
+  missing<-dfCameras [ !dfCameras$cameras.RWS.cameraID %in% df$cameraID ,]
+  
+  iconsMissing <- awesomeIcons(icon = "camera",
+                        iconColor = "black",
+                        library = "ion",
+                        markerColor = "grey")
   
   icons <- awesomeIcons(icon = "camera",
                         iconColor = "black",
                         library = "ion",
-                        markerColor = inputDF$icon)
+                        markerColor = df$icon)
   
   
   
-  inputDF$hyperink<-paste0('<a href="',inputDF$ipAddr,'">View Camera ', inputDF$location," " ,inputDF$cameraID,'</a>')
+  
+  df$hyperink<-paste0('<a href="',df$ipAddr,'">View Camera ', df$location," " ,df$cameraID,'</a>')
+  
+  if(nrow(missing)!=0){
+  missing$hyperink<-paste0('<a href="',missing$cameras.RWS.ipAddr,'">View Camera ',missing$cameras.RWS.location," " ,missing$cameras.RWS.cameraID,'</a>')
+  m <- leaflet() %>%
+    addTiles() %>%  # Add default OpenStreetMap map tiles
+    addAwesomeMarkers(data=df, ~longitude, ~latitude, icon = icons, popup = ~hyperink) %>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
+  }else{
+    m <- leaflet() %>%
+      addTiles() %>%  # Add default OpenStreetMap map tiles
+      addAwesomeMarkers(data=df, ~longitude, ~latitude, icon = icons, popup = ~hyperink)  %>% addControl(html= html_legend, position = "topright")
+    }
+  
+  
+  
+  
+  
   
   #icon11<-myIcons[inputDF$graphicClass]
-  m <- leaflet(inputDF) %>%
-    addTiles() %>%  # Add default OpenStreetMap map tiles
-    addAwesomeMarkers( ~longitude, ~latitude, icon = icons, popup = ~hyperink)
+
+  output$map <-renderLeaflet(m)  
+  }
+  }
   #m  # Print the map
   
 
+  
+  #fetchNewFogDetection(jsonQueue,h)
+  
   
   observeEvent(input$goButton, {
     
@@ -147,10 +235,9 @@ shinyServer(function(input, output) {
   
   
   
+  reactivePoll(120000, session, checkFunc = fetchNewFogDetection )
   
   
-  
-  output$map <-renderLeaflet(m)
 
   
   # observe({
