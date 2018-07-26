@@ -116,7 +116,7 @@ h2oTrainingFrame<-h2o.importFile("/data_enc/trainingH2O_TECO_7500_28px.csv")
 
 hyper_params <- list(
   activation = c("Rectifier", "Maxout", "Tanh", "RectifierWithDropout", "MaxoutWithDropout", "TanhWithDropout"),
-  hidden = list( c(10,10,10,10,10),c(50,50,50,25,10),c(75,75,50,50,10)),
+  hidden = list( c(10,10,10,10,10),c(50,50,50,25,10),c(75,75,50,50,10), c(50,50,50,25,25,10)),
   epochs = c(500,650,750,1000,1500),
   l1 = c(0, 0.00001, 0.0001),
   l2 = c(0, 0.00001, 0.0001),
@@ -175,7 +175,7 @@ best_model <- h2o.getModel(modelID[[1]])
 h2o.confusionMatrix(best_model)
 h2o.performance(best_model,h2oTrainingFrame)
 
-h2o.saveModel(best_model,"/workspace/andrea/exports/models/7500_m_train/latest",force = T)
+h2o.saveModel(best_model,"/workspace/andrea/exports/models/7500_m_train/latest_new",force = T)
 
 
 h2oValidating<-h2o.importFile("/data_enc/validatingh2oWithFilename.csv")
