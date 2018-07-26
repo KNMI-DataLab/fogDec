@@ -52,6 +52,8 @@ library(RJSONIO)
 
 #fileToAnalyze<-"/nas-research.knmi.nl/sensordata/CAMERA/DEBILT/TESTSITE-SNOWDEPTH/201807/DEBILT-TESTSITE-SNOWDEPTH_20180710_0811.jpg"
 
+#fileToAnalyze<-"/nas-research.knmi.nl/sensordata/CAMERA/RWS/A16/HM211/ID71681/201807/A16-HM211-ID71681_20180726_1220.jpg"
+
 library(stringr)
 fileLocation<-gsub(".*/nas-research.knmi.nl/sensordata/CAMERA/", "~/share/", fileToAnalyze)
 
@@ -84,7 +86,7 @@ if(remote==TRUE){
   temp_directory<-"/workspace/andrea/tmp"
 }else{
   model_zip_path = "/home/pagani/nndataH2O/frozenModels/dl_grid_model_35.zip"
-  h2o_jar_path = "/home/pagani/R/x86_64-redhat-linux-gnu-library/3.4/h2o/java/h2o.jar"
+  h2o_jar_path = "/usr/lib64/R/library/h2o/java/h2o.jar"
   devel_dir<-"/home/pagani/development/"
   results_json<-"/home/pagani/nndataH2O/frozenModels/results/predictions/test.json"
   temp_directory<-"/home/pagani/temp/Rtemp/"

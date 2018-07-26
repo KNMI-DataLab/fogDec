@@ -43,7 +43,7 @@ shinyServer(function(input, output, session) {
                         markerColor = "gray")
   
   
-  
+  output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(as.POSIXlt(Sys.time(), "UTC")),"UTC  </div><br>")})
   
   
   html_legend <- paste0("<link href='shared/font-awesome/css/font-awesome.min.css'/>
@@ -193,7 +193,7 @@ shinyServer(function(input, output, session) {
   
   
   
-  
+  output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(as.POSIXlt(Sys.time(), "UTC")),"UTC  </div><br>")})
   
   #icon11<-myIcons[inputDF$graphicClass]
 
