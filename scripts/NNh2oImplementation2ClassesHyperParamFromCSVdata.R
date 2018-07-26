@@ -109,7 +109,7 @@ library(fogDec)
 
 h2o.init(nthreads=-1, max_mem_size="250G")
 h2o.removeAll() ## clean slate - just in cas
-h2oTrainingFrame<-h2o.importFile("/data_enc/trainingh2o.csv")
+h2oTrainingFrame<-h2o.importFile("/data_enc/trainingH2O_TECO_7500_28px.csv")
 #h2oValidating<-h2o.importFile("/data_enc/validatingh2o.csv")
 #best_model<-h2o.loadModel("/workspace/andrea/exports/models/dl_grid_model_35")
 
@@ -152,7 +152,7 @@ search_criteria <- list(strategy = "RandomDiscrete",
 dl_grid <- h2o.grid(algorithm = "deeplearning",
                     x = 1:2352,
                     y = "foggy",
-                    #weights_column = weights,
+                    #weights_column = "x",
                     grid_id = "dl_grid",
                     training_frame = h2oTrainingFrame,
                     #validation_frame = valid,
@@ -175,7 +175,11 @@ best_model <- h2o.getModel(modelID[[1]])
 h2o.confusionMatrix(best_model)
 h2o.performance(best_model,h2oTrainingFrame)
 
-h2o.saveModel(best_model,"/workspace/andrea/exports/models/2500_m_train/")
+h2o.saveModel(best_model,"/workspace/andrea/exports/models/7500_m_train/latest",force = T)
+
+
+h2oValidating<-h2o.importFile("/data_enc/validatingh2oWithFilename.csv")
+
 
 
 h2o.performance(best_model,h2oValidating)
