@@ -131,13 +131,22 @@ draw_confusion_matrix_binaryCaretMatrix <- function(cm) {
 
 h2o.init(nthreads=-1, max_mem_size="250G")
 h2o.removeAll() ## clean slate - just in cas
-h2oTrainingFrame<-h2o.importFile("/data_enc/trainingH2O_TECO_7500_28px.csv")
+h2oTrainingFrame<-h2o.importFile("/data_enc/trainingh2o.csv")
 
-loadedModel<-h2o.loadModel("/workspace/andrea/exports/models/7500_m_train/dl_grid_model_2")
+loadedModel<-h2o.loadModel("/workspace/andrea/exports/models/2500_m_train/24_07/dl_grid_model_2")
 
 
+# 
+# cmTrain<-h2o.confusionMatrix(loadedModel,h2oTrainingFrame)
+# perfTrain<-h2o.performance(loadedModel,h2oTrainingFrame)
 
-#h2oValidating<-h2o.importFile("/data_enc/validatingh2oWithFilename.csv")
+#draw_confusion_matrix_binaryH20(cmTrain)
+
+
+#h2o.saveModel(loadedModel,"/workspace/andrea/exports/models/500_m_train/latest",force = T)
+
+
+h2oValidating<-h2o.importFile("/data_enc/validatingh2oWithFilename.csv")
 
 
 
@@ -147,16 +156,24 @@ cmTrain<-h2o.confusionMatrix(loadedModel,h2oTrainingFrame)
 draw_confusion_matrix_binaryH20(cmTrain)
 
 
+predOnValid<-h2o.predict(loadedModel, h2oValidating)
 
-#Validation Set
-#predOnValid<-h2o.predict(loadedModel, h2oValidating)
-#threshold<-perfTraining@metrics$max_criteria_and_metric_scores$threshold[[1]]
-#results<-resultsOnThreshold(predOnValid,h2oValidating,threshold)
-#cmValid<-confusionMatrix(results$prediction,reference = results$groundTruth,positive = "TRUE",mode = "prec_recall")
-#draw_confusion_matrix_binaryCaretMatrix(cmValid)
+threshold<-perfTraining@metrics$max_criteria_and_metric_scores$threshold[[1]]
 
 
-#Test Set
+
+
+results<-resultsOnThreshold(predOnValid,h2oValidating,threshold)
+
+
+cmValid<-confusionMatrix(results$prediction,reference = results$groundTruth,positive = "TRUE",mode = "prec_recall")
+
+
+
+draw_confusion_matrix_binaryCaretMatrix(cmValid)
+
+
+
 h2oTestTECO<-h2o.importFile("/data_enc/testSetPixelValues.csv")
 
 predOnTest<-h2o.predict(loadedModel, h2oTestTECO)
@@ -172,12 +189,10 @@ draw_confusion_matrix_binaryCaretMatrix(cmTest)
 
 
 
-falsePositiveTest<-resultsTest[prediction==TRUE & groundTruth==FALSE]
-falseNegativeTest<-resultsTest[prediction==FALSE & groundTruth==TRUE]
 
 
-fwrite(falseNegativeTest,"/workspace/andrea/exports/results/TECO/falseNegativetestSet7500.csv")
-fwrite(falsePositiveTest,"/workspace/andrea/exports/results/TECO/falsePositivetestSet7500.csv")
+
+
 
 
 
