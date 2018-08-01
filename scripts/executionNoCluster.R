@@ -141,8 +141,16 @@ prediction <- h2o.mojo_predict_df(featuresImage,
 
 fogClass<-prediction$predict
 
+predTRUE<-prediction$TRUE.
+predFALSE<-prediction$FALSE.
 
-final<-cbind(cameraTarget,fileLocation,originalPath, timeStamp,fogClass)
+
+final<-cbind(cameraTarget,fileLocation,originalPath, timeStamp,fogClass,predTRUE,predFALSE)
+
+message(final)
+
+
+#final<-cbind(cameraTarget,fileLocation,originalPath, timeStamp,fogClass)
 
 
 exportJson <- jsonlite::toJSON(final)

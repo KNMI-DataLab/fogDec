@@ -27,6 +27,10 @@ dashboardPage(
     top: 50%;
     left: 50%;
   font-weight: bold;
+ }
+.bold{
+  font-weight: bold;
+
 }
                 ")),
     # Boxes need to be put in a row (or column)

@@ -24,7 +24,7 @@ shinyServer(function(input, output, session) {
     h2o_jar_path = "/home/pagani/R/x86_64-redhat-linux-gnu-library/3.4/h2o/java/h2o.jar"
     devel_dir<-"/home/pagani/development/"
     results_json<-"/home/pagani/nndataH2O/frozenModels/results/predictions/test.json"
-    temp_directory<-"/home/pagani/temp/Rtemp/"
+    temp_directory<-"/tmp/" #"/home/pagani/temp/Rtemp"
     queue_conf_file<-"/home/pagani/development/fogDec/inst/extScripts/python/queueConfig.json"
     cameras_for_detection_file<-"/home/pagani/development/fogDec/inst/extScripts/python/MVPCameras.json"
     df_debug_file<-"/home/pagani/development/fogDec/shiny/debug/debugDF.csv"
@@ -46,19 +46,20 @@ shinyServer(function(input, output, session) {
   output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(as.POSIXlt(Sys.time(), "UTC")),"UTC  </div><br>")})
   
   
-  html_legend <- paste0("<link href='shared/font-awesome/css/font-awesome.min.css'/>
-<img src='iconGreenNoBack.png' style='width:15px;height:20px;'>  NO FOG<br/>
+  html_legend <- paste0("<link href='shared/font-awesome/css/font-awesome.min.css'/><div class='bold'>
+<img src='iconGreenNoBack.png' style='width:15px;height:20px;'>   NO FOG<br/>
 <img src='iconRedNoBack.png'style='width:15px;height:20px;'>  FOG<br/>
-                        <img src='iconGreyNoBack.png' style='width:15px;height:20px;'>  NA<br/>")
+                        <img src='iconGreyNoBack.png' style='width:15px;height:20px;'>  NA<br/></div>")
 
   
   
   
+  dfCameras$hyperink<-paste0('<a href="',df$ipAddr,'" target="_blank">View Camera ', df$location," " ,df$cameraID,  '</a>')
   
   
   
   
-  mapInit<-leaflet(dfCameras) %>% addTiles() %>%  addAwesomeMarkers( ~longitude, ~latitude, icon = iconsInit) %>% addControl(html= html_legend, position = "topright")
+  mapInit<-leaflet(dfCameras) %>% addTiles() %>%  addAwesomeMarkers( ~longitude, ~latitude, icon = iconsInit, popup = ~hyperink ) %>% addControl(html= html_legend, position = "topright")
 
   
   
@@ -98,7 +99,7 @@ shinyServer(function(input, output, session) {
   
   text<-rawToChar(req$content)
   if(text!="[]"){
-        message(text)
+        message(text) 
         pippo<-jsonlite::fromJSON(text)
         jsoninput<-lapply(pippo$payload,jsonlite::fromJSON)
         #reading from file to be replaced with reading from queue
@@ -159,7 +160,7 @@ shinyServer(function(input, output, session) {
   df$latitude<-as.numeric(df$latitude)
   
   message("dataframe created")
-  message("saving dataframe for debug purposes")
+  message(paste("saving dataframe for debug purposes in ",df_debug_file))
   write.csv(df,file = df_debug_file )
   
   missing<-dfCameras [ !dfCameras$cameras.RWS.cameraID %in% df$cameraID ,]
@@ -172,22 +173,26 @@ shinyServer(function(input, output, session) {
   icons <- awesomeIcons(icon = "camera",
                         iconColor = "black",
                         library = "ion",
-                        markerColor = df$icon)
+                        markerColor = df$icon
+                        )
   
   
-  
-  
-  df$hyperink<-paste0('<a href="',df$ipAddr,'">View Camera ', df$location," " ,df$cameraID,'</a>')
+
+  df$hyperink<-paste0('<a href="',df$ipAddr,'" target="_blank">View Camera ', df$location," " ,df$cameraID,  '</a>')
   
   if(nrow(missing)!=0){
   missing$hyperink<-paste0('<a href="',missing$cameras.RWS.ipAddr,'">View Camera ',missing$cameras.RWS.location," " ,missing$cameras.RWS.cameraID,'</a>')
   m <- leaflet() %>%
     addTiles() %>%  # Add default OpenStreetMap map tiles
     addAwesomeMarkers(data=df, ~longitude, ~latitude, icon = icons, popup = ~hyperink) %>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
+    #addCircleMarkers(data=df, ~longitude, ~latitude, popup = ~hyperink) #%>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
+  
   }else{
     m <- leaflet() %>%
       addTiles() %>%  # Add default OpenStreetMap map tiles
       addAwesomeMarkers(data=df, ~longitude, ~latitude, icon = icons, popup = ~hyperink)  %>% addControl(html= html_legend, position = "topright")
+      #addCircleMarkers(data=df, ~longitude, ~latitude,  popup = ~hyperink) #%>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
+    
     }
   
   
