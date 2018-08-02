@@ -141,172 +141,28 @@ loadedModel<-h2o.loadModel("/home/pagani/nndataH2O/TECO/2500model/dl_grid_model_
 
 
 perfTraining<-h2o.performance(loadedModel,h2oTrainingFrame)
-#cmTrain<-h2o.confusionMatrix(loadedModel,h2oTrainingFrame)
+cmTrain<-h2o.confusionMatrix(loadedModel,h2oTrainingFrame)
 
 #draw_confusion_matrix_binaryH20(cmTrain)
 
 
-predOnTrain<-h2o.predict(loadedModel, h2oTrainingFrame)
-threshold<-perfTraining@metrics$max_criteria_and_metric_scores$threshold[[1]]
-results<-resultsOnThreshold(predOnTrain,h2oTrainingFrame,threshold)
-cmTrain<-confusionMatrix(results$prediction,reference = results$groundTruth,positive = "TRUE",mode = "prec_recall")
-draw_confusion_matrix_binaryCaretMatrix(cmTrain)
 
-
-
-
-
-
-
-#Validation Set
-h2oValidating<-h2o.importFile("/home/pagani/nndataH2O/validationSet_2500m_28px.csv")
+#FullData Set
+h2oValidating<-h2o.importFile("/home/pagani/nndataH2O/TECO/allData2500.csv")
 predOnValid<-h2o.predict(loadedModel, h2oValidating)
 threshold<-perfTraining@metrics$max_criteria_and_metric_scores$threshold[[1]]
 results<-resultsOnThreshold(predOnValid,h2oValidating,threshold)
-cmValid<-confusionMatrix(results$prediction,reference = results$groundTruth,positive = "TRUE",mode = "prec_recall")
-draw_confusion_matrix_binaryCaretMatrix(cmValid)
+#cmValid<-confusionMatrix(results$prediction,reference = results$groundTruth,positive = "TRUE",mode = "prec_recall")
+#draw_confusion_matrix_binaryCaretMatrix(cmValid)
+allDataDT<-fread("/home/pagani/nndataH2O/TECO/allData2500.csv")
+total<-allDataDT[2353:2378]
+total<-cbind(total,results)
+#setkey(total,image_id)
 
+#allDistances<-fread("/home/pagani/nndataH2O/TECO/results/all2500PredictionAndEnv.csv")
+#setkey(allDistances,image_id)
 
-#Test Set
-h2oTestTECO<-h2o.importFile("/home/pagani/nndataH2O/testSet_2500m_28px.csv")
-
-predOnTest<-h2o.predict(loadedModel, h2oTestTECO)
-
-threshold<-perfTraining@metrics$max_criteria_and_metric_scores$threshold[[1]]
-
-resultsTest<-resultsOnThreshold(predOnTest,h2oTestTECO,threshold)
-
-cmTest<-confusionMatrix(resultsTest$prediction,reference = resultsTest$groundTruth,positive = "TRUE",mode = "prec_recall")
-
-
-draw_confusion_matrix_binaryCaretMatrix(cmTest)
-
-
-
-falsePositiveTest<-resultsTest[prediction==TRUE & groundTruth==FALSE]
-falseNegativeTest<-resultsTest[prediction==FALSE & groundTruth==TRUE]
-
-
-fwrite(falseNegativeTest,"/home/pagani/nndataH2O/TECO/misclassTestSet/2500TestSetONLY/falseNegativetestSet2500ONLY.csv")
-fwrite(falsePositiveTest,"/home/pagani/nndataH2O/TECO/misclassTestSet/2500TestSetONLY/falsePositivetestSet2500ONLY.csv")
-
-
-
-
-
-
-
-
-
-# predictionsTrain <- h2o.predict(best_model, h2oTrainingFrame)
-# 
-# predTrainDT<-as.data.table(predictionsTrain)
-# 
-# trainDT<-fread("/data_enc/trainingh2o.csv")
-# 
-# totalTrainDT<-trainDT[,c("foggy","filepath")]
-# totalTrainDT<-cbind(totalTrainDT,predTrainDT)
-# 
-# 
-# ##CROSS VALID SET - doing it on a propert fog to non-fog ratio##
-# 
-# validating<-validSet
-# 
-# 
-# files<-sapply(validating$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveDEBILT/",x))
-# files<-sapply(files, function(x) gsub(".*/CAMERA/", "",x))
-# files<-sapply(files, function(x) gsub(".*/cabauw/", "oldArchiveCABAUW/cabauw/",x))
-# 
-# 
-# 
-# setwd("~/share/")
-# 
-# #files<-test
-# 
-# 
-# resolutionImg<-28
-# 
-# cl <- makeCluster(40)
-# registerDoParallel(cl)
-# 
-# clusterEvalQ(cl, library("imager"))
-# 
-# matRWSvalid<-foreach(i=1:length(files)) %dopar%{
-#   message(files[[i]])
-#   image<-tryCatch(
-#     load.image(files[[i]]),
-#     
-#     error=function(error_message) {
-#       #message("Yet another error message.")
-#       #message("Here is the actual R error message:")
-#       #next
-#       return(NA)
-#     }
-#   )
-#   if(is.na(image[[1]])){
-#     v<-NA*1:(resolutionImg*resolutionImg)
-#     message("Image not available error in acquisition")
-#     v
-#   }else{
-#     image<-resize(image,resolutionImg,resolutionImg)
-#     image<-blur_anisotropic(image, amplitude = 10000)
-#     df<-as.data.frame(image)
-#     v<-df$value
-#     #mat<-rbind(mat,v)
-#     v
-#   }
-# }
-# 
-# stopCluster(cl)
-# 
-# 
-# matRWSvalid<-do.call(rbind,matRWSvalid)
-# 
-# 
-# dtMatValid<-data.table(matRWSvalid)
-# dtMatValid[,foggy:=validating$foggy]
-# dtMatValid[,filepath:=validating$filepath]
-# completeValid<-dtMatValid[complete.cases(dtMatValid)]
-# lastFeature<-resolutionImg*resolutionImg*3
-# trainData<-completeValid[,1:lastFeature]
-# groundTruth<-lastFeature+1
-# testTargets<-completeValid[,groundTruth:groundTruth]
-# 
-# saveRDS(completeValid,"~/nndataH2O/crossValH2O_64px.RDS")
-# 
-# 
-# 
-# h2o.init(nthreads=-1, max_mem_size="120G")
-# h2o.removeAll() ## clean slate - just in case the cluster was already running
-# 
-# 
-# h2oValidating<-as.h2o(completeValid)
-# 
-# 
-# h2o.exportFile(h2oValidating,"/home/pagani/nndataH2O/h2oFrames/validatingh2o_64px.csv", force = T)
-# 
-# 
-# 
-# 
-# h2o.performance(testh2oDL,h2oValidating)
-
-#################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#final<-allDistances[total,nomatch=0]
 
 
 

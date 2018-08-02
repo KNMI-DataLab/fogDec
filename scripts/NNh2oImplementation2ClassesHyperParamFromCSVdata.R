@@ -6,7 +6,7 @@ library(fogDec)
 
 
 
-
+ 
 # photoDir<-"~/share"
 # setwd(photoDir) ##For RStudio
 # 
@@ -25,11 +25,12 @@ library(fogDec)
 # testSet<-testSet[sample(nrow(testSet)),]
 # 
 # 
-# #training<-trainSet[sample(nrow(trainSet),20000),]
-# training<-trainSet
+# #training<-trainSet
+# 
+# testing<-testSet
 # 
 # 
-# files<-sapply(training$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveDEBILT/",x))
+# files<-sapply(testing$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveDEBILT/",x))
 # files<-sapply(files, function(x) gsub(".*/CAMERA/", "",x))
 # files<-sapply(files, function(x) gsub(".*/cabauw/", "oldArchiveCABAUW/cabauw/",x))
 # 
@@ -51,7 +52,7 @@ library(fogDec)
 #   message(files[[i]])
 #   image<-tryCatch(
 #     load.image(files[[i]]),
-#     
+# 
 #     error=function(error_message) {
 #       #message("Yet another error message.")
 #       #message("Here is the actual R error message:")
@@ -80,25 +81,25 @@ library(fogDec)
 # 
 # 
 # dtMat<-data.table(matRWS)
-# dtMat[,foggy:=training$foggy]
-# dtMat[,filepath:=training$filepath]
+# dtMat[,foggy:=testing$foggy]
+# dtMat[,filepath:=testing$filepath]
 # complete<-dtMat[complete.cases(dtMat)]
-# lastFeature<-resolutionImg*resolutionImg*3
-# #trainData<-complete[,1:lastFeature]
-# #groundTruth<-lastFeature+1
-# #trainTargets<-complete[,groundTruth:groundTruth]
+# # lastFeature<-resolutionImg*resolutionImg*3
+# # #trainData<-complete[,1:lastFeature]
+# # #groundTruth<-lastFeature+1
+# # #trainTargets<-complete[,groundTruth:groundTruth]
+# # 
+# # #shuffle rows just to avoid learning on inserted data (initial fog after no fog)
+# # #completeTraining<-complete[sample(nrow(complete),size = 200000),]
+# # completeTraining<-complete
+# fwrite(complete,"~/nndataH2O/testSet_2500m_28px.csv")
+# # 
+# # h2o.init(nthreads=-1, max_mem_size="100G")
+# # h2o.removeAll() ## clean slate - just in case the cluster was already running
+# # 
+# # 
+# # h2oTrainingFrame<-as.h2o(completeTraining)
 # 
-# #shuffle rows just to avoid learning on inserted data (initial fog after no fog)
-# #completeTraining<-complete[sample(nrow(complete),size = 200000),]
-# completeTraining<-complete
-# saveRDS(completeTraining,"~/nndataH2O/trainingH2O_realRatio_50px.RDS")
-# 
-# h2o.init(nthreads=-1, max_mem_size="100G")
-# h2o.removeAll() ## clean slate - just in case the cluster was already running
-# 
-# 
-# h2oTrainingFrame<-as.h2o(completeTraining)
-
 
 
 
