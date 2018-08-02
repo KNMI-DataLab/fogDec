@@ -155,12 +155,11 @@ results<-resultsOnThreshold(predOnValid,h2oValidating,threshold)
 #cmValid<-confusionMatrix(results$prediction,reference = results$groundTruth,positive = "TRUE",mode = "prec_recall")
 #draw_confusion_matrix_binaryCaretMatrix(cmValid)
 allDataDT<-fread("/home/pagani/nndataH2O/TECO/allData2500.csv")
-total<-allDataDT[2353:2378]
+total<-allDataDT[,2353:2378]
 total<-cbind(total,results)
-#setkey(total,image_id)
 
-#allDistances<-fread("/home/pagani/nndataH2O/TECO/results/all2500PredictionAndEnv.csv")
-#setkey(allDistances,image_id)
+
+fwrite(total,"/home/pagani/nndataH2O/TECO/results/all2500PredictionAndEnv_final.csv")
 
 #final<-allDistances[total,nomatch=0]
 
