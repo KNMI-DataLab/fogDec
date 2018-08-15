@@ -29,6 +29,7 @@ shinyServer(function(input, output, session) {
     cameras_for_detection_file<-"/home/pagani/development/fogDec/inst/extScripts/python/MVPCameras.json"
     df_debug_file<-"/home/pagani/development/fogDec/shiny/debug/debugDF.csv"
     shiny_dir<-"/home/pagani/development/fogDec/shiny"
+    state_file<-"/home/pagani/development/fogDec/shiny/state/currentState.json"
   }
   
   
@@ -43,7 +44,7 @@ shinyServer(function(input, output, session) {
                         markerColor = "gray")
   
   
-  output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(as.POSIXlt(Sys.time(), "UTC")),"UTC  </div><br>")})
+  #output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(as.POSIXlt(Sys.time(), "UTC")),"UTC  </div><br>")})
   
   
   html_legend <- paste0("<link href='shared/font-awesome/css/font-awesome.min.css'/><div class='bold'>
@@ -89,6 +90,16 @@ shinyServer(function(input, output, session) {
   
   
   
+  fromJSONtoDF<-function(text){
+    parsedJSON<-jsonlite::fromJSON(text)
+    jsoninput<-lapply(parsedJSON$payload,jsonlite::fromJSON)
+    #reading from file to be replaced with reading from queue
+    #jsoninput<-jsonlite::fromJSON(results_json)
+    df <- data.frame(matrix(unlist(jsoninput), nrow=length(jsoninput), byrow=T), stringsAsFactors = F)
+    colnames(df)<-names(jsoninput[[1]])
+    df
+  }
+  
   
   
   
@@ -99,24 +110,29 @@ shinyServer(function(input, output, session) {
   
   text<-rawToChar(req$content)
   if(text!="[]"){
-        message(text) 
-        pippo<-jsonlite::fromJSON(text)
-        jsoninput<-lapply(pippo$payload,jsonlite::fromJSON)
-        #reading from file to be replaced with reading from queue
-        #jsoninput<-jsonlite::fromJSON(results_json)
+        message(text)
+        writeLines(text,state_file)
+        df<-fromJSONtoDF(text)
+        #output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(max(df$timeStamp)),"UTC  </div><br>")})
         
-        
-        
-        df <- data.frame(matrix(unlist(jsoninput), nrow=length(jsoninput), byrow=T), stringsAsFactors = F)
-        colnames(df)<-names(jsoninput[[1]])
   }else{
-          message("Queue is empty")
-    df<-NULL
-        }
+          message("Queue is empty: using last retrieved values")
+    df<-tryCatch({
+    fromJSONtoDF(state_file)
+    },
+    error=function(cond){
+      message("state file not available")
+      output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(as.POSIXlt(Sys.time(), "UTC")),"UTC  </div><br>")})
+      df<-NULL
+      return(df)
+    })    
+    }
   
   
   if(is.null(df)==FALSE){
-  
+    message(max(df$timeStamp))
+    output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(max(df$timeStamp)),"UTC  </div><br>")})
+    
   
   set.tempdir(temp_directory)
   
@@ -198,7 +214,7 @@ shinyServer(function(input, output, session) {
   
   
   
-  output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(as.POSIXlt(Sys.time(), "UTC")),"UTC  </div><br>")})
+  #output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(as.POSIXlt(Sys.time(), "UTC")),"UTC  </div><br>")})
   
   #icon11<-myIcons[inputDF$graphicClass]
 
