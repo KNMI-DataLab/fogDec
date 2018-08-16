@@ -12,7 +12,7 @@ setwd(photoDir) ##For RStudio
 
 set.seed(11)
 
-trainValTestSetList<-createTrainValidTestSetsBinary("~/share/", dateMax= "\'2018-05-14 00:00:00\'", dbConfigDir = "~/development/fogDec/",maxDist=2500)
+trainValTestSetList<-createTrainValidTestSetsBinary("~/share/", dateMax= "\'2018-05-14 00:00:00\'", dbConfigDir = "~/development/fogDec/",maxDist=7500)
 
 trainSet<-trainValTestSetList[[1]]
 trainSet<-trainSet[sample(nrow(trainSet)),]
@@ -26,7 +26,7 @@ testSet<-testSet[sample(nrow(testSet)),]
 
 
 #training<-trainSet[sample(nrow(trainSet),20000),]
-training<-trainSet
+training<-testSet
 
 
 files<-sapply(training$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveDEBILT/",x))
@@ -80,10 +80,12 @@ matRWS<-do.call(rbind,matRWS)
 
 
 dtMat<-data.table(matRWS)
-dtMat[,foggy:=training$foggy]
-dtMat[,filepath:=training$filepath]
+#dtMat[,foggy:=training$foggy]
+#dtMat[,filepath:=training$filepath]
+dtMat<-cbind(dtMat,training)
 complete<-dtMat[complete.cases(dtMat)]
-lastFeature<-resolutionImg*resolutionImg*3
+
+#lastFeature<-resolutionImg*resolutionImg*3
 #trainData<-complete[,1:lastFeature]
 #groundTruth<-lastFeature+1
 #trainTargets<-complete[,groundTruth:groundTruth]
@@ -91,6 +93,9 @@ lastFeature<-resolutionImg*resolutionImg*3
 #shuffle rows just to avoid learning on inserted data (initial fog after no fog)
 #completeTraining<-complete[sample(nrow(complete),size = 200000),]
 completeTraining<-complete
+
+fwrite(completeTraining,"~/nndataH2O/test7500m_28px.csv")
+
 saveRDS(completeTraining,"~/nndataH2O/trainingH2O_realRatio_50px.RDS")
 
 h2o.init(nthreads=-1, max_mem_size="100G")

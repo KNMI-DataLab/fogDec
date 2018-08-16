@@ -131,9 +131,9 @@ draw_confusion_matrix_binaryCaretMatrix <- function(cm) {
 
 h2o.init(nthreads=-1, max_mem_size="250G")
 h2o.removeAll() ## clean slate - just in cas
-h2oTrainingFrame<-h2o.importFile("/home/pagani/nndataH2O/trainingSet_2500m_28px.csv")
+h2oTrainingFrame<-h2o.importFile("/home/pagani/nndataH2O/h2oFrames/trainingH2O_TECO_7500_28px.csv")
 
-loadedModel<-h2o.loadModel("/home/pagani/nndataH2O/TECO/2500model/dl_grid_model_2")
+loadedModel<-h2o.loadModel("/home/pagani/nndataH2O/TECO/7500model/dl_grid_model_2")
 
 
 
@@ -159,16 +159,16 @@ draw_confusion_matrix_binaryCaretMatrix(cmTrain)
 
 
 #Validation Set
-h2oValidating<-h2o.importFile("/home/pagani/nndataH2O/validationSet_2500m_28px.csv")
-predOnValid<-h2o.predict(loadedModel, h2oValidating)
-threshold<-perfTraining@metrics$max_criteria_and_metric_scores$threshold[[1]]
-results<-resultsOnThreshold(predOnValid,h2oValidating,threshold)
-cmValid<-confusionMatrix(results$prediction,reference = results$groundTruth,positive = "TRUE",mode = "prec_recall")
-draw_confusion_matrix_binaryCaretMatrix(cmValid)
+# h2oValidating<-h2o.importFile("/home/pagani/nndataH2O/validationSet_2500m_28px.csv")
+# predOnValid<-h2o.predict(loadedModel, h2oValidating)
+# threshold<-perfTraining@metrics$max_criteria_and_metric_scores$threshold[[1]]
+# results<-resultsOnThreshold(predOnValid,h2oValidating,threshold)
+# cmValid<-confusionMatrix(results$prediction,reference = results$groundTruth,positive = "TRUE",mode = "prec_recall")
+# draw_confusion_matrix_binaryCaretMatrix(cmValid)
 
 
 #Test Set
-h2oTestTECO<-h2o.importFile("/home/pagani/nndataH2O/testSet_2500m_28px.csv")
+h2oTestTECO<-h2o.importFile("/home/pagani/nndataH2O/test7500m_28px.csv")
 
 predOnTest<-h2o.predict(loadedModel, h2oTestTECO)
 

@@ -50,6 +50,18 @@ length(grep("^A",unique(samplesTrain7500$camera_description)))
 # 82 number of cameras in the 7500m distance dataset
 ```
 
+```{r sensors_highway}
+test11<-trainSet[grepl("^A",samplesTrain2500$camera_description),]
+length(unique(test11$KISstations))
+#4
+
+test22<-trainSet[grepl("^A",samplesTrain7500$camera_description),]
+length(unique(test22$KISstations))
+#7
+
+```
+
+
 ```{r amount_pic_highways}
 
 length(grep("^A",(samplesTrain7500$camera_description)))
