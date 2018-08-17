@@ -179,7 +179,7 @@ def subscribeAndConsume():
 def callback(ch, method, properties, body):
     print(" [x] Received %r" % body)
     ch.basic_ack(delivery_tag=method.delivery_tag)
-    logging.debug('message received'+body)
+    logging.info('message received '+body)
 
 
     message = filterMessage(body, locationToProcess, camerasToProcess)
@@ -210,7 +210,7 @@ locationToProcess = extractLocations(camerasMVPConf)
 camerasToProcess = extractCameras(camerasMVPConf)
 
 #setup logging
-logging.basicConfig(filename='logFile.log',level=logging.DEBUG)
+logging.basicConfig(filename='logFile.log',level=logging.info)
 
 
 
