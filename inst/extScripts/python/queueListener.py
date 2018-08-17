@@ -4,6 +4,7 @@ from jsonpath_rw import parse
 import ephem
 import subprocess
 import datetime
+import logging
 
 def readJson(confFile):
     with open(confFile) as data_file:
@@ -178,6 +179,8 @@ def subscribeAndConsume():
 def callback(ch, method, properties, body):
     print(" [x] Received %r" % body)
     ch.basic_ack(delivery_tag=method.delivery_tag)
+    logging.debug('message received'+body)
+
 
     message = filterMessage(body, locationToProcess, camerasToProcess)
     if (message != None):
@@ -205,5 +208,10 @@ confFile = "MVPCameras.json"
 camerasMVPConf = readJson(confFile)
 locationToProcess = extractLocations(camerasMVPConf)
 camerasToProcess = extractCameras(camerasMVPConf)
+
+#setup logging
+logging.basicConfig(filename='logFile.log',level=logging.DEBUG)
+
+
 
 subscribeAndConsume()
