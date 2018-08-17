@@ -131,7 +131,7 @@ def filterDayPhase():
     completeDateTime = datetime.datetime.strptime(
         str(nowUTC.year) + str(nowUTC.month) + str(nowUTC.day) + str(nowUTC.hour) + str(nowUTC.minute), "%Y%m%d%H%M")
     dayPhaseNow = computeDayPhase(lonDeBilt, latDeBilt, completeDateTime)
-    dayPhaseNow=11
+    #dayPhaseNow=11
 
     # way to call R in python subprocess.call (["/usr/bin/Rscript", "--vanilla", "/pathto/MyrScript.r"])
     callToRScript = {11: ["/usr/bin/Rscript", "--vanilla", "/home/pagani/development/fogDec/scripts/executionNoCluster.R"]}
@@ -210,7 +210,7 @@ locationToProcess = extractLocations(camerasMVPConf)
 camerasToProcess = extractCameras(camerasMVPConf)
 
 #setup logging
-logging.basicConfig(filename='logFile.log',level=logging.info)
+logging.basicConfig(filename='logFile.log',level=logging.INFO)
 
 
 
