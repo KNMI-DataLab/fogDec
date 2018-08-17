@@ -3,34 +3,48 @@ library(leaflet)
 library(unixtools)
 library(plyr)
 library(shiny)
+library(logging)
+
+
+##########
+#local and remote implementation variable naming/setting
+##########
+
+remote=FALSE
+
+if(remote==TRUE){
+  model_zip_path = "/workspace/andrea/exports/models/dl_grid_model_35.zip"
+  h2o_jar_path = "/usr/local/lib/R/site-library/h2o/java/h2o.jar"
+  devel_dir<-"/workspace/andrea/"
+  #for amazon###
+  fileLocation<-"/workspace/andrea/exports/A2-HM776-ID10915_20180606_0801.jpg"
+  #####
+  results_json<-"/workspace/andrea/exports/results/predictions/test.json"
+  temp_directory<-"/workspace/andrea/tmp"
+}else{
+  model_zip_path = "/home/pagani/nndataH2O/frozenModels/dl_grid_model_35.zip"
+  h2o_jar_path = "/home/pagani/R/x86_64-redhat-linux-gnu-library/3.4/h2o/java/h2o.jar"
+  devel_dir<-"/home/pagani/development/"
+  results_json<-"/home/pagani/nndataH2O/frozenModels/results/predictions/test.json"
+  temp_directory<-"/tmp/" #"/home/pagani/temp/Rtemp"
+  queue_conf_file<-"/home/pagani/development/fogDec/inst/extScripts/python/queueConfig.json"
+  cameras_for_detection_file<-"/home/pagani/development/fogDec/inst/extScripts/python/MVPCameras.json"
+  df_debug_file<-"/home/pagani/development/fogDec/shiny/debug/debugDF.csv"
+  shiny_dir<-"/home/pagani/development/fogDec/shiny"
+  log_file<-"/home/pagani/development/fogDec/shiny/log/logFile.log"
+  state_file<-"/home/pagani/development/fogDec/shiny/state/currentState.json"
+}
+
 
 message("test alive?")
+logReset()
+basicConfig(level='FINEST')
+addHandler(writeToFile, file=log_file, level='DEBUG')
+with(getLogger(), names(handlers))
 
 shinyServer(function(input, output, session) {
 #initialization (have to check what is needed after development, might not be needed)  
-  remote=FALSE
-  
-  if(remote==TRUE){
-    model_zip_path = "/workspace/andrea/exports/models/dl_grid_model_35.zip"
-    h2o_jar_path = "/usr/local/lib/R/site-library/h2o/java/h2o.jar"
-    devel_dir<-"/workspace/andrea/"
-    #for amazon###
-    fileLocation<-"/workspace/andrea/exports/A2-HM776-ID10915_20180606_0801.jpg"
-    #####
-    results_json<-"/workspace/andrea/exports/results/predictions/test.json"
-    temp_directory<-"/workspace/andrea/tmp"
-  }else{
-    model_zip_path = "/home/pagani/nndataH2O/frozenModels/dl_grid_model_35.zip"
-    h2o_jar_path = "/home/pagani/R/x86_64-redhat-linux-gnu-library/3.4/h2o/java/h2o.jar"
-    devel_dir<-"/home/pagani/development/"
-    results_json<-"/home/pagani/nndataH2O/frozenModels/results/predictions/test.json"
-    temp_directory<-"/tmp/" #"/home/pagani/temp/Rtemp"
-    queue_conf_file<-"/home/pagani/development/fogDec/inst/extScripts/python/queueConfig.json"
-    cameras_for_detection_file<-"/home/pagani/development/fogDec/inst/extScripts/python/MVPCameras.json"
-    df_debug_file<-"/home/pagani/development/fogDec/shiny/debug/debugDF.csv"
-    shiny_dir<-"/home/pagani/development/fogDec/shiny"
-    state_file<-"/home/pagani/development/fogDec/shiny/state/currentState.json"
-  }
+ 
   
   
   jsonCameras<-jsonlite::fromJSON(cameras_for_detection_file)
@@ -161,6 +175,17 @@ shinyServer(function(input, output, session) {
     dfCameras<-data.frame(jsonCameras$cameras$RWS)
     dfCameras$longitude<-as.numeric(dfCameras$longitude)
     dfCameras$latitude<-as.numeric(dfCameras$latitude)
+    
+    numCamerasToMonitor<-dim(dfCameras)[[1]]
+    numCamerasRetrieved<-dim(df)[[1]]
+    
+    if(numCamerasRetrieved!=numCamerasToMonitor){
+      loginfo(paste(numCamerasRetrieved,"retrieved cameras, time of retrieval",as.character(max(df$timeStamp)),"UTC"))
+      loginfo(paste("missing cameras:",dfCameras$location[!(dfCameras$cameraID %in% df$cameraID)]))
+    }
+    
+    
+    
   
   df$fogClass<-as.factor(df$fogClass)
   #inputDF$graphicClass<if(inputDF$fogClass==FALSE){"noFog"}
