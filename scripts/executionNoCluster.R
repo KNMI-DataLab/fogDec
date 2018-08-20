@@ -10,9 +10,14 @@ if (length(args)==0) {
 }
 
 
+log_file<-"/home/pagani/development/fogDec/log/predictionEngine.log"
 
+library(logging)
 
-
+logReset()
+basicConfig(level='FINEST')
+addHandler(writeToFile, file=log_file, level='DEBUG')
+with(getLogger(), names(handlers))
 
 
 
@@ -112,6 +117,7 @@ lastDash<-pos[[1]][length(pos[[1]])]
 location<-substring(locationAndID,1,lastDash-1)
 cameraID<-substring(locationAndID,lastDash+1,str_length(locationAndID))
 
+logdebug("looking if camera is in the allowed list")
 
 cameraTarget<-camerasRWS[camerasRWS$location==location & camerasRWS$cameraID==cameraID,]
 if(dim(cameraTarget)[1]==0){
@@ -130,13 +136,14 @@ featuresImage<-t(featuresImage)
 
 
 
-
+logdebug(paste("starting prediction for", args))
 prediction <- h2o.mojo_predict_df(featuresImage,
                     mojo_zip_path =  model_zip_path, 
                     classpath = h2o_jar_path, 
                     genmodel_jar_path = h2o_jar_path)
 
 
+logdebug(paste("finished prediction for", args))
 
 
 fogClass<-prediction$predict
@@ -147,17 +154,21 @@ predFALSE<-prediction$FALSE.
 
 final<-cbind(cameraTarget,fileLocation,originalPath, timeStamp,fogClass,predTRUE,predFALSE)
 
+logdebug(paste("making a dataframe for", args))
+
+
 message(final)
 
 
 #final<-cbind(cameraTarget,fileLocation,originalPath, timeStamp,fogClass)
 
-
+logdebug(paste("making JSON in prediction for", args))
 exportJson <- jsonlite::toJSON(final)
-write(exportJson, results_json)
+#write(exportJson, results_json)
+logdebug(paste("written JSON results export object", args))
 
 
-jsoninput<-jsonlite::fromJSON(results_json)
+#jsoninput<-jsonlite::fromJSON(results_json)
 
 
 library(messageQueue)
@@ -169,14 +180,29 @@ jsonQueue<-jsonlite::fromJSON(queue_conf_file)
 
 
 charPayload<-as.character(exportJson)
+logdebug(paste("read JSON export object for", args))
+
 escapedPayload<-gsub("([\\\"])",'\\\\"', charPayload)
+
+
+logdebug(paste("sending JSON to RabbitMQ for", args))
 
 #putting a message in the queue via POST since R library working with rabbit is not working
 command<-paste0('curl -u ', jsonQueue$user,':', jsonQueue$pw, ' -H "Content-type: application/json" -X POST -d\'{"properties":{"delivery_mode":1, "content_type": "application/json"},
 "routing_key":"RTvisual", "declare_queue":"RTvisual","payload":"',escapedPayload,'","payload_encoding":"string"}\' http://',jsonQueue$host,':8080/api/exchanges/%2f/amq.default/publish')
-command
+#command
+tryCatch({
 system(command)
+},
+error=function(cond) {
+  message(paste("error executing CURL command"))
+  #message("Here's the original error message:")
+  #message(cond)
+  # Choose a return value in case of error
+  return(NA)
+})
 message("prediction sent to the queue for visualization")
+logdebug(paste("prediction sent to the queue for visualization for", args))
 
 
 

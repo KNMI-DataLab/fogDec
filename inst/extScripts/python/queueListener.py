@@ -185,10 +185,15 @@ def callback(ch, method, properties, body):
     message = filterMessage(body, locationToProcess, camerasToProcess)
     if (message != None):
         callParams = filterDayPhase()
+        logging.info("call param created")
         if (callParams != None):
             callParams.append(body)
+            logging.info("call param created"+ str(callParams))
+
             #each process is run in parallel
             subprocess.Popen(callParams)
+            logging.info("call param returned for "+ str(callParams))
+
 
 #exampleMessageBody = "/nas-research.knmi.nl/sensordata/CAMERA/RWS/A2/HM776/ID10912/201806/A2-HM776-ID10912_20180606_0801.jpg"
 
