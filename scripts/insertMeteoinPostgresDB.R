@@ -202,7 +202,7 @@ prepareMeteoTableStationMapping<-function(variable,newval, stationMapping){
   imagesTable <- as.data.table(dbReadTable(con, "images"))
   camerasTable <- as.data.table(dbReadTable(con, "cameras"))
   locationsTable <- as.data.table(dbReadTable(con, "locations"))
-  meteoFeaturesTable <- as.data.table(dbReadTable(con, "meteo_features_copy"))#######TEST
+  meteoFeaturesTable <- as.data.table(dbReadTable(con, "meteo_features_stations"))#######TEST
   KNMIstationsTable <- as.data.table(dbReadTable(con, "meteo_stations"))
   
   
@@ -378,7 +378,7 @@ for(var in variables){
     tryCatch(
      {
 
-    postgis_update(con,tmp,"meteo_features_copy",id_cols = "meteo_feature_id",update_cols = var)
+    postgis_update(con,tmp,"meteo_features_stations",id_cols = "meteo_feature_id",update_cols = var)
        message(paste("table updated with values for", var))
       },
      error=function(cond) {
@@ -401,7 +401,7 @@ con <- dbConnect(RPostgreSQL::PostgreSQL(),
                    dbname = "FOGDB",
                   host = dbConfig[["host"]], port = 9418,
                   user = dbConfig[["user"]], password = dbConfig[["pw"]])
-dbWriteTable(con, "meteo_features_copy", table, append = TRUE, row.names = FALSE, match.cols = TRUE)
+dbWriteTable(con, "meteo_features_stations", table, append = TRUE, row.names = FALSE, match.cols = TRUE)
 dbDisconnect(con)
   
 }
@@ -425,7 +425,7 @@ dbDisconnect(con)
 #                    dbname = "FOGDB",
 #                   host = dbConfig[["host"]], port = 9418,
 #                   user = dbConfig[["user"]], password = dbConfig[["pw"]])
-# dbWriteTable(con, "meteo_features_copy", table, append = TRUE, row.names = FALSE, match.cols = TRUE)
+# dbWriteTable(con, "meteo_features_stations", table, append = TRUE, row.names = FALSE, match.cols = TRUE)
 # dbDisconnect(con)
 
 

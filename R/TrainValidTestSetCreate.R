@@ -144,7 +144,7 @@ coupleImagesAndMeteoToDate<-function(dateStr,dbConfigDir,maxDist){
   #             WHERE knmi_kis_id IN (", paste(paste0("'",coupling$KISstations,"'"), collapse = ", "), ");"))
   #######TEST TABLE
   meteoConditions <- dbGetQuery(con, paste0("SELECT location_id, timestamp, mor_visibility 
-                                            FROM meteo_features_copy  
+                                            FROM meteo_features_stations  
                                             WHERE location_id IN (", paste(meteoStations$location_id, collapse=", "), ") AND timestamp<", dateStr,";"))
   meteoConditions<-data.table(meteoConditions)
   dbDisconnect(con)
