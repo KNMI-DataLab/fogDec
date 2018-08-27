@@ -6,124 +6,119 @@ library(fogDec)
 
 
 
-
-photoDir<-"~/share"
-setwd(photoDir) ##For RStudio
-
-set.seed(11)
-
-trainValTestSetList<-createTrainValidTestSetsBinary("~/share/", dateMax= "\'2018-05-14 00:00:00\'", dbConfigDir = "~/development/fogDec/",maxDist=7500)
-
-trainSet<-trainValTestSetList[[1]]
-trainSet<-trainSet[sample(nrow(trainSet)),]
-
-validSet<-trainValTestSetList[[2]]
-validSet<-validSet[sample(nrow(validSet)),]
-
-
-testSet<-trainValTestSetList[[3]]
-testSet<-testSet[sample(nrow(testSet)),]
-
-
-#training<-trainSet[sample(nrow(trainSet),20000),]
-training<-testSet
-
-
-files<-sapply(training$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveDEBILT/",x))
-files<-sapply(files, function(x) gsub(".*/CAMERA/", "",x))
-files<-sapply(files, function(x) gsub(".*/cabauw/", "oldArchiveCABAUW/cabauw/",x))
-
-
-
-setwd("~/share/")
-
-#files<-test
-
-
-resolutionImg<-28
-
-cl <- makeCluster(35)
-registerDoParallel(cl)
-
-clusterEvalQ(cl, library("imager"))
-
-matRWS<-foreach(i=1:length(files)) %dopar%{
-  message(files[[i]])
-  image<-tryCatch(
-    load.image(files[[i]]),
-    
-    error=function(error_message) {
-      #message("Yet another error message.")
-      #message("Here is the actual R error message:")
-      #next
-      return(NA)
-    }
-  )
-  if(is.na(image[[1]])){
-    v<-NA*1:(resolutionImg*resolutionImg)
-    message("Image not available error in acquisition")
-    v
-  }else{
-    image<-resize(image,resolutionImg,resolutionImg)
-    image<-blur_anisotropic(image, amplitude = 10000)
-    df<-as.data.frame(image)
-    v<-df$value
-    #mat<-rbind(mat,v)
-    v
-  }
-}
-
-stopCluster(cl)
-
-
-matRWS<-do.call(rbind,matRWS)
-
-
-dtMat<-data.table(matRWS)
-#dtMat[,foggy:=training$foggy]
-#dtMat[,filepath:=training$filepath]
-dtMat<-cbind(dtMat,training)
-complete<-dtMat[complete.cases(dtMat)]
-
-#lastFeature<-resolutionImg*resolutionImg*3
-#trainData<-complete[,1:lastFeature]
-#groundTruth<-lastFeature+1
-#trainTargets<-complete[,groundTruth:groundTruth]
-
-#shuffle rows just to avoid learning on inserted data (initial fog after no fog)
-#completeTraining<-complete[sample(nrow(complete),size = 200000),]
-completeTraining<-complete
-
-fwrite(completeTraining,"~/nndataH2O/test7500m_28px.csv")
-
-saveRDS(completeTraining,"~/nndataH2O/trainingH2O_realRatio_50px.RDS")
-
-h2o.init(nthreads=-1, max_mem_size="100G")
-h2o.removeAll() ## clean slate - just in case the cluster was already running
-
-
-h2oTrainingFrame<-as.h2o(completeTraining)
+ 
+# photoDir<-"~/share"
+# setwd(photoDir) ##For RStudio
+# 
+# set.seed(11)
+# 
+# trainValTestSetList<-createTrainValidTestSetsBinary("~/share/", dateMax= "\'2018-05-14 00:00:00\'", dbConfigDir = "~/development/fogDec/",maxDist=2500)
+# 
+# trainSet<-trainValTestSetList[[1]]
+# trainSet<-trainSet[sample(nrow(trainSet)),]
+# 
+# validSet<-trainValTestSetList[[2]]
+# validSet<-validSet[sample(nrow(validSet)),]
+# 
+# 
+# testSet<-trainValTestSetList[[3]]
+# testSet<-testSet[sample(nrow(testSet)),]
+# 
+# 
+# #training<-trainSet
+# 
+# testing<-testSet
+# 
+# 
+# files<-sapply(testing$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveDEBILT/",x))
+# files<-sapply(files, function(x) gsub(".*/CAMERA/", "",x))
+# files<-sapply(files, function(x) gsub(".*/cabauw/", "oldArchiveCABAUW/cabauw/",x))
+# 
+# 
+# 
+# setwd("~/share/")
+# 
+# #files<-test
+# 
+# 
+# resolutionImg<-28
+# 
+# cl <- makeCluster(35)
+# registerDoParallel(cl)
+# 
+# clusterEvalQ(cl, library("imager"))
+# 
+# matRWS<-foreach(i=1:length(files)) %dopar%{
+#   message(files[[i]])
+#   image<-tryCatch(
+#     load.image(files[[i]]),
+# 
+#     error=function(error_message) {
+#       #message("Yet another error message.")
+#       #message("Here is the actual R error message:")
+#       #next
+#       return(NA)
+#     }
+#   )
+#   if(is.na(image[[1]])){
+#     v<-NA*1:(resolutionImg*resolutionImg)
+#     message("Image not available error in acquisition")
+#     v
+#   }else{
+#     image<-resize(image,resolutionImg,resolutionImg)
+#     image<-blur_anisotropic(image, amplitude = 10000)
+#     df<-as.data.frame(image)
+#     v<-df$value
+#     #mat<-rbind(mat,v)
+#     v
+#   }
+# }
+# 
+# stopCluster(cl)
+# 
+# 
+# matRWS<-do.call(rbind,matRWS)
+# 
+# 
+# dtMat<-data.table(matRWS)
+# dtMat[,foggy:=testing$foggy]
+# dtMat[,filepath:=testing$filepath]
+# complete<-dtMat[complete.cases(dtMat)]
+# # lastFeature<-resolutionImg*resolutionImg*3
+# # #trainData<-complete[,1:lastFeature]
+# # #groundTruth<-lastFeature+1
+# # #trainTargets<-complete[,groundTruth:groundTruth]
+# # 
+# # #shuffle rows just to avoid learning on inserted data (initial fog after no fog)
+# # #completeTraining<-complete[sample(nrow(complete),size = 200000),]
+# # completeTraining<-complete
+# fwrite(complete,"~/nndataH2O/testSet_2500m_28px.csv")
+# # 
+# # h2o.init(nthreads=-1, max_mem_size="100G")
+# # h2o.removeAll() ## clean slate - just in case the cluster was already running
+# # 
+# # 
+# # h2oTrainingFrame<-as.h2o(completeTraining)
+# 
 
 
-
-h2o.exportFile(h2oTrainingFrame,"/home/pagani/nndataH2O/h2oFrames/trainingh2o_50px.csv", force = T)
 
 
 #interesting to know and not clear from the documentation: https://groups.google.com/forum/#!topic/h2ostream/Szov_rHgduU
 # https://groups.google.com/forum/#!topic/h2ostream/yKPBdb38hdU
 
 
-h2o.init(nthreads=-1, max_mem_size="100G")
+h2o.init(nthreads=-1, max_mem_size="250G")
 h2o.removeAll() ## clean slate - just in cas
-h2oTrainingFrame<-h2o.importFile("/data_enc/trainingh2o.csv")
-h2oValidating<-h2o.importFile("/data_enc/validatingh2o.csv")
-best_model<-h2o.loadModel("/workspace/andrea/exports/models/dl_grid_model_35")
+h2oTrainingFrame<-h2o.importFile("/data_enc/trainingH2O_TECO_7500_28px.csv")
+#h2oValidating<-h2o.importFile("/data_enc/validatingh2o.csv")
+#best_model<-h2o.loadModel("/workspace/andrea/exports/models/dl_grid_model_35")
 
 
 hyper_params <- list(
   activation = c("Rectifier", "Maxout", "Tanh", "RectifierWithDropout", "MaxoutWithDropout", "TanhWithDropout"),
-  hidden = list( c(10, 10, 10, 10), c(10,10,10,10,10), c(10,10,10,10,10,10), c(10,10,10,10,10,5)),
-  epochs = c(100, 200, 300),
+  hidden = list( c(10,10,10,10,10),c(50,50,50,25,10),c(75,75,50,50,10), c(50,50,50,25,25,10)),
+  epochs = c(500,650,750,1000,1500),
   l1 = c(0, 0.00001, 0.0001),
   l2 = c(0, 0.00001, 0.0001),
   rate = c(0, 0.05, 0.01),
@@ -133,8 +128,8 @@ hyper_params <- list(
   momentum_start = c(0, 0.5),
   momentum_stable = c(0.99, 0.5, 0),
   input_dropout_ratio = c(0, 0.1, 0.2),
-  max_w2 = c(10, 100, 1000, 3.4028235e+38)
-  #balance_classes = TRUE
+  max_w2 = c(10, 100, 1000, 3.4028235e+38),
+  balance_classes = TRUE
 )
 
 # search_criteria <- list(strategy = "RandomDiscrete",
@@ -158,7 +153,7 @@ search_criteria <- list(strategy = "RandomDiscrete",
 dl_grid <- h2o.grid(algorithm = "deeplearning",
                     x = 1:2352,
                     y = "foggy",
-                    #weights_column = weights,
+                    #weights_column = "x",
                     grid_id = "dl_grid",
                     training_frame = h2oTrainingFrame,
                     #validation_frame = valid,
@@ -180,6 +175,13 @@ modelID<-grid@model_ids
 best_model <- h2o.getModel(modelID[[1]])
 h2o.confusionMatrix(best_model)
 h2o.performance(best_model,h2oTrainingFrame)
+
+h2o.saveModel(best_model,"/workspace/andrea/exports/models/7500_m_train/latest_new",force = T)
+
+
+h2oValidating<-h2o.importFile("/data_enc/validatingh2oWithFilename.csv")
+
+
 
 h2o.performance(best_model,h2oValidating)
 

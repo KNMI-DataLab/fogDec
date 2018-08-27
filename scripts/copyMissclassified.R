@@ -1,17 +1,17 @@
 library(data.table)
 library(imager)
 
-FN_table<-fread("~/nndataH2O/toLookInto/falsePosValid.csv")
+table<-fread("~/nndataH2O/TECO/misclassTestSet/falsePositivetestSet7500.csv")
 
 
-files<-sapply(FN_table$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveDEBILT/",x))
+files<-sapply(table$filepath, function(x) gsub(".*/AXIS214/", "oldArchiveDEBILT/",x))
 files<-sapply(files, function(x) gsub(".*/CAMERA/", "",x))
 files<-sapply(files, function(x) gsub(".*/cabauw/", "oldArchiveCABAUW/cabauw/",x))
 
 
 
 setwd("~/share/")
-file.copy(files, to="/home/pagani/nndataH2O/toLookInto/valid/picturesFP/")
+file.copy(files, to="/home/pagani/nndataH2O/TECO/misclassTestSet/falsePositivetestSet7500/")
 
 
 #image<-load.image("/home/pagani/nndataH2O/toLookInto/picturesFP/A15-HM190-ID12371_20180221_1400.jpg")
