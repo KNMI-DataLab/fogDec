@@ -1,16 +1,118 @@
-#' Create training, validation and test datasets
+#' Create training, validation and test datasets using time consistent data
 #' @param dataDir String of directory containing the cameras
+#' @param dateMin String of initial date do use for fetching data
 #' @param dateMax String of latest date do use for fetching data
 #' @param dbConfigDir String of path with directory containing the DB param access config file
 #' @param maxDist Numerical maximum distance between camera and KNMI station
 #' @import data.table
 #' @export
-createTrainValidTestSetsBinary<-function(dataDir,dateMax= "\'2018-02-28 00:00:00\'",dbConfigDir,maxDist=2500){
+createTrainValidTestSetsBinaryTimeSeries<-function(dataDir,dateMin="\'2015-01-01 00:00:00\'", dateMax= "\'2018-02-28 00:00:00\'",dbConfigDir,maxDist=2500){
+  
+  Sys.setenv(TZ = "UTC")
+
+  total<-coupleImagesAndMeteoToDate(dateMin,dateMax,dbConfigDir,maxDist)
+  
+
+  set.seed(11)
+  
+  nFog<-dim(total[foggy==TRUE])[[1]]
+  nNonFog<-dim(total[foggy==FALSE])[[1]]
+  
+  fogNonFogRatio<-nFog/nNonFog
+  
+  
+  #FOGGY CASES
+  #####TRAINING
+  
+  foggyData<-total[foggy==TRUE]
+  inTraining<-sample(nrow(foggyData),0.6*nrow(foggyData))
+  trainingSmall<-foggyData[inTraining]
+  #inTrainingMore<-sample(nrow(trainingSmall),200000, replace = T)
+  #training<-trainingSmall[inTrainingMore]
+  training<-trainingSmall
+  
+  
+  #####CROSS VALIDATION
+  
+  remaining<-foggyData[-inTraining]
+  inCrossVal<-sample(nrow(remaining),0.2*nrow(foggyData))
+  
+  crossValidating<-remaining[inCrossVal]
+  
+  #####TEST SET
+  testing<-remaining[-inCrossVal]
+  
+  
+  #check that are disjoint datasets
+  sum(duplicated(rbind(crossValidating,testing)))
+  sum(duplicated(rbind(unique(training),testing)))
+  sum(duplicated(rbind(unique(training),crossValidating)))
+  
+  #####NON-FOGGY CASES
+  #####TRAINING
+  nonFoggyData<-total[foggy==FALSE]
+  #inTrainNoFog<-sample(nrow(nonFoggyData),nrow(training))
+  inTrainNoFog<-sample(nrow(nonFoggyData),0.6*nrow(nonFoggyData))
+  
+  nonFoggyTraining<-nonFoggyData[inTrainNoFog]
+  
+  #####CROSS VALIDATION
+  remaining<-nonFoggyData[-inTrainNoFog]
+  inCrossVal<-sample(nrow(remaining),0.2*nrow(nonFoggyData))
+  
+  nonFoggyCrossValidating<-remaining[inCrossVal]
+  
+  ######TEST SET
+  #foggyInTest<-dim(testing[foggy==TRUE])[[1]]
+  #nonFoggyForRealisticRatio<-foggyInTest*1/fogNonFogRatio
+  #inTestNoFog<-sample(nrow(remaining[-inCrossVal]),nonFoggyForRealisticRatio)
+  inTestNoFog<-remaining[-inCrossVal]
+  
+  #nonFoggyTesting<-remaining[-inCrossVal][inTestNoFog]
+  nonFoggyTesting<-inTestNoFog
+  
+  
+  sum(duplicated(rbind(nonFoggyCrossValidating,nonFoggyTesting)))
+  sum(duplicated(rbind(nonFoggyTraining,nonFoggyTesting)))
+  sum(duplicated(rbind(nonFoggyTraining,nonFoggyCrossValidating)))
+  
+  
+  
+  ####Binding the fog and non-fog sets with the corresponding
+  training<-rbind(training,nonFoggyTraining)
+  crossValidating<-rbind(crossValidating,nonFoggyCrossValidating)
+  testing<-rbind(testing,nonFoggyTesting)
+  
+  dataSets<-list(training,crossValidating,testing)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#' Create training, validation and test datasets using random data
+#' @param dataDir String of directory containing the cameras
+#' @param dateMin String of initial date do use for fetching data
+#' @param dateMax String of latest date do use for fetching data
+#' @param dbConfigDir String of path with directory containing the DB param access config file
+#' @param maxDist Numerical maximum distance between camera and KNMI station
+#' @import data.table
+#' @export
+createTrainValidTestSetsBinaryRandom<-function(dataDir,dateMin="\'2015-01-01 00:00:00\'",dateMax= "\'2018-02-28 00:00:00\'",dbConfigDir,maxDist=2500){
 
 Sys.setenv(TZ = "UTC")
 #resolutionImg<-28
 
-total<-coupleImagesAndMeteoToDate(dateMax,dbConfigDir,maxDist)
+total<-coupleImagesAndMeteoToDate(dateMin,dateMax,dbConfigDir,maxDist)
 
 set.seed(11)
 
@@ -107,7 +209,7 @@ imagesAndMeteoFogBinary<-function(dtImages, dtMeteo){
 #' @param maxDist Numerical containing max distance from KNMI station
 #' @import data.table jsonlite DBI
 #' @export
-coupleImagesAndMeteoToDate<-function(dateStr,dbConfigDir,maxDist){
+coupleImagesAndMeteoToDate<-function(dateStrInitial,dateStrFinal,dbConfigDir,maxDist){
   #the coupling contains also the locations of the station itself
   coupling<-coupleCamerasAndKNMInearStations(maxDistance = maxDist, dbConfigDir)
   dbConfig <- fromJSON(paste0(dbConfigDir,"config.json"))
@@ -121,7 +223,7 @@ coupleImagesAndMeteoToDate<-function(dateStr,dbConfigDir,maxDist){
                                                    WHERE location_id IN (", paste(coupling$locationIDsHW, collapse=", "), ");"))
   imagesRWSDayLight <- dbGetQuery(con, paste0("SELECT images.image_id, images.filepath, images.timestamp, images.day_phase, images.camera_id
                                               FROM images
-                                              WHERE camera_id IN (", paste(camerasRWSCoupledMeteo$camera_id, collapse=", "), ")AND day_phase=1 AND timestamp<", dateStr,";"))
+                                              WHERE camera_id IN (", paste(camerasRWSCoupledMeteo$camera_id, collapse=", "), ")AND day_phase=1 AND timestamp>=",dateStrInitial ," AND timestamp<", dateStrFinal,";"))
   
   camerasRWSCoupledMeteo<-data.table(camerasRWSCoupledMeteo)
   imagesRWSDayLight<-data.table(imagesRWSDayLight)
@@ -145,7 +247,7 @@ coupleImagesAndMeteoToDate<-function(dateStr,dbConfigDir,maxDist){
   #######TEST TABLE
   meteoConditions <- dbGetQuery(con, paste0("SELECT location_id, timestamp, mor_visibility 
                                             FROM meteo_features_stations  
-                                            WHERE location_id IN (", paste(meteoStations$location_id, collapse=", "), ") AND timestamp<", dateStr,";"))
+                                            WHERE location_id IN (", paste(meteoStations$location_id, collapse=", "), ") AND timestamp>=",dateStrInitial ," AND timestamp<", dateStrFinal,";"))
   meteoConditions<-data.table(meteoConditions)
   dbDisconnect(con)
   mergedRWSandKNMIstations<-imagesAndMeteoFogBinary(full, meteoConditions)
