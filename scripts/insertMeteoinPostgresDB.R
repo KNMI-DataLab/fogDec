@@ -410,13 +410,6 @@ dbDisconnect(con)
 
 #####################################################################################################
 
-#locationsMeteo<-c(1,3,6,7,8,9)
-
-
-
-
-
-
 
 # stationMapping<-coupleCamerasAndKNMInearStations(maxDistance = 7500)
 # table<-prepareMeteoTableStationMapping(variable ="mor_visibility", newval = TRUE, stationMapping)
@@ -429,41 +422,3 @@ dbDisconnect(con)
 # dbDisconnect(con)
 
 
-
-
-
-
-
-#################OLD
-# dbConfig <- fromJSON("config.json")
-# 
-# con <- dbConnect(RPostgreSQL::PostgreSQL(),
-#                  dbname = "FOGDB",
-#                  host = dbConfig[["host"]], port = 9418,
-#                  user = dbConfig[["user"]], password = dbConfig[["pw"]])
-# KNMIstationsTable <- as.data.table(dbReadTable(con, "meteo_stations"))
-# dbDisconnect(con)
-# 
-# 
-# 
-# setkey(KNMIstationsTable,knmi_kis_id)
-# setkey(stationCouple, KISstations)
-# test<-stationCouple[KNMIstationsTable]
-# test2<-test[locationIDsHW!=location_id]
-# stationsCodes<-unique(test2[,KISstations])
-# 
-# 
-# 
-# for(i in stationsCodes){
-# dbConfig <- fromJSON("config.json")
-# # #
-#  con <- dbConnect(RPostgreSQL::PostgreSQL(),
-#                      dbname = "FOGDB",
-#                     host = dbConfig[["host"]], port = 9418,
-#                     user = dbConfig[["user"]], password = dbConfig[["pw"]])
-#  tmp<-prepareMeteoTable(location = i, variable = "mor_visibility", newval = TRUE )
-#  message(paste("location",i,"ready to be written on DB"))
-#  dbWriteTable(con, "meteo_features_stations", tmp, append = TRUE, row.names = FALSE, match.cols = TRUE)
-# dbDisconnect(con)
-# }
-# #####################################################################################################
