@@ -405,20 +405,3 @@ dbWriteTable(con, "meteo_features_stations", table, append = TRUE, row.names = F
 dbDisconnect(con)
   
 }
-
-
-
-#####################################################################################################
-
-
-# stationMapping<-coupleCamerasAndKNMInearStations(maxDistance = 7500)
-# table<-prepareMeteoTableStationMapping(variable ="mor_visibility", newval = TRUE, stationMapping)
-# dbConfig <- fromJSON("config.json")
-# con <- dbConnect(RPostgreSQL::PostgreSQL(),
-#                    dbname = "FOGDB",
-#                   host = dbConfig[["host"]], port = 9418,
-#                   user = dbConfig[["user"]], password = dbConfig[["pw"]])
-# dbWriteTable(con, "meteo_features_stations", table, append = TRUE, row.names = FALSE, match.cols = TRUE)
-# dbDisconnect(con)
-
-
