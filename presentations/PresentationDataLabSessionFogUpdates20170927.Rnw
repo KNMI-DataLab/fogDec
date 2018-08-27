@@ -101,7 +101,7 @@ knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
 \begin{frame}{Purpose, Scope, Benefits of the project}
 \begin{itemize}
 \item \textbf{Purpose:} use cameras to identify fog conditions to issue safety hazards
-\item \textbf{Scope:} daylight fog identification from static scenery cameras using image analysis
+\item \textbf{Scope:} daylight fog identification from static and moving cameras using image analysis
 \item \textbf{Benefits:}
 \begin{itemize}
 \item \textit{Society: }
