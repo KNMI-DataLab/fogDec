@@ -403,5 +403,5 @@ con <- dbConnect(RPostgreSQL::PostgreSQL(),
                   user = dbConfig[["user"]], password = dbConfig[["pw"]])
 dbWriteTable(con, "meteo_features_stations", table, append = TRUE, row.names = FALSE, match.cols = TRUE)
 dbDisconnect(con)
-  
+   
 }
