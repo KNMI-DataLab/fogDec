@@ -281,7 +281,7 @@ shinyServer(function(input, output, session) {
   
   
   
-  reactivePoll(120000, session, checkFunc = fetchNewFogDetection )
+  reactivePoll(180000, session, checkFunc = fetchNewFogDetection )
   
   
 

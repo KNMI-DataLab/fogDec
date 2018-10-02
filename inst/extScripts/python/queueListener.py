@@ -129,8 +129,9 @@ def filterDayPhase():
     nowUTC = datetime.datetime.utcnow()
 
     completeDateTime = datetime.datetime.strptime(
-        str(nowUTC.year) + str(nowUTC.month) + str(nowUTC.day) + str(nowUTC.hour) + str(nowUTC.minute), "%Y%m%d%H%M")
+        str(nowUTC.year) + str(nowUTC.month).zfill(2)  + str(nowUTC.day).zfill(2)  + str(nowUTC.hour).zfill(2)  + str(nowUTC.minute).zfill(2) , "%Y%m%d%H%M")
     dayPhaseNow = computeDayPhase(lonDeBilt, latDeBilt, completeDateTime)
+    print("day phase"+str(dayPhaseNow))
     #dayPhaseNow=11
 
     # way to call R in python subprocess.call (["/usr/bin/Rscript", "--vanilla", "/pathto/MyrScript.r"])
