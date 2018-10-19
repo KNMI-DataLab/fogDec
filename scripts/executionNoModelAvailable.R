@@ -1,3 +1,8 @@
+#######################################
+#Script called in the conditions
+#in which a model is not available
+######################################
+
 #!/usr/bin/env Rscript
 args = commandArgs(trailingOnly=TRUE)
 
@@ -21,31 +26,6 @@ with(getLogger(), names(handlers))
 
 
 
-fromImageToFeatures<-function(filename){
-  resolutionImg<-28
-  image<-tryCatch(
-    load.image(filename),
-    
-    error=function(error_message) {
-      #message("Yet another error message.")
-      #message("Here is the actual R error message:")
-      #next
-      return(NA)
-    }
-  )
-  if(is.na(image[[1]])){
-    v<-NA*1:(resolutionImg*resolutionImg)
-    message("Image not available error in acquisition")
-    v
-  }else{
-    image<-resize(image,resolutionImg,resolutionImg)
-    image<-blur_anisotropic(image, amplitude = 10000)
-    df<-as.data.frame(image)
-    v<-df$value
-    #mat<-rbind(mat,v)
-    v
-  }
-}
 
 
 
@@ -127,29 +107,12 @@ cbind(cameraTarget,fileLocation,originalPath, timeStamp)
 
 print(fileLocation)
 
-library(imager)
-library(h2o)
-
-featuresImage<-fromImageToFeatures(fileLocation)
-featuresImage<-t(featuresImage)
 
 
+fogClass<-"UNKNOWN"
 
-
-logdebug(paste("starting prediction for", args))
-prediction <- h2o.mojo_predict_df(featuresImage,
-                    mojo_zip_path =  model_zip_path, 
-                    classpath = h2o_jar_path, 
-                    genmodel_jar_path = h2o_jar_path)
-
-
-logdebug(paste("finished prediction for", args))
-
-
-fogClass<-prediction$predict
-
-predTRUE<-prediction$TRUE.
-predFALSE<-prediction$FALSE.
+predTRUE<-"NA"
+predFALSE<-"NA"
 
 
 final<-cbind(cameraTarget,fileLocation,originalPath, timeStamp,fogClass,predTRUE,predFALSE)
@@ -201,65 +164,9 @@ error=function(cond) {
   # Choose a return value in case of error
   return(NA)
 })
-message("prediction sent to the queue for visualization")
-logdebug(paste("prediction sent to the queue for visualization for", args))
+message("model not available setting detection to NA")
+logdebug(paste("model not available setting detection to NA", args))
 
 
-
-# ###FIRST ATTEMPT OF VISUALIZATION
-# 
-# library(leaflet)
-# library(unixtools)
-# library(plyr)
-# 
-# set.tempdir(temp_directory)
-# 
-# factpal <- colorFactor(topo.colors(2), c(TRUE,FALSE))
-# 
-# 
-# 
-# icon.bad <- makeAwesomeIcon( markerColor = 'red', icon = "camera")
-# icon.good <- makeAwesomeIcon(markerColor = 'green', icon = "camera")
-# myIcons<-awesomeIconList(noFog = icon.good, fog = icon.bad)
-# 
-# inputDF<-data.frame(jsoninput,stringsAsFactors = F)
-# inputDF
-# 
-# inputDF<-inputDF[rep(1:nrow(inputDF),each=2),] 
-# 
-# inputDF[2,10]=TRUE
-# 
-# inputDF[2,3]=5.1115
-# 
-# inputDF
-# 
-# inputDF$fogClass<-as.factor(inputDF$fogClass)
-# #inputDF$graphicClass<if(inputDF$fogClass==FALSE){"noFog"}
-# #inputDF$graphicClass<-as.factor(inputDF$graphicClass)
-# #inputDF$fogClass<-revalue(inputDF$fogClass, c("FALSE"="nofog", "TRUE"="fog"))
-# 
-# inputDF$icon <- factor(inputDF$fogClass,
-#                     levels = c("TRUE","FALSE"),
-#                     labels = c("red", "green")) 
-# 
-# inputDF
-# inputDF$longitude<-as.numeric(inputDF$longitude)
-# inputDF$latitude<-as.numeric(inputDF$latitude)
-# 
-# 
-# icons <- awesomeIcons(icon = "camera",
-#                       iconColor = "black",
-#                       library = "ion",
-#                       markerColor = inputDF$icon)
-# 
-# 
-# 
-# inputDF$hyperink<-paste0('<a href="',inputDF$ipAddr,'">View Camera ', inputDF$location," " ,inputDF$cameraID,'</a>')
-# 
-# #icon11<-myIcons[inputDF$graphicClass]
-# m <- leaflet(inputDF) %>%
-#   addTiles() %>%  # Add default OpenStreetMap map tiles
-#   addAwesomeMarkers( ~longitude, ~latitude, icon = icons, popup = ~hyperink)
-# m  # Print the map
 
 

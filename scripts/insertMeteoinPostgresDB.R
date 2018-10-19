@@ -393,8 +393,8 @@ for(var in variables){
 
 
 
-addNewObservationInDB<-function(allowedMeteoVar){
-stationMapping<-coupleCamerasAndKNMInearStations(maxDistance = 7500)
+addNewObservationInDB<-function(allowedMeteoVar,dbConfigDir){
+stationMapping<-coupleCamerasAndKNMInearStations(maxDistance = 7500, dbConfigDir)
 table<-prepareMeteoTableStationMapping(variable = allowedMeteoVar, newval = TRUE, stationMapping)
 dbConfig <- fromJSON("config.json")
 con <- dbConnect(RPostgreSQL::PostgreSQL(),

@@ -119,6 +119,10 @@ shinyServer(function(input, output, session) {
   
   
   fetchNewFogDetection<-function(queueJson, handler){
+    
+  minReminder<-minute(Sys.time())%%10
+  
+  if(minReminder==3 | minReminder==2){
   
   req <- curl_fetch_memory(paste0("http://",jsonQueue$host,":8080/api/queues/%2f/RTvisual/get"), handle = h)
   
@@ -246,65 +250,16 @@ shinyServer(function(input, output, session) {
   output$map <-renderLeaflet(m)  
   }
   }
+  }
   #m  # Print the map
   
 
   
   #fetchNewFogDetection(jsonQueue,h)
-  
-  
-  observeEvent(input$goButton, {
-    
-    selectedFile<-input$file
-    
-    selectedRow<-targetPicturesFeatures[filename==selectedFile$name]
-    
-    result<-predict(rfModel,selectedRow)
-    
-    if(result==FALSE){
-      output$FOG <- renderUI({
-        HTML("<strong>NO FOG</strong>")
-      })
-    }
-    else {
-      output$FOG <- renderUI({
-        HTML("<strong>FOG</strong>")
-      })
-    }
-    
-    
-    
-  })
-  
-  
-  #observe({ toggle(id="goButton", condition=!is.null(input$location))})
-  
-  
-  
-  reactivePoll(180000, session, checkFunc = fetchNewFogDetection )
-  
-  
 
   
-  # observe({
-  #   if(is.null(input$file)) return(NULL)
-  #   for (i in 1:nrow(file()))
-  #   {
-  #     #print(i)
-  #     local({
-  #       my_i <- i
-  #       imagename = paste0("image", my_i)
-  #       print(file()$datapath[my_i])
-  #       output[[imagename]] <- 
-  #         renderImage({
-  #           list(src = file()$datapath[my_i],
-  #                alt = "Image failed to render")
-  #         }, deleteFile = FALSE)
-  #       print("AAAAAA")
-  #     })
-  #     #print(output)
-  #   }
-  # })
+  
+  reactivePoll(120000, session, checkFunc = fetchNewFogDetection )
   
 })
 

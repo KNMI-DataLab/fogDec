@@ -4,14 +4,14 @@
 \alias{coupleImagesAndMeteoToDate}
 \title{Couple cameras and KNMI nearby stations}
 \usage{
-coupleImagesAndMeteoToDate(dateStr, dbConfigDir, maxDist)
+coupleImagesAndMeteoToDate(dateStrInitial, dateStrFinal, dbConfigDir, maxDist)
 }
 \arguments{
-\item{dateStr}{String of latest date do use for fetching data}
-
 \item{dbConfigDir}{String of path with directory containing the DB param access config file}
 
 \item{maxDist}{Numerical containing max distance from KNMI station}
+
+\item{dateStr}{String of latest date do use for fetching data}
 }
 \description{
 Couple cameras and KNMI nearby stations

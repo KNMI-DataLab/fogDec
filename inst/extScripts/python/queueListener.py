@@ -135,7 +135,16 @@ def filterDayPhase():
     #dayPhaseNow=11
 
     # way to call R in python subprocess.call (["/usr/bin/Rscript", "--vanilla", "/pathto/MyrScript.r"])
-    callToRScript = {1: ["/usr/bin/Rscript", "--vanilla", "/home/pagani/development/fogDec/scripts/executionNoCluster.R"]}
+    callToRScript = {
+    1: ["/usr/bin/Rscript", "--vanilla", "/home/pagani/development/fogDec/scripts/executionNoCluster.R"],
+    0: ["/usr/bin/Rscript", "--vanilla", "/home/pagani/development/fogDec/scripts/executionNoModelAvailable.R"],
+    10:["/usr/bin/Rscript", "--vanilla", "/home/pagani/development/fogDec/scripts/executionNoModelAvailable.R"],
+    11:["/usr/bin/Rscript", "--vanilla", "/home/pagani/development/fogDec/scripts/executionNoModelAvailable.R"],
+    20:["/usr/bin/Rscript", "--vanilla", "/home/pagani/development/fogDec/scripts/executionNoModelAvailable.R"],
+    21:["/usr/bin/Rscript", "--vanilla", "/home/pagani/development/fogDec/scripts/executionNoModelAvailable.R"],
+    30:["/usr/bin/Rscript", "--vanilla", "/home/pagani/development/fogDec/scripts/executionNoModelAvailable.R"],
+    31:["/usr/bin/Rscript", "--vanilla", "/home/pagani/development/fogDec/scripts/executionNoModelAvailable.R"]
+    }
 
     result = callToRScript.get(dayPhaseNow, None)
 
