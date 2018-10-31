@@ -2,12 +2,12 @@
 args = commandArgs(trailingOnly=TRUE)
 
 
-# test if there is at least one argument: if not, return an error
-if (length(args)==0) {
-  stop("At least one argument must be supplied (input file).jpg", call.=FALSE)
-} else if (length(args)==1) {
-  fileToAnalyze = args[1]
-}
+# # test if there is at least one argument: if not, return an error
+# if (length(args)==0) {
+#   stop("At least one argument must be supplied (input file).jpg", call.=FALSE)
+# } else if (length(args)==1) {
+#   fileToAnalyze = args[1]
+# }
 
 
 log_file<-"/home/pagani/development/fogDec/log/predictionEngine.log"
@@ -57,7 +57,7 @@ library(RJSONIO)
 
 #fileToAnalyze<-"/nas-research.knmi.nl/sensordata/CAMERA/DEBILT/TESTSITE-SNOWDEPTH/201807/DEBILT-TESTSITE-SNOWDEPTH_20180710_0811.jpg"
 
-#fileToAnalyze<-"/nas-research.knmi.nl/sensordata/CAMERA/RWS/A16/HM211/ID71681/201807/A16-HM211-ID71681_20180726_1220.jpg"
+fileToAnalyze<-"/nas-research.knmi.nl/sensordata/CAMERA/RWS/A16/HM211/ID71681/201807/A16-HM211-ID71681_20180726_1220.jpg"
 
 library(stringr)
 fileLocation<-gsub(".*/nas-research.knmi.nl/sensordata/CAMERA/", "~/share/", fileToAnalyze)
@@ -168,10 +168,23 @@ exportJson <- jsonlite::toJSON(final)
 logdebug(paste("written JSON results export object", args))
 
 
-#jsoninput<-jsonlite::fromJSON(results_json)
+
+library(rgdal)
+
+###TEST STUFF GEO JSON: have to use the writeOGR from rgdal since the package geojsonio requires GDAL 2.0 that is not
+###available on the redhat at the moment
+###with geojsonio would be easier to produce a geojson string without need to write and read a file
+coordinates(final)=cbind(as.numeric(final$longitude),as.numeric(final$latitude))
+crs(final)<-"+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+tempFileName<-uuid::UUIDgenerate()
+tempPathJsonFile<-paste0(temp_directory,tempFileName)
+writeOGR(final,tempPathJsonFile,layer = "final", driver = "GeoJSON")
+##################################
+
 
 
 library(messageQueue)
+
 
 
 jsonQueue<-jsonlite::fromJSON(queue_conf_file)
@@ -179,7 +192,14 @@ jsonQueue<-jsonlite::fromJSON(queue_conf_file)
 #set of options not working at the moment
 
 
-charPayload<-as.character(exportJson)
+
+charPayload<-readr::read_file(tempPathJsonFile)
+
+if (file.exists(tempPathJsonFile)) file.remove(tempPathJsonFile)
+
+#OLD VERSION NO GEO JSON BUT READING STRING
+#charPayload<-as.character(exportJson)
+
 logdebug(paste("read JSON export object for", args))
 
 escapedPayload<-gsub("([\\\"])",'\\\\"', charPayload)

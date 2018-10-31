@@ -12,6 +12,8 @@ library(logging)
 
 remote=FALSE
 
+firstOccurrence = TRUE
+
 if(remote==TRUE){
   model_zip_path = "/workspace/andrea/exports/models/dl_grid_model_35.zip"
   h2o_jar_path = "/usr/local/lib/R/site-library/h2o/java/h2o.jar"
@@ -122,7 +124,8 @@ shinyServer(function(input, output, session) {
     
   minReminder<-minute(Sys.time())%%10
   
-  if(minReminder==3 | minReminder==2){
+  if(minReminder==3 | minReminder==2 | firstOccurrence==TRUE){
+    firstOccurrence=FALSE
   
   req <- curl_fetch_memory(paste0("http://",jsonQueue$host,":8080/api/queues/%2f/RTvisual/get"), handle = h)
   
