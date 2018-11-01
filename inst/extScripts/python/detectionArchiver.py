@@ -29,7 +29,7 @@ def writeToMongo(message):
     db = client['fogDetectionArchive']
     data = json_util.loads(message)
     postedMessage = db["collection"].insert_one(data).inserted_id
-    return(postedMessage.acknowledged)
+    return(postedMessage)
 
 
 
