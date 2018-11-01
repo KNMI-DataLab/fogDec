@@ -64,7 +64,7 @@ def callback(ch, method, properties, body):
 
     if (body != None):
         status = writeToMongo(body)
-        logging.info("message sent to mongo, status"+status)
+        logging.info("message sent to mongo, status"+str(status))
     else:
         logging.info("message is empty")
 
