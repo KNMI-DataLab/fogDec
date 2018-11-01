@@ -203,8 +203,8 @@ shinyServer(function(input, output, session) {
   #inputDF$fogClass<-revalue(inputDF$fogClass, c("FALSE"="nofog", "TRUE"="fog"))
   
   df$icon <- factor(df$fogClass,
-                         levels = c("1","0"),
-                         labels = c("red", "green")) 
+                         levels = c("1","0","UNKNOWN"),
+                         labels = c("red", "green","gray")) 
   
   df
   df$longitude<-as.numeric(df$longitude)
@@ -219,7 +219,7 @@ shinyServer(function(input, output, session) {
   iconsMissing <- awesomeIcons(icon = "camera",
                         iconColor = "black",
                         library = "ion",
-                        markerColor = "grey")
+                        markerColor = "gray")
   
   icons <- awesomeIcons(icon = "camera",
                         iconColor = "black",

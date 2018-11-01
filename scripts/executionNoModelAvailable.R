@@ -168,7 +168,7 @@ if (file.exists(tempPathJsonFile)) file.remove(tempPathJsonFile)
 
 logdebug(paste("read JSON export object for", args))
 
-escapedPayload<-gsub("([\\\"])",'\\\\"', charPayload)
+escapedPayload<-gsub("([\"])",'\\\\"', charPayload)
 
 
 logdebug(paste("sending JSON to RabbitMQ for", args))
