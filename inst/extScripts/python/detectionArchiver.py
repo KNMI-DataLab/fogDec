@@ -18,41 +18,15 @@ def extractFromJSON(confJson, stringForSearch):
     return (stations)
 
 
-#extract the locations from JSON config file
-def extractLocations(confJson):
-    locations = []
-    pathToSearch = parse("$..location")  # info at http://goessner.net/articles/JsonPath/
-    for match in pathToSearch.find(confJson):
-        locations.append(match.value)
-    return(locations)
-
-
-#extract the cameraID from JSON config file
-def extractCameras(confJson):
-    cameras = []
-    cameraIDs = parse("$..cameraID")
-    for match in cameraIDs.find(confJson):
-        cameras.append(match.value)
-    return cameras
-
 
 
 def writeToMongo(message):
-
-#mongo db connection params
-    client = MongoClient('145.23.218.16', 27017)
-
-#access to db
+    #mongo db connection params
+    client = MongoClient('145.23.219.231', 27017)
+    #access to db
     db = client['fogDetectionArchive']
-
-#collection AKA table in db
-    collection = db["collection"]
-
-#getting the collections available
-collRetrival= db.collection_names(include_system_collections=False)
-
-print(collRetrival)
-
+    postedMessage = db["collection"].insert_one(message).inserted_id
+    return(postedMessage.acknowledged)
 
 
 
@@ -85,35 +59,13 @@ def callback(ch, method, properties, body):
     ch.basic_ack(delivery_tag=method.delivery_tag)
     logging.info('message received '+body)
 
-
-    message = filterMessage(body, locationToProcess, camerasToProcess)
-    if (message != None):
-        callParams = filterDayPhase(message)
-        logging.info("call param created")
-        if (callParams != None):
-            callParams.append(body)
-            logging.info("call param created"+ str(callParams))
-
-            #each process is run in parallel
-            subprocess.Popen(callParams)
-            logging.info("call param returned for "+ str(callParams))
+    if (body != None):
+        status = writeToMongo(body)
+        logging.info("message sent to mongo, status"+status)
+    else:
+        logging.info("message is empty")
 
 
-#exampleMessageBody = "/nas-research.knmi.nl/sensordata/CAMERA/RWS/A2/HM776/ID10912/201806/A2-HM776-ID10912_20180606_0801.jpg"
-
-
-
-
-#at the moment assuming De Bilt as the location where we assess the dayphase
-#for running the model for daylight (only model at the moment) or for
-#other moment of the day (future work)
-
-
-
-#read the config file in JSON
-camerasMVPConf = readJson(confFile)
-locationToProcess = extractLocations(camerasMVPConf)
-camerasToProcess = extractCameras(camerasMVPConf)
 
 #setup logging
 logging.basicConfig(filename='logFile.log',level=logging.INFO)
