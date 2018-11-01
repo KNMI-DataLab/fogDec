@@ -5,6 +5,8 @@ import subprocess
 import datetime
 import logging
 from pymongo import *
+from bson import json_util
+
 
 def readJson(confFile):
     with open(confFile) as data_file:
@@ -25,7 +27,8 @@ def writeToMongo(message):
     client = MongoClient('145.23.219.231', 27017)
     #access to db
     db = client['fogDetectionArchive']
-    postedMessage = db["collection"].insert_one(message).inserted_id
+    data = json_util.loads(message)
+    postedMessage = db["collection"].insert_one(data).inserted_id
     return(postedMessage.acknowledged)
 
 
