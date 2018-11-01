@@ -5,6 +5,7 @@ import ephem
 import subprocess
 import datetime
 import logging
+import re
 
 def readJson(confFile):
     with open(confFile) as data_file:
@@ -125,13 +126,19 @@ def extractCameras(confJson):
 
 
 #filters the dayphase and use the appropriate script (at the moment daylight only)
-def filterDayPhase():
-    nowUTC = datetime.datetime.utcnow()
+def filterDayPhase(message):
+    group = re.findall("_[0-9]*_[0-9]*",message)
+    dateAndTime = group[-1]
+    splitsDateAndTime = dateAndTime.split("_")
 
-    completeDateTime = datetime.datetime.strptime(
-        str(nowUTC.year) + str(nowUTC.month).zfill(2)  + str(nowUTC.day).zfill(2)  + str(nowUTC.hour).zfill(2)  + str(nowUTC.minute).zfill(2) , "%Y%m%d%H%M")
-    dayPhaseNow = computeDayPhase(lonDeBilt, latDeBilt, completeDateTime)
-    print("day phase"+str(dayPhaseNow))
+    #nowUTC = datetime.datetime.utcnow()
+
+    completeDateTime = datetime.datetime.strptime(dateAndTime, "_%Y%m%d_%H%M")
+    print(completeDateTime)
+    #completeDateTime = datetime.datetime.strptime(
+     #   str(nowUTC.year) + str(nowUTC.month).zfill(2)  + str(nowUTC.day).zfill(2)  + str(nowUTC.hour).zfill(2)  + str(nowUTC.minute).zfill(2) , "%Y%m%d%H%M")
+    dayPhasePic = computeDayPhase(lonDeBilt, latDeBilt, completeDateTime)
+    print("day phase"+str(dayPhasePic))
     #dayPhaseNow=11
 
     # way to call R in python subprocess.call (["/usr/bin/Rscript", "--vanilla", "/pathto/MyrScript.r"])
@@ -146,7 +153,7 @@ def filterDayPhase():
     31:["/usr/bin/Rscript", "--vanilla", "/home/pagani/development/fogDec/scripts/executionNoModelAvailable.R"]
     }
 
-    result = callToRScript.get(dayPhaseNow, None)
+    result = callToRScript.get(dayPhasePic, None)
 
     return result
 
@@ -194,7 +201,7 @@ def callback(ch, method, properties, body):
 
     message = filterMessage(body, locationToProcess, camerasToProcess)
     if (message != None):
-        callParams = filterDayPhase()
+        callParams = filterDayPhase(message)
         logging.info("call param created")
         if (callParams != None):
             callParams.append(body)
@@ -230,3 +237,4 @@ logging.basicConfig(filename='logFile.log',level=logging.INFO)
 
 
 subscribeAndConsume()
+

@@ -131,7 +131,25 @@ exportJson <- jsonlite::toJSON(final)
 logdebug(paste("written JSON results export object", args))
 
 
-#jsoninput<-jsonlite::fromJSON(results_json)
+
+
+library(rgdal)
+library(raster)
+
+###TEST STUFF GEO JSON: have to use the writeOGR from rgdal since the package geojsonio requires GDAL 2.0 that is not
+###available on the redhat at the moment
+###with geojsonio would be easier to produce a geojson string without need to write and read a file
+coordinates(final)=cbind(as.numeric(final$longitude),as.numeric(final$latitude))
+crs(final)<-"+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+tempFileName<-uuid::UUIDgenerate()
+tempPathJsonFile<-paste0(temp_directory,tempFileName)
+writeOGR(final,tempPathJsonFile,layer = "final", driver = "GeoJSON")
+##################################
+
+
+
+
+
 
 
 library(messageQueue)
@@ -139,10 +157,15 @@ library(messageQueue)
 
 jsonQueue<-jsonlite::fromJSON(queue_conf_file)
 
-#set of options not working at the moment
+charPayload<-readr::read_file(tempPathJsonFile)
+
+if (file.exists(tempPathJsonFile)) file.remove(tempPathJsonFile)
+
+#OLD VERSION NO GEO JSON BUT READING STRING
+#charPayload<-as.character(exportJson)
 
 
-charPayload<-as.character(exportJson)
+
 logdebug(paste("read JSON export object for", args))
 
 escapedPayload<-gsub("([\\\"])",'\\\\"', charPayload)

@@ -108,11 +108,14 @@ shinyServer(function(input, output, session) {
   
   fromJSONtoDF<-function(text){
     parsedJSON<-jsonlite::fromJSON(text)
+    print(parsedJSON)
     jsoninput<-lapply(parsedJSON$payload,jsonlite::fromJSON)
-    #reading from file to be replaced with reading from queue
-    #jsoninput<-jsonlite::fromJSON(results_json)
+    #print(df)
     df <- data.frame(matrix(unlist(jsoninput), nrow=length(jsoninput), byrow=T), stringsAsFactors = F)
-    colnames(df)<-names(jsoninput[[1]])
+    #extracting only the relevant columns for the purpose of visualization from the GeoJson data-framed structure
+    df<-df[,6:17]
+    #and setting the related names
+    colnames(df)<-names(jsoninput[[1]][[3]][[3]])
     df
   }
   
@@ -200,7 +203,7 @@ shinyServer(function(input, output, session) {
   #inputDF$fogClass<-revalue(inputDF$fogClass, c("FALSE"="nofog", "TRUE"="fog"))
   
   df$icon <- factor(df$fogClass,
-                         levels = c("TRUE","FALSE"),
+                         levels = c("1","0"),
                          labels = c("red", "green")) 
   
   df

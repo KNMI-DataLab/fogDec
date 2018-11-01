@@ -2,12 +2,12 @@
 args = commandArgs(trailingOnly=TRUE)
 
 
-# # test if there is at least one argument: if not, return an error
-# if (length(args)==0) {
-#   stop("At least one argument must be supplied (input file).jpg", call.=FALSE)
-# } else if (length(args)==1) {
-#   fileToAnalyze = args[1]
-# }
+# test if there is at least one argument: if not, return an error
+if (length(args)==0) {
+  stop("At least one argument must be supplied (input file).jpg", call.=FALSE)
+} else if (length(args)==1) {
+  fileToAnalyze = args[1]
+}
 
 
 log_file<-"/home/pagani/development/fogDec/log/predictionEngine.log"
@@ -57,7 +57,7 @@ library(RJSONIO)
 
 #fileToAnalyze<-"/nas-research.knmi.nl/sensordata/CAMERA/DEBILT/TESTSITE-SNOWDEPTH/201807/DEBILT-TESTSITE-SNOWDEPTH_20180710_0811.jpg"
 
-fileToAnalyze<-"/nas-research.knmi.nl/sensordata/CAMERA/RWS/A16/HM211/ID71681/201807/A16-HM211-ID71681_20180726_1220.jpg"
+#fileToAnalyze<-"/nas-research.knmi.nl/sensordata/CAMERA/RWS/A16/HM211/ID71681/201807/A16-HM211-ID71681_20180726_1220.jpg"
 
 library(stringr)
 fileLocation<-gsub(".*/nas-research.knmi.nl/sensordata/CAMERA/", "~/share/", fileToAnalyze)
@@ -170,6 +170,7 @@ logdebug(paste("written JSON results export object", args))
 
 
 library(rgdal)
+library(raster)
 
 ###TEST STUFF GEO JSON: have to use the writeOGR from rgdal since the package geojsonio requires GDAL 2.0 that is not
 ###available on the redhat at the moment
@@ -202,14 +203,22 @@ if (file.exists(tempPathJsonFile)) file.remove(tempPathJsonFile)
 
 logdebug(paste("read JSON export object for", args))
 
-escapedPayload<-gsub("([\\\"])",'\\\\"', charPayload)
+#OLD non geo json
+#escapedPayload<-gsub("([\\\"])",'\\\\"', charPayload)
 
+escapedPayload<-gsub("([\"])",'\\\\"', charPayload)
+
+
+#escapedPayload<-gsub("\\\\","",escapedPayload)
+
+
+#escapedPayload<-charPayload
 
 logdebug(paste("sending JSON to RabbitMQ for", args))
 
 #putting a message in the queue via POST since R library working with rabbit is not working
 command<-paste0('curl -u ', jsonQueue$user,':', jsonQueue$pw, ' -H "Content-type: application/json" -X POST -d\'{"properties":{"delivery_mode":1, "content_type": "application/json"},
-"routing_key":"RTvisual", "declare_queue":"RTvisual", "payload":"',escapedPayload,'","payload_encoding":"string"}\' http://',jsonQueue$host,':8080/api/exchanges/%2f/amq.default/publish')
+"routing_key":"","payload":"',escapedPayload,'","payload_encoding":"string"}\' http://',jsonQueue$host,':8080/api/exchanges/%2f/detectionOutput/publish')
 #command
 tryCatch({
 system(command)
