@@ -358,11 +358,13 @@ prepareMeteoTableStationMapping<-function(variable,newval, stationMapping){
 
 #Updates meteo variables in the DB for which at least one meteo variable has been already introduced for the 
 #corresponding date and time
-updateExistingMeteo<-function(){
-variables<-c("air_temp","dew_point","mor_visibility","wind_speed","rel_humidity")
+updateExistingMeteo<-function(dbConfigDir){
+variables<-c("mor_visibility")
+
+#variables<-c("air_temp","dew_point","wind_speed","rel_humidity")
 
 
-stationMapping<-coupleCamerasAndKNMInearStations(maxDistance = 7500)
+stationMapping<-coupleCamerasAndKNMInearStations(maxDistance = 10000,dbConfigDir)
 
 
 for(var in variables){
@@ -394,7 +396,7 @@ for(var in variables){
 
 
 addNewObservationInDB<-function(allowedMeteoVar,dbConfigDir){
-stationMapping<-coupleCamerasAndKNMInearStations(maxDistance = 7500, dbConfigDir)
+stationMapping<-coupleCamerasAndKNMInearStations(maxDistance = 10000, dbConfigDir)
 table<-prepareMeteoTableStationMapping(variable = allowedMeteoVar, newval = TRUE, stationMapping)
 dbConfig <- fromJSON("config.json")
 con <- dbConnect(RPostgreSQL::PostgreSQL(),
@@ -405,3 +407,12 @@ dbWriteTable(con, "meteo_features_stations", table, append = TRUE, row.names = F
 dbDisconnect(con)
    
 }
+
+
+
+##issues with some duplicates
+#nonUnique<-table[meteoFeaturesTable,on=c("location_id","timestamp"),nomatch=0]
+#remaining<-table[!nonUnique, on=.(location_id,timestamp)]
+
+
+

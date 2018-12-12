@@ -6,6 +6,8 @@ import subprocess
 import datetime
 import logging
 import re
+import numpy as np
+import time
 
 def readJson(confFile):
     with open(confFile) as data_file:
@@ -208,6 +210,8 @@ def callback(ch, method, properties, body):
             logging.info("call param created"+ str(callParams))
 
             #each process is run in parallel
+	    s = np.random.uniform(0,0.5,1)
+	    time.sleep(s[0])		
             subprocess.Popen(callParams)
             logging.info("call param returned for "+ str(callParams))
 
