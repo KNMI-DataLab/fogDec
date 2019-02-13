@@ -162,9 +162,11 @@ def filterDayPhase(message):
 
 #filter the message if belonging to the list of locations approved
 def filterMessage(message, locationToProcess, camerasToProcess):
-    if any(s for s in locationToProcess if s in message):
-        if any(ss for ss in camerasToProcess if ss in message):
-            return (message)
+    #print(locationToProcess)
+    #print(message)
+    if any(s for s in locationToProcess if s in str(message)):
+        if any(ss for ss in camerasToProcess if ss in str(message)):
+            return (str(message))
         else:
             return(None)
     else:
@@ -196,26 +198,21 @@ def subscribeAndConsume():
 
 #function called at every message arrival
 def callback(ch, method, properties, body):
-    print(" [x] Received %r" % body)
-    ch.basic_ack(delivery_tag=method.delivery_tag)
-    logging.info('message received '+body)
-
-
-    message = filterMessage(body, locationToProcess, camerasToProcess)
-    if (message != None):
-        callParams = filterDayPhase(message)
-        logging.info("call param created")
-        if (callParams != None):
-            callParams.append(body)
-            logging.info("call param created"+ str(callParams))
-
-            #each process is run in parallel
-	    s = np.random.uniform(0,0.5,1)
-	    time.sleep(s[0])		
-            subprocess.Popen(callParams)
-            logging.info("call param returned for "+ str(callParams))
-
-
+  print(" [x] Received %r" % str(body))
+  ch.basic_ack(delivery_tag=method.delivery_tag)
+  logging.info('message received '+str(body))
+  message = filterMessage(body, locationToProcess, camerasToProcess)
+  if (message != None):
+    callParams = filterDayPhase(message)
+    logging.info("call param created")
+    if (callParams != None):
+      callParams.append(body)
+      logging.info("call param created"+ str(callParams))
+      #each process is run in parallel
+      s = np.random.uniform(0,0.5,1)
+      time.sleep(s[0])
+      subprocess.Popen(callParams)
+      logging.info("call param returned for "+ str(callParams))
 #exampleMessageBody = "/nas-research.knmi.nl/sensordata/CAMERA/RWS/A2/HM776/ID10912/201806/A2-HM776-ID10912_20180606_0801.jpg"
 
 
@@ -237,8 +234,6 @@ camerasToProcess = extractCameras(camerasMVPConf)
 
 #setup logging
 logging.basicConfig(filename='logFile.log',level=logging.INFO)
-
-
 
 subscribeAndConsume()
 
