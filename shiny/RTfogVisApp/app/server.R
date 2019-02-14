@@ -13,11 +13,11 @@ library(logging)
 
 firstOccurrence = TRUE
 
-  temp_directory<-"temp/"
-  df_debug_file<-"debug/debugDF.csv"
-  log_file<-"log/logFile.log"
-  state_file<-"state/currentState.json"
-  cameras_for_detection_file<-"config/MVPCameras.json"
+  temp_directory<-"/external/temp/"
+  df_debug_file<-"/external/debug/debugDF.csv"
+  log_file<-"/external/log/logFile.log"
+  state_file<-"/external/state/currentState.json"
+  cameras_for_detection_file<-"/external/config/MVPCameras.json"
 
 
 message("visualization platform ready")
