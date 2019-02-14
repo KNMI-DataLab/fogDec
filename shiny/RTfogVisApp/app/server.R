@@ -18,6 +18,7 @@ firstOccurrence = TRUE
   log_file<-"/external/log/logFile.log"
   state_file<-"/external/state/currentState.json"
   cameras_for_detection_file<-"/external/config/MVPCameras.json"
+  queue_conf_file<-"/external/config/queueConfig.json"
 
 
 message("visualization platform ready")
