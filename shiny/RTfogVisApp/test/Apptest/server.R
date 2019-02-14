@@ -162,7 +162,7 @@ shinyServer(function(input, output, session) {
       
       if(numCamerasRetrieved!=numCamerasToMonitor){
         loginfo(paste(numCamerasRetrieved,"retrieved cameras, time of retrieval",as.character(max(df$timeStamp)),"UTC"))
-        loginfo(paste("missing cameras:",dfCameras$location[!(dfCameras$cameraID %in% df$cameraID)]))
+        loginfo(paste("missing cameras first 100:",head(dfCameras$location[!(dfCameras$cameraID %in% df$cameraID)]),100))
       }
       
       
