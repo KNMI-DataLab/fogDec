@@ -10,35 +10,16 @@ library(logging)
 #local and remote implementation variable naming/setting
 ##########
 
-remote=FALSE
 
 firstOccurrence = TRUE
 
-if(remote==TRUE){
-  model_zip_path = "/workspace/andrea/exports/models/dl_grid_model_35.zip"
-  h2o_jar_path = "/usr/local/lib/R/site-library/h2o/java/h2o.jar"
-  devel_dir<-"/workspace/andrea/"
-  #for amazon###
-  fileLocation<-"/workspace/andrea/exports/A2-HM776-ID10915_20180606_0801.jpg"
-  #####
-  results_json<-"/workspace/andrea/exports/results/predictions/test.json"
-  temp_directory<-"/workspace/andrea/tmp"
-}else{
-  model_zip_path = "/home/pagani/nndataH2O/frozenModels/dl_grid_model_35.zip"
-  h2o_jar_path = "/home/pagani/R/x86_64-redhat-linux-gnu-library/3.4/h2o/java/h2o.jar"
-  devel_dir<-"/home/pagani/development/"
-  results_json<-"/home/pagani/nndataH2O/frozenModels/results/predictions/test.json"
-  temp_directory<-"/tmp/" #"/home/pagani/temp/Rtemp"
-  queue_conf_file<-"/home/pagani/development/fogDec/inst/extScripts/python/queueConfig.json"
-  cameras_for_detection_file<-"/home/pagani/development/fogDec/inst/extScripts/python/MVPCameras.json"
-  df_debug_file<-"/home/pagani/development/fogDec/shiny/debug/debugDF.csv"
-  shiny_dir<-"/home/pagani/development/fogDec/shiny"
-  log_file<-"/home/pagani/development/fogDec/shiny/log/logFile.log"
-  state_file<-"/home/pagani/development/fogDec/shiny/state/currentState.json"
-}
+  temp_directory<-"/tmp"
+  df_debug_file<-"/visApp/debug/debugDF.csv"
+  log_file<-"/visApp/log/logFile.log"
+  state_file<-"/visApp/state/currentState.json"
 
 
-message("test alive?")
+message("visualization platform ready")
 logReset()
 basicConfig(level='FINEST')
 addHandler(writeToFile, file=log_file, level='DEBUG')
