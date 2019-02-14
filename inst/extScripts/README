@@ -1,6 +1,0 @@
-Correction of the fish-eye camera in Twente by using GIMP with customized lens parameter.
-
-The rectify.sh script invokes the gimp rectification script and cuts the image to the center section.
-
-NB: The script "script-fisheye-corr.scm" has to be put in the ~/.gimp/scripts/
-
