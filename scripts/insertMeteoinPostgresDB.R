@@ -210,7 +210,7 @@ prepareMeteoTableStationMapping<-function(variable,newval, stationMapping){
   
   setkey(KNMIstationsTable,knmi_kis_id)
   setkey(stationMapping, KISstations)
-  test<-stationMapping[KNMIstationsTable]
+  test<-stationMapping[KNMIstationsTable, nomatch=0]
   test2<-test[locationIDsHW!=location_id]
   
   locationsOfCamerasMatched<-as.numeric(test2[,locationIDsHW])
@@ -224,7 +224,7 @@ prepareMeteoTableStationMapping<-function(variable,newval, stationMapping){
   setkey(imagesTable,camera_id)
   tempTB<-camerasTable[locationsTable, nomatch=0]
   setkey(tempTB,camera_id)
-  tempTB<-imagesTable[tempTB]
+  tempTB<-imagesTable[tempTB, nomatch =0]
   tempTB<-tempTB[location_id %in% locationsOfCamerasMatched] ##basically filter to the cameras where there is a location match with KNMI stations
   tempTB[,timestamp:= strptime("1970-01-01", "%Y-%m-%d", tz="UTC") + round(as.numeric(tempTB$timestamp)/600)*600]
   
@@ -232,13 +232,13 @@ prepareMeteoTableStationMapping<-function(variable,newval, stationMapping){
   setkey(tempTB,location_id)
   test2$locationIDsHW<-as.numeric(test2$locationIDsHW)
   setkey(test2,locationIDsHW)
-  tempTB<-tempTB[test2]
+  tempTB<-tempTB[test2,nomatch=0]
   setnames(tempTB,"i.location_id","meteoStationLocationID")
   
   setkey(tempTB,timestamp,meteoStationLocationID)
   
   setkey(meteoFeaturesTable,timestamp,location_id)
-  temp2<-tempTB[meteoFeaturesTable]
+  temp2<-tempTB[meteoFeaturesTable, nomatch=0]
   
   if(newval==TRUE){
     dataNoMeteoAll<-tempTB[(which(tempTB$image_id %not in% temp2$image_id))]#images have no meteo fetures at all
@@ -338,6 +338,12 @@ prepareMeteoTableStationMapping<-function(variable,newval, stationMapping){
   if(newval==TRUE){
     #check to put just the missing time stamps otherwise getting exception in the DB if trying to fill meteo for timestamps already present
     toBeFilled<-tmp[which(tmp$timestamp %in% timeSyncToMeteo)]
+    setkey(toBeFilled,timestamp, location_id)
+    setkey(dataNoMeteoAll,timestamp, meteoStationLocationID)
+    toBeFilled<-toBeFilled[dataNoMeteoAll,nomatch=0]
+    toBeFilled<-unique(toBeFilled[,list(location_id,timestamp,get(variable))])
+    setnames(toBeFilled,"V3",variable)
+
   }
   
   else{
@@ -364,7 +370,7 @@ variables<-c("mor_visibility")
 #variables<-c("air_temp","dew_point","wind_speed","rel_humidity")
 
 
-stationMapping<-coupleCamerasAndKNMInearStations(maxDistance = 10000,dbConfigDir)
+stationMapping<-coupleCamerasAndKNMInearStations(maxDistance = 30000,dbConfigDir)
 
 
 for(var in variables){
@@ -396,7 +402,7 @@ for(var in variables){
 
 
 addNewObservationInDB<-function(allowedMeteoVar,dbConfigDir){
-stationMapping<-coupleCamerasAndKNMInearStations(maxDistance = 10000, dbConfigDir)
+stationMapping<-coupleCamerasAndKNMInearStations(maxDistance = 30000, dbConfigDir)
 table<-prepareMeteoTableStationMapping(variable = allowedMeteoVar, newval = TRUE, stationMapping)
 dbConfig <- fromJSON("config.json")
 con <- dbConnect(RPostgreSQL::PostgreSQL(),
