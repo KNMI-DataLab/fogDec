@@ -12,7 +12,7 @@ setwd(photoDir) ##For RStudio
 
 set.seed(11)
 
-trainValTestSetList<-createTrainValidTestSetsBinary("~/share/", dateMax= "\'2018-05-14 00:00:00\'", dbConfigDir = "~/development/fogDec/",maxDist=7500)
+trainValTestSetList<-createTrainValidTestSetsBinaryRandom("~/share/", dateMax= "\'2019-01-01 00:00:00\'", dbConfigDir = "~/development/fogDec/",maxDist=2500,dayPhaseFlag=10)
 
 trainSet<-trainValTestSetList[[1]]
 trainSet<-trainSet[sample(nrow(trainSet)),]

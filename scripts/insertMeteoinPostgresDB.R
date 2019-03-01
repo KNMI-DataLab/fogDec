@@ -365,9 +365,9 @@ prepareMeteoTableStationMapping<-function(variable,newval, stationMapping){
 #Updates meteo variables in the DB for which at least one meteo variable has been already introduced for the 
 #corresponding date and time
 updateExistingMeteo<-function(dbConfigDir){
-variables<-c("mor_visibility")
+#variables<-c("mor_visibility")
 
-#variables<-c("air_temp","dew_point","wind_speed","rel_humidity")
+variables<-c("air_temp","dew_point","wind_speed","rel_humidity")
 
 
 stationMapping<-coupleCamerasAndKNMInearStations(maxDistance = 30000,dbConfigDir)

@@ -108,6 +108,95 @@ fwrite(completeTraining,"~/nndataH2O/dawnCivil7500m_28px_train03SplitNoBlur.csv"
 rm(matRWS)
 
 
+
+
+####dataAugmentation
+
+#data augmentation:noise added to original
+noise05pct<-t(apply(matRWS,1,applyNoise,0.05)) #apply returns a transpose, so transpose to get to the original dimensions
+noise10pct<-t(apply(matRWS,1,applyNoise,0.1))
+noise20pct<-t(apply(matRWS,1,applyNoise,0.2))
+
+
+dtMat<-data.table(matRWS)
+dtMatNoise05<-data.table(noise05pct)
+dtMatNoise10<-data.table(noise10pct)
+dtMatNoise20<-data.table(noise20pct)
+
+
+bindAndFilter<-function(dataTab,labels){
+tempDT<-cbind(dataTab,labels)
+completeTempDT<-tempDT[complete.cases(tempDT)]
+completeTempDT
+}
+#
+
+cl <- makeCluster(4)
+registerDoParallel(cl)
+
+clusterEvalQ(cl, library("imager"))
+
+matRWSmirror<-foreach(i=1:length(files)) %dopar%{
+  message(files[[i]])
+  image<-tryCatch(
+    load.image(files[[i]]),
+    
+    error=function(error_message) {
+      #message("Yet another error message.")
+      #message("Here is the actual R error message:")
+      #next
+      return(NA)
+    }
+  )
+  if(is.na(image[[1]])){
+    v<-NA*1:(resolutionImg*resolutionImg)
+    message("Image not available error in acquisition")
+    v
+  }else{
+    image<-resize(image,resolutionImg,resolutionImg)
+    image<-mirror(image,"x")
+    #image<-blur_anisotropic(image, amplitude = 10000)
+    df<-as.data.frame(image)
+    v<-df$value
+    #mat<-rbind(mat,v)
+    v
+  }
+}
+
+stopCluster(cl)
+
+
+matRWSmirror<-do.call(rbind,matRWSmirror)
+
+#data augmentation:noise added to original
+noise05pctmirror<-t(apply(matRWSmirror,1,applyNoise,0.05)) #apply returns a transpose, so transpose to get to the original dimensions
+noise10pctmirror<-t(apply(matRWSmirror,1,applyNoise,0.1))
+noise20pctmirror<-t(apply(matRWSmirror,1,applyNoise,0.2))
+
+
+dtMatMirror<-data.table(matRWSmirror)
+dtMatMirrorNoise05<-data.table(noise05pctmirror)
+dtMatMirrorNoise10<-data.table(noise10pctmirror)
+dtMatMirrorNoise20<-data.table(noise20pctmirror)
+
+
+
+
+
+#dtMat[,foggy:=training$foggy]
+#dtMat[,filepath:=training$filepath]
+dtMat<-cbind(dtMat,validSet)
+complete<-dtMat[complete.cases(dtMat)]
+
+
+
+
+
+
+
+
+
+
 #################validation###############
 
 
@@ -160,62 +249,7 @@ stopCluster(cl)
 
 matRWS<-do.call(rbind,matRWS)
 
-#data augmentation:noise added to original
-noise05pct<-t(apply(matRWS,1,applyNoise,0.05)) #apply returns a transpose, so transpose to get to the original dimensions
-noise10pct<-t(apply(matRWS,1,applyNoise,0.1))
-noise20pct<-t(apply(matRWS,1,applyNoise,0.2))
 
-#
-
-cl <- makeCluster(4)
-registerDoParallel(cl)
-
-clusterEvalQ(cl, library("imager"))
-
-matRWSmirror<-foreach(i=1:length(files)) %dopar%{
-  message(files[[i]])
-  image<-tryCatch(
-    load.image(files[[i]]),
-    
-    error=function(error_message) {
-      #message("Yet another error message.")
-      #message("Here is the actual R error message:")
-      #next
-      return(NA)
-    }
-  )
-  if(is.na(image[[1]])){
-    v<-NA*1:(resolutionImg*resolutionImg)
-    message("Image not available error in acquisition")
-    v
-  }else{
-    image<-resize(image,resolutionImg,resolutionImg)
-    image<-mirror(image,"x")
-    #image<-blur_anisotropic(image, amplitude = 10000)
-    df<-as.data.frame(image)
-    v<-df$value
-    #mat<-rbind(mat,v)
-    v
-  }
-}
-
-stopCluster(cl)
-
-
-matRWS<-do.call(rbind,matRWSmirror)
-
-#data augmentation:noise added to original
-noise05pctmirror<-t(apply(matRWSmirror,1,applyNoise,0.05)) #apply returns a transpose, so transpose to get to the original dimensions
-noise10pctmirror<-t(apply(matRWSmirror,1,applyNoise,0.1))
-noise20pctmirror<-t(apply(matRWSmirror,1,applyNoise,0.2))
-
-#
-
-
-
-
-
-dtMat<-data.table(matRWS)
 #dtMat[,foggy:=training$foggy]
 #dtMat[,filepath:=training$filepath]
 dtMat<-cbind(dtMat,validSet)
