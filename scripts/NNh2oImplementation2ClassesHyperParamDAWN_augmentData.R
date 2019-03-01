@@ -5,6 +5,17 @@ library(data.table)
 library(fogDec)
 
 
+applyNoise<-function(rowMat,fractionToChange){
+  totalPixels<-length(rowMat)
+  pixelToChange<-fractionToChange*totalPixels
+  randomPositions<-sample(totalPixels,pixelToChange)
+  pixelValues<-runif(pixelToChange)
+  rowMat[randomPositions]<-pixelValues
+  rowMat
+}
+
+
+
 
 
 photoDir<-"~/share"
@@ -12,11 +23,11 @@ setwd(photoDir) ##For RStudio
 
 set.seed(33)
 
-trainValTestSetList<-createTrainValidTestSetsSplitBinaryRandom("~/share/", dateMax= "\'2019-01-01 00:00:00\'", dbConfigDir = "~/development/fogDec/",maxDist=7500,dayPhaseFlag=10,splitPositive=0.3)
+trainValTestSetList<-createTrainValidTestSetsSplitBinaryRandom("~/share/", dateMax= "\'2019-01-01 00:00:00\'", dbConfigDir = "~/development/fogDec/",maxDist=7500,dayPhaseFlag=10,splitPositive=0.0375)
 
 trainSet<-trainValTestSetList[[1]]
 foggyTrain<-trainSet[foggy==TRUE]
-foggyAugment<-as.data.table(lapply(foggyTrain,rep,8))
+#foggyAugment<-as.data.table(lapply(foggyTrain,rep,8))
 #trainSet<-trainSet[sample(nrow(trainSet)),]
 
 validSet<-trainValTestSetList[[2]]
@@ -49,10 +60,10 @@ registerDoParallel(cl)
 
 clusterEvalQ(cl, library("imager"))
 
-
+filesToElaborate<-length(files)
 
 ##normal#
-matRWSnormal<-foreach(i=1:length(files)) %dopar%{
+matRWSnormal<-foreach(i=1:filesToElaborate) %dopar%{
   message(files[[i]])
   image<-tryCatch(
     load.image(files[[i]]),
@@ -83,16 +94,15 @@ matRWSnormal<-foreach(i=1:length(files)) %dopar%{
 stopCluster(cl)
 
 
-matRWS<-do.call(rbind,matRWS)
+matRWSnormal<-do.call(rbind,matRWSnormal)
 
 
-dtMat<-data.table(matRWS)
+#dtMat<-data.table(matRWS)
 
-mat5Pctnoise<-matRWS
 #dtMat[,foggy:=training$foggy]
 #dtMat[,filepath:=training$filepath]
-dtMat<-cbind(dtMat,training)
-complete<-dtMat[complete.cases(dtMat)]
+#dtMat<-cbind(dtMat,training)
+#complete<-dtMat[complete.cases(dtMat)]
 
 #lastFeature<-resolutionImg*resolutionImg*3
 #trainData<-complete[,1:lastFeature]
@@ -101,11 +111,11 @@ complete<-dtMat[complete.cases(dtMat)]
 
 #shuffle rows just to avoid learning on inserted data (initial fog after no fog)
 #completeTraining<-complete[sample(nrow(complete),size = 200000),]
-completeTraining<-complete
+#completeTraining<-complete
 
-fwrite(completeTraining,"~/nndataH2O/dawnCivil7500m_28px_train03SplitNoBlur.csv")
+#fwrite(completeTraining,"~/nndataH2O/dawnCivil7500m_28px_train03SplitNoBlur.csv")
 
-rm(matRWS)
+#rm(matRWS)
 
 
 
@@ -113,30 +123,37 @@ rm(matRWS)
 ####dataAugmentation
 
 #data augmentation:noise added to original
-noise05pct<-t(apply(matRWS,1,applyNoise,0.05)) #apply returns a transpose, so transpose to get to the original dimensions
-noise10pct<-t(apply(matRWS,1,applyNoise,0.1))
-noise20pct<-t(apply(matRWS,1,applyNoise,0.2))
+noise05pct<-t(apply(matRWSnormal,1,applyNoise,0.05)) #apply returns a transpose, so transpose to get to the original dimensions
+noise10pct<-t(apply(matRWSnormal,1,applyNoise,0.1))
+noise20pct<-t(apply(matRWSnormal,1,applyNoise,0.2))
 
-
-dtMat<-data.table(matRWS)
-dtMatNoise05<-data.table(noise05pct)
-dtMatNoise10<-data.table(noise10pct)
-dtMatNoise20<-data.table(noise20pct)
-
-
-bindAndFilter<-function(dataTab,labels){
+bindAndFilter<-function(mat,labels){
+dataTab<-data.table(mat)
 tempDT<-cbind(dataTab,labels)
 completeTempDT<-tempDT[complete.cases(tempDT)]
 completeTempDT
 }
 #
+#noise10pct,noise20pct
+#trainingAugmented<-lapply(X = c(matRWSnormal),FUN = bindAndFilter,training[1:10])
+
+
+d1<-bindAndFilter(matRWSnormal,training)
+d2<-bindAndFilter(noise05pct,training)
+d3<-bindAndFilter(noise10pct,training)
+d4<-bindAndFilter(noise20pct,training)
+
+augmentedTrain<-do.call("rbind", list(d1,d2,d3,d4))
+rm(d1,d2,d3,d4)
+
+
 
 cl <- makeCluster(4)
 registerDoParallel(cl)
 
 clusterEvalQ(cl, library("imager"))
 
-matRWSmirror<-foreach(i=1:length(files)) %dopar%{
+matRWSmirror<-foreach(i=1:filesToElaborate) %dopar%{
   message(files[[i]])
   image<-tryCatch(
     load.image(files[[i]]),
@@ -174,13 +191,19 @@ noise10pctmirror<-t(apply(matRWSmirror,1,applyNoise,0.1))
 noise20pctmirror<-t(apply(matRWSmirror,1,applyNoise,0.2))
 
 
-dtMatMirror<-data.table(matRWSmirror)
-dtMatMirrorNoise05<-data.table(noise05pctmirror)
-dtMatMirrorNoise10<-data.table(noise10pctmirror)
-dtMatMirrorNoise20<-data.table(noise20pctmirror)
+d1<-bindAndFilter(matRWSmirror,training)
+d2<-bindAndFilter(noise05pctmirror,training)
+d3<-bindAndFilter(noise10pctmirror,training)
+d4<-bindAndFilter(noise20pctmirror,training)
+
+augmentedTrainMirror<-do.call("rbind", list(d1,d2,d3,d4))
+rm(d1,d2,d3,d4)
+
+trainFullAugmented<-rbind(augmentedTrain,augmentedTrainMirror)
+rm(augmentedTrain,augmentedTrainMirror)
 
 
-
+fwrite(trainFullAugmented,"~/nndataH2O/dawnCivil7500m_28px_train03SplitNoBlurAugmented.csv")
 
 
 #dtMat[,foggy:=training$foggy]
