@@ -147,7 +147,7 @@ def filterDayPhase(message):
     callToRScript = {
     1: ["/usr/bin/Rscript", "--vanilla", "/home/pagani/development/fogDec/scripts/executionNoCluster.R"],
     0: ["/usr/bin/Rscript", "--vanilla", "/home/pagani/development/fogDec/scripts/executionNoModelAvailable.R"],
-    10:["/usr/bin/Rscript", "--vanilla", "/home/pagani/development/fogDec/scripts/executionNoModelAvailable.R"],
+    10:["/usr/bin/Rscript", "--vanilla", "/home/pagani/development/fogDec/scripts/executionModelCivilDawn.R"],
     11:["/usr/bin/Rscript", "--vanilla", "/home/pagani/development/fogDec/scripts/executionNoModelAvailable.R"],
     20:["/usr/bin/Rscript", "--vanilla", "/home/pagani/development/fogDec/scripts/executionNoModelAvailable.R"],
     21:["/usr/bin/Rscript", "--vanilla", "/home/pagani/development/fogDec/scripts/executionNoModelAvailable.R"],
