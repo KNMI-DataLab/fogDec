@@ -9,29 +9,83 @@
 
 library(shiny)
 library(shinyTime)
+library(shinydashboard)
+library(leaflet)
 
 # Define UI for application that draws a histogram
-shinyUI(fluidPage(
-  
-  column(4, wellPanel(
-    dateInput('date',
-              label = 'Date input: yyyy-mm-dd',
-              value = Sys.Date()
-    ))),
+#shinyUI(fluidPage(
   
   
   
-  timeInput("time4", "Time:", value = strptime("12:34:56", "%T"), seconds = FALSE),
+  
 
   
-  column(6,
-         verbatimTextOutput("dateText")
-  ),
+  dashboardPage(
+    dashboardHeader(title = "Archival visualization of Fog Detection", titleWidth = 500),
+    dashboardSidebar(width = 500,  h4("The goal of this app is to retrieve the archive of fog detection from camera pictures from 
+                                    traffic surveillance cameras."),h4("Select a date and time in the past and click the button."),
+                     h4("Please note that dayphases avavilable are: day, night, nautical and civil dawn only"),
+                     wellPanel(
+                       tags$style("#date{color: black;
+                                 }"),
+                       tags$style("#time4{color: black;
+                                 }"),
+                       dateInput('date',
+                                 label = 'Date input: yyyy-mm-dd',
+                                 value = Sys.Date()),
+                       timeInput("time4", "Time:", value = strptime("12:00:00", "%T"), seconds = FALSE),
+                       actionButton("do", "Retrieve Fog Detection"))
+                     # h5("Select a file in the upload menu below and then click \"Analyze the image\" 
+                     #    to have an automatic answer of the presence of fog." )
+                     # fluidRow(
+                     #res<-shinyFilesButton('file', label='File select', title='Please select a file', multiple=FALSE)
+                     #),
+                     
+                     #enable this text once the image is selected
+                     
+    ),
+    
+    # wellPanel(
+    #   dateInput('date',
+    #             label = 'Date input: yyyy-mm-dd',
+    #             value = Sys.Date()),
+    #   timeInput("time4", "Time:", value = strptime("12:34:56", "%T"), seconds = FALSE)),
+    
+    dashboardBody(
+      tags$style(HTML("
+ .centered {
+    position: relative;
+    top: 50%;
+    left: 50%;
+  font-weight: bold;
+ }
+.bold{
+  font-weight: bold;
+
+}
+                ")),
   
-  actionButton("do", "Click Me"),
+  
+  
+  
+      # column(4, wellPanel(
+      #   dateInput('date',
+      #             label = 'Date input: yyyy-mm-dd',
+      #             value = Sys.Date()),
+      #   timeInput("time4", "Time:", value = strptime("12:34:56", "%T"), seconds = FALSE))
+      # ),  
+  
+  
+
+  
+  # column(6,
+  #        verbatimTextOutput("dateText")
+  # ),
+  # 
+  
   
   tabsetPanel(
-    tabPanel("Analysis",
+    tabPanel("Fog archive map",
              absolutePanel(id="controls",
                            style="z-index:200;",
                            class = "titlePane",
@@ -49,26 +103,6 @@ shinyUI(fluidPage(
     #fluidRow(column(12,uiOutput('images')
     #)),
   )#,
-  
-  
-  
-  
-  # Application title
-  # titlePanel("Old Faithful Geyser Data"),
-  # 
-  # # Sidebar with a slider input for number of bins 
-  # sidebarLayout(
-  #   sidebarPanel(
-  #      sliderInput("bins",
-  #                  "Number of bins:",
-  #                  min = 1,
-  #                  max = 50,
-  #                  value = 30)
-  #   ),
-  #   
-  #   # Show a plot of the generated distribution
-  #   mainPanel(
-  #      plotOutput("distPlot")
-  #   )
-  # )
-))
+)
+)
+

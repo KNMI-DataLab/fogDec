@@ -9,10 +9,13 @@
 
 library(shiny)
 library(shinyTime)
+library(mapview)
+library(mongolite)
+library(data.table)
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output, session) {
-  
+  options(scipen = 999)  
   
   
   observeEvent(input$do, {
@@ -58,15 +61,13 @@ shinyServer(function(input, output, session) {
     df$longitude<-as.numeric(df$longitude)
     df$latitude<-as.numeric(df$latitude)
     
-    timeString<-paste0('<div class="centered">Situation at: ', as.character(max(df$timeStamp))," UTC  </div><br>")
+    timeString<-paste0('<div class="left">Situation at: ', as.character(max(df$timeStamp))," UTC  </div><br>")
     
-    
-    iconLegendPath<-"/home/pagani/development/fogDec/shiny/RTfogVisApp/test/Apptest/www/"
     
     html_legend <- HTML("<link href='shared/font-awesome/css/font-awesome.min.css'/><div class='bold'>
-                        <img src='/home/pagani/development/fogDec/shiny/RTfogVisApp/test/Apptest/www/iconGreenNoBack.png' style='width:15px;height:20px;'>   NO FOG<br/>
-                        <img src='/home/pagani/development/fogDec/shiny/RTfogVisApp/test/Apptest/www/iconRedNoBack.png'style='width:15px;height:20px;'>  FOG<br/>
-                        <img src='/home/pagani/development/fogDec/shiny/RTfogVisApp/test/Apptest/www/iconGreyNoBack.png' style='width:15px;height:20px;'>  NA<br/></div>")
+                        <img src='iconGreenNoBack.png' style='width:15px;height:20px;'>   NO FOG<br/>
+                        <img src='iconRedNoBack.png'style='width:15px;height:20px;'>  FOG<br/>
+                        <img src='iconGreyNoBack.png' style='width:15px;height:20px;'>  NA<br/></div>")
     
     
     iconsMissing <- awesomeIcons(icon = "camera",
@@ -84,11 +85,14 @@ shinyServer(function(input, output, session) {
     
     df$hyperink<-paste0('<a href="',df$ipAddr,'" target="_blank">View Camera ', df$location," " ,df$cameraID,  '</a>')
     
+    df$localFileLocation<-gsub("pictures/","/home/pagani/share/",df$fileLocation)
+    testFile<-as.vector(df$localFileLocation)
+    
     #if(nrow(missing)!=0){
     #missing$hyperink<-paste0('<a href="',missing$cameras.RWS.ipAddr,'">View Camera ',missing$cameras.RWS.location," " ,missing$cameras.RWS.cameraID,'</a>')
     m <- leaflet() %>%
       addTiles() %>%  # Add default OpenStreetMap map tiles
-      addAwesomeMarkers(data=df, ~longitude, ~latitude, icon = icons, popup = ~hyperink) %>% addControl(html= html_legend, position = "topright")  %>% addControl(html= timeString, position = "bottomleft")
+      addAwesomeMarkers(data=df, ~longitude, ~latitude, icon = icons, popup = popupImage(testFile,src = "local", embed = T)) %>% addControl(html= html_legend, position = "topright")  %>% addControl(html= timeString, position = "topleft")
     #addCircleMarkers(data=df, ~longitude, ~latitude, popup = ~hyperink) #%>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
     
     output$map <-renderLeaflet(m) 
