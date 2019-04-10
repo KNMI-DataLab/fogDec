@@ -4,6 +4,8 @@ library(unixtools)
 library(plyr)
 library(shiny)
 library(logging)
+library(mapview)
+
 
 
 ##########
@@ -183,19 +185,26 @@ shinyServer(function(input, output, session) {
       
       
       
+      df$localFileLocation<-gsub("pictures/","/external/pictures/",df$fileLocation)
+      popupFilenames<-as.vector(df$localFileLocation)
+      
+      
+      
+      
+      
       df$hyperink<-paste0('<a href="',df$ipAddr,'" target="_blank">View Camera ', df$location," " ,df$cameraID,  '</a>')
       
       if(nrow(missing)!=0){
         missing$hyperink<-paste0('<a href="',missing$cameras.RWS.ipAddr,'">View Camera ',missing$cameras.RWS.location," " ,missing$cameras.RWS.cameraID,'</a>')
         m <- leaflet() %>%
           addTiles() %>%  # Add default OpenStreetMap map tiles
-          addAwesomeMarkers(data=df, ~longitude, ~latitude, icon = icons, popup = ~hyperink) %>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
+          addAwesomeMarkers(data=df, ~longitude, ~latitude, icon = icons, popup = popupImage(popupFilenames,src = "local", embed = T)) %>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
         #addCircleMarkers(data=df, ~longitude, ~latitude, popup = ~hyperink) #%>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
         
       }else{
         m <- leaflet() %>%
           addTiles() %>%  # Add default OpenStreetMap map tiles
-          addAwesomeMarkers(data=df, ~longitude, ~latitude, icon = icons, popup = ~hyperink)  %>% addControl(html= html_legend, position = "topright")
+          addAwesomeMarkers(data=df, ~longitude, ~latitude, icon = icons, popup =  popupImage(popupFilenames,src = "local", embed = T))  %>% addControl(html= html_legend, position = "topright")
         #addCircleMarkers(data=df, ~longitude, ~latitude,  popup = ~hyperink) #%>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
         
       }
