@@ -95,6 +95,8 @@ library(leaflet)
              ),
              tags$style(type = "text/css", "#map {height: calc(100vh - 80px) !important;}"),
              leafletOutput("map", width="100%", height="100%")
+             #uiOutput("message")
+             
              
     )
     # tags$div(HTML("<img src='/home/pagani/development/fogDec/shiny/RTfogVisApp/test/Apptest/www/iconGreenNoBack.png' style='width:15px;height:20px;'>  NO FOG<br/>

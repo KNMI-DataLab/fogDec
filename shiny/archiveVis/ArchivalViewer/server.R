@@ -46,6 +46,7 @@ shinyServer(function(input, output, session) {
     df<-rbindlist(test22)
     df<-data.table(df)
     
+    if(nrow(df)!=0){
     
     
     df$fogClass<-as.factor(df$fogClass)
@@ -88,7 +89,7 @@ shinyServer(function(input, output, session) {
     df$localFileLocation<-gsub("pictures/","/home/pagani/share/",df$fileLocation)
     testFile<-as.vector(df$localFileLocation)
     
-    #if(nrow(missing)!=0){
+    
     #missing$hyperink<-paste0('<a href="',missing$cameras.RWS.ipAddr,'">View Camera ',missing$cameras.RWS.location," " ,missing$cameras.RWS.cameraID,'</a>')
     m <- leaflet() %>%
       addTiles() %>%  # Add default OpenStreetMap map tiles
@@ -96,6 +97,13 @@ shinyServer(function(input, output, session) {
     #addCircleMarkers(data=df, ~longitude, ~latitude, popup = ~hyperink) #%>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
     
     output$map <-renderLeaflet(m) 
+    } else{
+      output$map<-showModal(modalDialog(
+        title = "Warning message",
+        "No model detection available for that date and time"
+      ))
+      #output$map<-renderUI(HTML(""))
+    }
     
     
     
