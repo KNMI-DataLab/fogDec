@@ -188,7 +188,8 @@ shinyServer(function(input, output, session) {
       df$localFileLocation<-gsub("pictures/","/external/pictures/",df$fileLocation)
       popupFilenames<-as.vector(df$localFileLocation)
       
-      objs <- file.info(list.files(df$fileLocation, full.names=TRUE))
+      print(df$localFileLocation)
+      objs <- file.info(list.files(df$localFileLocation, full.names=TRUE))
       print(objs)
       testDEBUG<-objs[objs$size > 10] #bigger than 10 bytes
       print(testDEBUG)
