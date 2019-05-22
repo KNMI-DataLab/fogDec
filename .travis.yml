@@ -14,7 +14,7 @@ warnings_are_errors: true
 
 r_github_packages:
   - MartinRoth/visDec
-  - PieceMaker/RPostgreSQL/patch
+#  - PieceMaker/RPostgreSQL/patch
 r_packages:
   - covr
 after_success:
