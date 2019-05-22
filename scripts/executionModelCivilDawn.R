@@ -10,7 +10,7 @@ if (length(args)==0) {
 }
 
 
-log_file<-"/home/pagani/development/fogDec/log/predictionEngine.log"
+log_file<-"/home/pagani/development/fogDec/log/predictionEngine.log"  
 
 library(logging)
 
