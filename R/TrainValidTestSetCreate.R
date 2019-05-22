@@ -330,6 +330,7 @@ createTrainValidTestSetsSplitBinaryRandom<-function(dataDir,dateMin="\'2015-01-0
 #' Assign images a binary fog property (foggy=TRUE/FALSE)
 #' @param dtImages Data table of images from the DB
 #' @param dtMeteo Data table of meteo (visibility) from the DB
+#' @param visibilityThreshold Numerical with threshold for visbility in meters to be considered fog 
 #' @import data.table
 #' @export
 imagesAndMeteoFogBinary<-function(dtImages, dtMeteo,visibilityThreshold){
@@ -343,9 +344,12 @@ imagesAndMeteoFogBinary<-function(dtImages, dtMeteo,visibilityThreshold){
 
 
 #' Couple cameras and KNMI nearby stations
-#' @param dateStr String of latest date do use for fetching data
+#' @param dateStrInitial String of initial date do use for fetching data
+#' @param dateStrFinal String of final date do use for fetching data
 #' @param dbConfigDir String of path with directory containing the DB param access config file
 #' @param maxDist Numerical containing max distance from KNMI station
+#' @param visibilityThreshold Numerical with threshold for visbility in meters to be considered fog 
+#' @param dayPhaseFlag flag for pahse of day 
 #' @import data.table jsonlite DBI
 #' @export
 coupleImagesAndMeteoToDate<-function(dateStrInitial,dateStrFinal,dbConfigDir,maxDist,visibilityThreshold,dayPhaseFlag=1){
