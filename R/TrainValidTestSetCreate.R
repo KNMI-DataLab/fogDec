@@ -316,12 +316,117 @@ createTrainValidTestSetsSplitBinaryRandom<-function(dataDir,dateMin="\'2015-01-0
 
 
 
-
-
-
-
-
-
+#' Create training, validation and test datasets using random data
+#' @param dataDir String of directory containing the cameras
+#' @param dateMin String of initial date do use for fetching data
+#' @param dateMax String of latest date do use for fetching data
+#' @param dbConfigDir String of path with directory containing the DB param access config file
+#' @param maxDist Numerical maximum distance between camera and KNMI station
+#' @param visibilityThreshold Numerical binary threshold for fog condition
+#' @param dayPhaseFlag Numerical definition of the dayphase (0:"night" 1:"day" 10:"civil dawn" 11:"civil dusk" 20:"nautical dawn" 21:"nautical dusk" 30:"astronomical dawn" 31:"astronomical dusk")
+#' @param splitPositive Numerical split for the fraction of positive to negative cases
+#' @import data.table
+#' @export
+createTrainValidTestSetsSplitMulticlassRandom<-function(dataDir,dateMin="\'2015-01-01 00:00:00\'",dateMax= "\'2018-02-28 00:00:00\'",dbConfigDir,maxDist=2500, visibilityThreshold=c(200,1000,5000), dayPhaseFlag=1, splitPositive=0.3){
+  
+  Sys.setenv(TZ = "UTC")
+  #resolutionImg<-28
+  
+  total<-coupleImagesAndMeteoToDate(dateMin,dateMax,dbConfigDir,maxDist,visibilityThreshold,dayPhaseFlag)
+  
+  set.seed(11)
+  
+  #remove the NA on fog variable
+  total<-total[is.na(visClass)==FALSE]
+  
+  nClass1<-dim(total[visClass==1])[[1]]
+  nClass2<-dim(total[visClass==2])[[1]]
+  nClass3<-dim(total[visClass==3])[[1]]
+  nClass4<-dim(total[visClass==4])[[1]]
+  
+  minSample=which.min(c(nClass1,nClass2,nClass3,nClass4))
+  
+  
+  #class1 CASES
+  #####TRAINING
+  
+  class1Data<-total[visClass==1]
+  inTraining<-sample(minSample,0.6*nrow(class1Data))
+  trainingSmall<-class1Data[inTraining]
+  #inTrainingMore<-sample(nrow(trainingSmall),200000, replace = T)
+  #training<-trainingSmall[inTrainingMore]
+  training<-trainingSmall
+  
+  
+  #####CROSS VALIDATION
+  
+  remaining<-class1Data[-inTraining]
+  inCrossVal<-sample(nrow(remaining),0.2*nrow(class1Data))
+  
+  crossValidating<-remaining[inCrossVal]
+  
+  #####TEST SET
+  testing<-remaining[-inCrossVal]
+  
+  
+  #check that are disjoint datasets
+  sum(duplicated(rbind(crossValidating,testing)))
+  sum(duplicated(rbind(unique(training),testing)))
+  sum(duplicated(rbind(unique(training),crossValidating)))
+  
+  
+  totalCasesFogTrain = nrow(training)
+  totalCasesTrain = round(totalCasesFogTrain/splitPositive)
+  totalCasesNonFogTrain = totalCasesTrain-totalCasesFogTrain
+  
+  print(totalCasesFogTrain)
+  print(totalCasesTrain)
+  print(totalCasesNonFogTrain)
+  
+ 
+ #Class2 data 
+  
+  
+  #####NON-FOGGY CASES
+  #####TRAINING
+  class2Data<-total[visClass==2]
+  #inTrainNoFog<-sample(nrow(class2Data),nrow(training))
+  inTrainNoFog<-sample(nrow(class2Data),size=totalCasesNonFogTrain)
+  
+  nonFoggyTraining<-class2Data[inTrainNoFog]
+  
+  #####CROSS VALIDATION
+  remaining<-class2Data[-inTrainNoFog]
+  inCrossVal<-sample(nrow(remaining),0.2*nrow(class2Data))
+  
+  nonFoggyCrossValidating<-remaining[inCrossVal]
+  
+  ######TEST SET
+  #foggyInTest<-dim(testing[foggy==TRUE])[[1]]
+  #nonFoggyForRealisticRatio<-foggyInTest*1/fogNonFogRatio
+  #inTestNoFog<-sample(nrow(remaining[-inCrossVal]),nonFoggyForRealisticRatio)
+  inTestNoFog<-remaining[-inCrossVal]
+  
+  #nonFoggyTesting<-remaining[-inCrossVal][inTestNoFog]
+  nonFoggyTesting<-inTestNoFog
+  
+  
+  sum(duplicated(rbind(nonFoggyCrossValidating,nonFoggyTesting)))
+  sum(duplicated(rbind(nonFoggyTraining,nonFoggyTesting)))
+  sum(duplicated(rbind(nonFoggyTraining,nonFoggyCrossValidating)))
+  
+  
+  
+  ####Binding the fog and non-fog sets with the corresponding
+  training<-rbind(training,nonFoggyTraining)
+  training<-training[sample(nrow(training)),]
+  crossValidating<-rbind(crossValidating,nonFoggyCrossValidating)
+  crossValidating<-crossValidating[sample(nrow(crossValidating)),]
+  testing<-rbind(testing,nonFoggyTesting)
+  testing<-testing[sample(nrow(testing)),]
+  
+  dataSets<-list(training,crossValidating,testing)
+}
 
 
 
@@ -343,12 +448,39 @@ imagesAndMeteoFogBinary<-function(dtImages, dtMeteo,visibilityThreshold){
 }
 
 
+
+#' Assign images a multiclass (now considering 4 classes) label fog property (visClass=[1,2,3,4])
+#' @param dtImages Data table of images from the DB
+#' @param dtMeteo Data table of meteo (visibility) from the DB
+#' @param visibilityThreshold Numerical with threshold for visbility in meters to be considered fog 
+#' @import data.table
+#' @export
+imagesAndMeteoFogMulticlass<-function(dtImages, dtMeteo,visibilityThreshold){
+  dtImages[,timeSyncToMeteo:=strptime("1970-01-01", "%Y-%m-%d", tz="UTC") + round(as.numeric(timestamp)/600)*600]
+  setkey(dtImages, location_id_closest_KNMI_meteo,timeSyncToMeteo)
+  setkey(dtMeteo, location_id,timestamp)
+  imagesAndMOR<-dtMeteo[dtImages]
+  imagesAndMOR$visClass<-cut(imagesAndMOR$mor_visibility, c(0,visibilityThreshold,Inf), right=FALSE, labels=FALSE)
+  
+  print(imagesAndMOR)
+  
+  # imagesAndMOR$visClass[mor_visibility<=visibilityThreshold[[1]]]=1
+  # imagesAndMOR$visClass[mor_visibility>visibilityThreshold[[1]] & mor_visibility<=visibilityThreshold[[2]]]=2
+  # imagesAndMOR$visClass[mor_visibility>visibilityThreshold[[2]] & mor_visibility<=visibilityThreshold[[3]]]=3
+  # imagesAndMOR$visClass[mor_visibility>visibilityThreshold[[3]]]=4
+  imagesAndMOR
+}
+
+
+
+
+
 #' Couple cameras and KNMI nearby stations
 #' @param dateStrInitial String of initial date do use for fetching data
 #' @param dateStrFinal String of final date do use for fetching data
 #' @param dbConfigDir String of path with directory containing the DB param access config file
 #' @param maxDist Numerical containing max distance from KNMI station
-#' @param visibilityThreshold Numerical with threshold for visbility in meters to be considered fog 
+#' @param visibilityThreshold Numerical array with threshold for visbility in meters to be considered fog 
 #' @param dayPhaseFlag flag for pahse of day 
 #' @import data.table jsonlite DBI
 #' @export
@@ -393,7 +525,12 @@ coupleImagesAndMeteoToDate<-function(dateStrInitial,dateStrFinal,dbConfigDir,max
                                             WHERE location_id IN (", paste(meteoStations$location_id, collapse=", "), ") AND timestamp>=",dateStrInitial ," AND timestamp<", dateStrFinal,";"))
   meteoConditions<-data.table(meteoConditions)
   dbDisconnect(con)
+  if(length(visibilityThreshold)>1){
+    mergedRWSandKNMIstations<-imagesAndMeteoFogMulticlass(full, meteoConditions, visibilityThreshold)
+    
+  } else{
   mergedRWSandKNMIstations<-imagesAndMeteoFogBinary(full, meteoConditions, visibilityThreshold)
+  }
   total<-mergedRWSandKNMIstations
   total
 }
