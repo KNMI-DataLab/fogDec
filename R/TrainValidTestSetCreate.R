@@ -327,7 +327,7 @@ createTrainValidTestSetsSplitBinaryRandom<-function(dataDir,dateMin="\'2015-01-0
 #' @param splitPositive Numerical split for the fraction of positive to negative cases
 #' @import data.table
 #' @export
-createTrainValidTestSetsSplitMulticlassRandom<-function(dataDir,dateMin="\'2015-01-01 00:00:00\'",dateMax= "\'2018-02-28 00:00:00\'",dbConfigDir,maxDist=2500, visibilityThreshold=c(200,1000,5000), dayPhaseFlag=1, splitPositive=0.3){
+createTrainValidTestSetsSplitMulticlassRandom<-function(dataDir,dateMin="\'2015-01-01 00:00:00\'",dateMax= "\'2018-02-28 00:00:00\'",dbConfigDir,maxDist=2500, visibilityThreshold=c(200,1000,5000), dayPhaseFlag=1){
   
   Sys.setenv(TZ = "UTC")
   #resolutionImg<-28
@@ -344,44 +344,55 @@ createTrainValidTestSetsSplitMulticlassRandom<-function(dataDir,dateMin="\'2015-
   nClass3<-dim(total[visClass==3])[[1]]
   nClass4<-dim(total[visClass==4])[[1]]
   
-  minSample=which.min(c(nClass1,nClass2,nClass3,nClass4))
+  classes<-c(nClass1,nClass2,nClass3,nClass4)
+  
+  minSample=classes[[which.min(c(nClass1,nClass2,nClass3,nClass4))]]
+  
+  
+  #Assume 4 classes and evenly split
+  totalCases = minSample*4
+  
+  
   
   
   #class1 CASES
   #####TRAINING
   
   class1Data<-total[visClass==1]
-  inTraining<-sample(minSample,0.6*nrow(class1Data))
-  trainingSmall<-class1Data[inTraining]
-  #inTrainingMore<-sample(nrow(trainingSmall),200000, replace = T)
-  #training<-trainingSmall[inTrainingMore]
-  training<-trainingSmall
+  inTraining<-sample(minSample,0.6*minSample)
+  trainingClass1<-class1Data[inTraining]
+ 
+  #training<-trainingSmall
   
   
   #####CROSS VALIDATION
   
   remaining<-class1Data[-inTraining]
-  inCrossVal<-sample(nrow(remaining),0.2*nrow(class1Data))
+  inCrossVal<-sample(nrow(remaining),0.2*minSample)
   
-  crossValidating<-remaining[inCrossVal]
+  crossValidatingClass1<-remaining[inCrossVal]
   
   #####TEST SET
-  testing<-remaining[-inCrossVal]
+  inTestNoFog<-remaining[-inCrossVal]
+  testingClass1<-inTestNoFog
+  inTestingClass1<-sample(nrow(inTestNoFog),0.2*minSample)
+  testingClass1<-inTestNoFog[inTestingClass1]
+  
   
   
   #check that are disjoint datasets
-  sum(duplicated(rbind(crossValidating,testing)))
-  sum(duplicated(rbind(unique(training),testing)))
-  sum(duplicated(rbind(unique(training),crossValidating)))
+  #sum(duplicated(rbind(crossValidating,testing)))
+  #sum(duplicated(rbind(unique(training),testing)))
+  #sum(duplicated(rbind(unique(training),crossValidating)))
   
   
-  totalCasesFogTrain = nrow(training)
-  totalCasesTrain = round(totalCasesFogTrain/splitPositive)
-  totalCasesNonFogTrain = totalCasesTrain-totalCasesFogTrain
-  
-  print(totalCasesFogTrain)
-  print(totalCasesTrain)
-  print(totalCasesNonFogTrain)
+  # totalCasesFogTrain = nrow(training)
+  # totalCasesTrain = round(totalCasesFogTrain/splitPositive)
+  # totalCasesNonFogTrain = totalCasesTrain-totalCasesFogTrain
+  # 
+  # print(totalCasesFogTrain)
+  # print(totalCasesTrain)
+  # print(totalCasesNonFogTrain)
   
  
  #Class2 data 
@@ -390,16 +401,16 @@ createTrainValidTestSetsSplitMulticlassRandom<-function(dataDir,dateMin="\'2015-
   #####NON-FOGGY CASES
   #####TRAINING
   class2Data<-total[visClass==2]
-  #inTrainNoFog<-sample(nrow(class2Data),nrow(training))
-  inTrainNoFog<-sample(nrow(class2Data),size=totalCasesNonFogTrain)
+  #inTrainClass2<-sample(nrow(class2Data),nrow(training))
+  inTrainClass2<-sample(nrow(class2Data),size=minSample)
   
-  nonFoggyTraining<-class2Data[inTrainNoFog]
+  trainingClass2<-class2Data[inTrainClass2]
   
   #####CROSS VALIDATION
-  remaining<-class2Data[-inTrainNoFog]
-  inCrossVal<-sample(nrow(remaining),0.2*nrow(class2Data))
+  remaining<-class2Data[-inTrainClass2]
+  inCrossVal<-sample(nrow(remaining),0.2*minSample)
   
-  nonFoggyCrossValidating<-remaining[inCrossVal]
+  crossValidatingClass2<-remaining[inCrossVal]
   
   ######TEST SET
   #foggyInTest<-dim(testing[foggy==TRUE])[[1]]
@@ -408,21 +419,94 @@ createTrainValidTestSetsSplitMulticlassRandom<-function(dataDir,dateMin="\'2015-
   inTestNoFog<-remaining[-inCrossVal]
   
   #nonFoggyTesting<-remaining[-inCrossVal][inTestNoFog]
-  nonFoggyTesting<-inTestNoFog
+  testingClass2<-inTestNoFog
+  inTestingClass2<-sample(nrow(inTestNoFog),0.2*minSample)
+  testingClass2<-inTestNoFog[inTestingClass2]
   
   
-  sum(duplicated(rbind(nonFoggyCrossValidating,nonFoggyTesting)))
-  sum(duplicated(rbind(nonFoggyTraining,nonFoggyTesting)))
-  sum(duplicated(rbind(nonFoggyTraining,nonFoggyCrossValidating)))
+  
+  
+  #Class3 data 
+  
+  
+  #####NON-FOGGY CASES
+  #####TRAINING
+  class3Data<-total[visClass==3]
+  #inTrainClass2<-sample(nrow(class2Data),nrow(training))
+  inTrainClass3<-sample(nrow(class3Data),size=minSample)
+  
+  trainingClass3<-class3Data[inTrainClass3]
+  
+  #####CROSS VALIDATION
+  remaining<-class3Data[-inTrainClass3]
+  inCrossVal<-sample(nrow(remaining),0.2*nrow(class3Data))
+  
+  crossValidatingClass3<-remaining[inCrossVal]
+  
+  ######TEST SET
+  #foggyInTest<-dim(testing[foggy==TRUE])[[1]]
+  #nonFoggyForRealisticRatio<-foggyInTest*1/fogNonFogRatio
+  #inTestNoFog<-sample(nrow(remaining[-inCrossVal]),nonFoggyForRealisticRatio)
+  inTestNoFog<-remaining[-inCrossVal]
+  
+  #nonFoggyTesting<-remaining[-inCrossVal][inTestNoFog]
+  testingClass3<-inTestNoFog
+  inTestingClass3<-sample(nrow(inTestNoFog),0.2*minSample)
+  testingClass3<-inTestNoFog[inTestingClass3]
+  
+  
+  
+  
+  #Class4 data 
+  
+  
+  #####NON-FOGGY CASES
+  #####TRAINING
+  class4Data<-total[visClass==4]
+  #inTrainClass2<-sample(nrow(class2Data),nrow(training))
+  inTrainClass4<-sample(nrow(class4Data),size=minSample)
+  
+  trainingClass4<-class4Data[inTrainClass4]
+  
+  #####CROSS VALIDATION
+  remaining<-class4Data[-inTrainClass4]
+  inCrossVal<-sample(nrow(remaining),0.2*nrow(class4Data))
+  
+  crossValidatingClass4<-remaining[inCrossVal]
+  
+  ######TEST SET
+  #foggyInTest<-dim(testing[foggy==TRUE])[[1]]
+  #nonFoggyForRealisticRatio<-foggyInTest*1/fogNonFogRatio
+  #inTestNoFog<-sample(nrow(remaining[-inCrossVal]),nonFoggyForRealisticRatio)
+  inTestNoFog<-remaining[-inCrossVal]
+  
+  #nonFoggyTesting<-remaining[-inCrossVal][inTestNoFog]
+  testingClass4<-inTestNoFog
+  inTestingClass4<-sample(nrow(inTestNoFog),0.2*minSample)
+  testingClass4<-inTestNoFog[inTestingClass4]
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  #sum(duplicated(rbind(nonFoggyCrossValidating,nonFoggyTesting)))
+  #sum(duplicated(rbind(nonFoggyTraining,nonFoggyTesting)))
+  #sum(duplicated(rbind(nonFoggyTraining,nonFoggyCrossValidating)))
   
   
   
   ####Binding the fog and non-fog sets with the corresponding
-  training<-rbind(training,nonFoggyTraining)
+  training<-rbind(trainingClass1,trainingClass2,trainingClass3,trainingClass4)
   training<-training[sample(nrow(training)),]
-  crossValidating<-rbind(crossValidating,nonFoggyCrossValidating)
+  crossValidating<-rbind(crossValidatingClass1,crossValidatingClass2,crossValidatingClass3,crossValidatingClass4)
   crossValidating<-crossValidating[sample(nrow(crossValidating)),]
-  testing<-rbind(testing,nonFoggyTesting)
+  testing<-rbind(testingClass1,testingClass2,testingClass3,testingClass4)
   testing<-testing[sample(nrow(testing)),]
   
   dataSets<-list(training,crossValidating,testing)
