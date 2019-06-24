@@ -3,8 +3,8 @@ title: "Description of Approach"
 author: "Martin Roth and Andrea Pagani"
 date: "September 29, 2016"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}

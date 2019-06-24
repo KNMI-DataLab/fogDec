@@ -439,7 +439,7 @@ createTrainValidTestSetsSplitMulticlassRandom<-function(dataDir,dateMin="\'2015-
   
   #####CROSS VALIDATION
   remaining<-class3Data[-inTrainClass3]
-  inCrossVal<-sample(nrow(remaining),0.2*nrow(class3Data))
+  inCrossVal<-sample(nrow(remaining),0.2*minSample)
   
   crossValidatingClass3<-remaining[inCrossVal]
   
@@ -470,7 +470,7 @@ createTrainValidTestSetsSplitMulticlassRandom<-function(dataDir,dateMin="\'2015-
   
   #####CROSS VALIDATION
   remaining<-class4Data[-inTrainClass4]
-  inCrossVal<-sample(nrow(remaining),0.2*nrow(class4Data))
+  inCrossVal<-sample(nrow(remaining),0.2*minSample)
   
   crossValidatingClass4<-remaining[inCrossVal]
   

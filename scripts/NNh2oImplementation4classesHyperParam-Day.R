@@ -3,6 +3,8 @@ library(doParallel)
 library(imager)
 library(data.table)
 library(fogDec)
+library(caret)
+
 
 
 applyNoise<-function(rowMat,fractionToChange){
@@ -21,6 +23,115 @@ bindAndFilter<-function(mat,labels){
   completeTempDT<-tempDT[complete.cases(tempDT)]
   completeTempDT
 }
+
+
+
+
+draw_confusion_matrix_multiclass <- function(cm) {
+  layout(matrix(c(1,1,2)))
+  par(mar=c(2,2,2,2))
+  plot(c(20, 350), c(200, 650), type = "n", xlab="", ylab="", xaxt='n', yaxt='n')
+  title('CONFUSION MATRIX', cex.main=2)
+  
+  # create the matrix
+  
+  text(100, 575, 'CLASS A', cex=1.2)
+  text(175, 575, 'CLASS B', cex=1.2)
+  text(250, 575, 'CLASS C', cex=1.2)
+  text(325, 575, 'CLASS D', cex=1.2)
+  rect(75, 500, 125, 550, col='#024411')
+  rect(75, 430, 125, 480, col='#990100')
+  rect(75, 360, 125, 410, col='#990100')
+  rect(75, 290, 125, 340, col='#990100')
+  
+  rect(150, 500, 200, 550, col='#990100')
+  rect(150, 430, 200, 480, col='#024411')
+  rect(150, 360, 200, 410, col='#990100')
+  rect(150, 290, 200, 340, col='#990100')
+  
+  rect(225, 500, 275, 550, col='#990100')
+  rect(225, 430, 275, 480, col='#990100')
+  rect(225, 360, 275, 410, col='#024411')
+  rect(225, 290, 275, 340, col='#990100')
+  
+  rect(300, 500, 350, 550, col='#990100')
+  rect(300, 430, 350, 480, col='#990100')
+  rect(300, 360, 350, 410, col='#990100')
+  rect(300, 290, 350, 340, col='#024411')
+  
+  text(30, 425, 'Predicted', cex=1.3, srt=90, font=2)
+  text(212, 625, 'Actual', cex=1.3, font=2)
+  #rect(150, 305, 240, 365, col='#F7AD50')
+  #rect(250, 305, 340, 365, col='#3F97D0')
+  text(60, 525, 'CLASS A', cex=1.2)#, srt=90)
+  text(60, 455, 'CLASS B', cex=1.2)
+  text(60, 385, 'CLASS C', cex=1.2)
+  text(60, 315, 'CLASS D', cex=1.2)
+  
+  # add in the cm results
+  res <- as.numeric(cm$table)
+  text(100, 525, res[1], cex=1.6, font=2, col='white')
+  text(100, 455, res[2], cex=1.6, font=2, col='white')
+  text(100, 385, res[3], cex=1.6, font=2, col='white')
+  text(100, 315, res[4], cex=1.6, font=2, col='white')
+  
+  text(175, 525, res[5], cex=1.6, font=2, col='white')
+  text(175, 455, res[6], cex=1.6, font=2, col='white')
+  text(175, 385, res[7], cex=1.6, font=2, col='white')
+  text(175, 315, res[8], cex=1.6, font=2, col='white')
+  
+  text(250, 525, res[9], cex=1.6, font=2, col='white')
+  text(250, 455, res[10], cex=1.6, font=2, col='white')
+  text(250, 385, res[11], cex=1.6, font=2, col='white')
+  text(250, 315, res[12], cex=1.6, font=2, col='white')
+  
+  text(325, 525, res[13], cex=1.6, font=2, col='white')
+  text(325, 455, res[14], cex=1.6, font=2, col='white')
+  text(325, 385, res[15], cex=1.6, font=2, col='white')
+  text(325, 315, res[16], cex=1.6, font=2, col='white')
+  
+  # add in the specifics
+  plot(c(160, -40), c(200, 0), type = "n", xlab="", ylab="", main = "DETAILS", xaxt='n', yaxt='n')
+  text(30, 180, dimnames(cm$byClass)[[1]][1], cex=1.2, font=2)
+  text(70, 180, dimnames(cm$byClass)[[1]][2], cex=1.2, font=2)
+  text(110, 180, dimnames(cm$byClass)[[1]][3], cex=1.2, font=2)
+  text(150, 180, dimnames(cm$byClass)[[1]][4], cex=1.2, font=2)
+  
+  text(5, 150, dimnames(cm$byClass)[[2]][5], cex=1.2, font=2)
+  text(5, 100, dimnames(cm$byClass)[[2]][6], cex=1.2, font=2)
+  text(5, 50, dimnames(cm$byClass)[[2]][7], cex=1.2, font=2)
+  
+  #Precision
+  text(30, 150, round(as.numeric(cm$byClass[17]), 3), cex=1.2)
+  text(70, 150, round(as.numeric(cm$byClass[18]), 3), cex=1.2)
+  text(110, 150, round(as.numeric(cm$byClass[19]), 3), cex=1.2)
+  text(150, 150, round(as.numeric(cm$byClass[20]), 3), cex=1.2)
+  
+  #Recall
+  text(30, 100, round(as.numeric(cm$byClass[21]), 3), cex=1.2)
+  text(70, 100, round(as.numeric(cm$byClass[22]), 3), cex=1.2)
+  text(110, 100, round(as.numeric(cm$byClass[23]), 3), cex=1.2)
+  text(150, 100, round(as.numeric(cm$byClass[24]), 3), cex=1.2)     
+  
+  #F1
+  text(30, 50, round(as.numeric(cm$byClass[25]), 3), cex=1.2)
+  text(70, 50, round(as.numeric(cm$byClass[26]), 3), cex=1.2)
+  text(110, 50, round(as.numeric(cm$byClass[27]), 3), cex=1.2)
+  text(150, 50, round(as.numeric(cm$byClass[28]), 3), cex=1.2)  
+  
+  # add in the accuracy information
+  text(-30, 150, paste("Overall\n",names(cm$overall[1])), cex=1.5, font=2)
+  text(-30, 75, round(as.numeric(cm$overall[1]), 3), cex=1.4)
+  #text(70, 35, names(cm$overall[2]), cex=1.5, font=2)
+  #text(70, 20, round(as.numeric(cm$overall[2]), 3), cex=1.4)
+}
+
+
+
+
+
+
+
 
 
 
@@ -305,7 +416,8 @@ fwrite(trainFullAugmented,"~/nndataH2O/multiclassDay7500m_28px_train025SplitBlur
 
 
 
-
+#validSetIndex<-sample(nrow(validSet),size = 5000,replace = F)
+#validSet<-validSet[validSetIndex]
 
 #################validation###############
 
@@ -323,7 +435,7 @@ setwd("~/share/")
 
 resolutionImg<-28
 
-cl <- makeCluster(4)
+cl <- makeCluster(24)
 registerDoParallel(cl)
 
 clusterEvalQ(cl, library("imager"))
@@ -362,8 +474,8 @@ matRWS<-do.call(rbind,matRWS)
 
 #dtMat[,foggy:=training$foggy]
 #dtMat[,filepath:=training$filepath]
-dtMat<-cbind(dtMat,validSet)
-complete<-dtMat[complete.cases(dtMat)]
+matRWS<-cbind(matRWS,validSet)
+complete<-matRWS[complete.cases(matRWS)]
 
 #lastFeature<-resolutionImg*resolutionImg*3
 #trainData<-complete[,1:lastFeature]
@@ -374,7 +486,7 @@ complete<-dtMat[complete.cases(dtMat)]
 #completeTraining<-complete[sample(nrow(complete),size = 200000),]
 completeValid<-complete
 
-fwrite(completeValid,"~/nndataH2O/dawnCivil7500m_28px_validNoBlur.csv")
+fwrite(completeValid,"~/nndataH2O//multiclassDay7500m_28px_validRealSplitBlurAugmented.csv")
 
 
 
@@ -392,11 +504,14 @@ h2o.init(nthreads=20, max_mem_size="100G")
 h2o.removeAll() ## clean slate - just in case the cluster was already running
 
 
-h2oTrainingFrame <- h2o.importFile(path = "/home/pagani/nndataH2O/dawnCivil7500m_28px_train03SplitNoBlurAugmented.csv", destination_frame = "trainDawn.hex")
-h2oValidationFrame <- h2o.importFile(path = "/home/pagani/nndataH2O/dawnCivil7500m_28px_validNoBlur.csv", destination_frame = "validDawn.hex")
+h2oTrainingFrame <- h2o.importFile(path = "/home/pagani/nndataH2O/multiclassDay7500m_28px_train025SplitBlurAugmented.csv", destination_frame = "trainMulti.hex")
+h2oValidationFrame <- h2o.importFile(path = "/home/pagani/nndataH2O/multiclassDay7500m_28px_validRealSplitBlurAugmented.csv", destination_frame = "validMulti.hex")
 
-trainingFrame<-fread("/home/pagani/nndataH2O/dawnCivil7500m_28px_train03SplitNoBlurAugmented.csv")
-validationFrame<-fread("/home/pagani/nndataH2O/dawnCivil7500m_28px_valid.csv")
+
+h2oTrainingFrame[,"visClass"]<-as.factor(h2oTrainingFrame[,"visClass"])
+
+trainingFrame<-fread("/home/pagani/nndataH2O/multiclassDay7500m_28px_train025SplitBlurAugmented.csv")
+validationFrame<-fread("/home/pagani/nndataH2O/multiclassDay7500m_28px_validRealSplitBlurAugmented.csv")
 
 
 
@@ -410,8 +525,8 @@ validationFrame<-fread("/home/pagani/nndataH2O/dawnCivil7500m_28px_valid.csv")
 
 hyper_params <- list(
   activation = c("Rectifier", "Maxout", "Tanh", "RectifierWithDropout", "MaxoutWithDropout", "TanhWithDropout"),
-  hidden = list(c(90,90,90,90,90), c(90,90,90,90,90,90),c(95,95,95,95,95),c(95,95,95,95,95,95),c(500,200,100,100,90,40)),
-  epochs = c(300, 500),
+  hidden = list(c(1000, 1000, 1000, 500, 200, 100)),
+  epochs = c(250, 100),
   l1 = c(0, 0.00001, 0.0001),
   l2 = c(0, 0.00001, 0.0001),
   rate = c(0, 0.05, 0.01),
@@ -438,7 +553,7 @@ search_criteria <- list(strategy = "RandomDiscrete",
 
 dl_grid <- h2o.grid(algorithm = "deeplearning",
                     x = 1:2352,
-                    y = "foggy",
+                    y = "visClass",
                     #weights_column = weights,
                     grid_id = "dl_grid",
                     training_frame = h2oTrainingFrame,
@@ -465,22 +580,30 @@ h2o.performance(best_model,h2oTrainingFrame)
 
 h2oFrameTrainPred<-h2o.predict(best_model,h2oTrainingFrame)
 h2oFrameTrainPredDT<-as.data.table(h2oFrameTrainPred)
-trainDTres<-cbind(h2oFrameTrainPredDT,groundTruth=trainingFrame$foggy,filepath=trainingFrame$filepath)
+trainDTres<-cbind(h2oFrameTrainPredDT,groundTruth=trainingFrame$visClass,filepath=trainingFrame$filepath)
+
+
+cfTrain<-confusionMatrix(trainDTres$predict,as.factor(trainDTres$groundTruth))
+draw_confusion_matrix_multiclass(cfTrain)
+
+
 #trainDTres<-data.table(trainDTres)
-trainDTres[,predict:=TRUE.>=0.75]
-fpVal<-dim(trainDTres[predict==TRUE & groundTruth==FALSE])[1]
-tpVal<-dim(trainDTres[predict==TRUE & groundTruth==TRUE])[1]
-tnVal<-dim(trainDTres[predict==FALSE & groundTruth==FALSE])[1]
-fnVal<-dim(trainDTres[predict==FALSE & groundTruth==TRUE])[1]
-confMatPred<-matrix(c(tnVal,fnVal,fpVal,tpVal),nrow = 2,ncol = 2)
-draw_confusion_matrix_binaryH20(confMatPred)
+# trainDTres[,predict:=TRUE.>=0.75]
+# fpVal<-dim(trainDTres[predict==TRUE & groundTruth==FALSE])[1]
+# tpVal<-dim(trainDTres[predict==TRUE & groundTruth==TRUE])[1]
+# tnVal<-dim(trainDTres[predict==FALSE & groundTruth==FALSE])[1]
+# fnVal<-dim(trainDTres[predict==FALSE & groundTruth==TRUE])[1]
+# confMatPred<-matrix(c(tnVal,fnVal,fpVal,tpVal),nrow = 2,ncol = 2)
+# draw_confusion_matrix_binaryH20(confMatPred)
 
 
 h2oFramevalidPred<-h2o.predict(best_model,h2oValidationFrame)
 h2oFramevalidPredDT<-as.data.table(h2oFramevalidPred)
-validDTres<-cbind(h2oFramevalidPredDT,groundTruth=validationFrame$foggy,filepath=validationFrame$filepath)
+validDTres<-cbind(h2oFramevalidPredDT,groundTruth=validationFrame$visClass,filepath=validationFrame$filepath)
 validDTres<-data.table(validDTres)
-validDTres[,predict:=TRUE.>=0.75]
+cfValid<-confusionMatrix(validDTres$predict,as.factor(validDTres$groundTruth))
+draw_confusion_matrix_multiclass(cfValid)
+#validDTres[,predict:=TRUE.>=0.75]
 
 fpVal<-dim(validDTres[predict==TRUE & groundTruth==FALSE])[1]
 tpVal<-dim(validDTres[predict==TRUE & groundTruth==TRUE])[1]
