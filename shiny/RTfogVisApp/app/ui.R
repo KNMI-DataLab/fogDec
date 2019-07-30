@@ -35,7 +35,7 @@ dashboardPage(
                 ")),
     # Boxes need to be put in a row (or column)
     tabsetPanel(
-      tabPanel("Analysis",
+      tabPanel("Fog detection: current situation on the highway",
                absolutePanel(id="controls",
                              style="z-index:200;",
                              class = "titlePane",
@@ -46,4 +46,36 @@ dashboardPage(
                tags$style(type = "text/css", "#map {height: calc(100vh - 80px) !important;}"),
                leafletOutput("map", width="100%", height="100%")
                
-      ))))
+      ),
+      tabPanel("Fog detection: images validation",
+               absolutePanel(id="controls",
+                             style="z-index:200;",
+                             class = "titlePane",
+                             draggable = FALSE 
+                             #htmlOutput("timeString")
+                             #HTML('<div class="centered">',htmlOutput("timeString"),'</div><br>')
+               ),
+               #tags$style(type = "text/css", "#map {height: calc(100vh - 80px) !important;}"),
+               #leafletOutput("map", width="100%", height="100%")
+               
+               #tabPanel("Analysis",tableOutput('files'),
+                        HTML('<br>',"<br>"),
+                        imageOutput("images"),
+                        #fluidRow(column(12,uiOutput('images')
+                        #)),
+               fluidRow(column(12,htmlOutput("FogBinary"))),
+               fluidRow(column(12,htmlOutput("probFog"))),
+               fluidRow(column(12,htmlOutput("probNoFog"))),
+               
+               
+               HTML('<br>',"<br>"),
+               actionButton("button", "FOG"),
+               actionButton("button", "NO FOG")
+               
+               ),
+               tags$style(type="text/css", "#images { display: flex; justify-content: center; text-align:center}"),
+               tags$style(type='text/css', "#FogBinary { margin-top: 10px; text-align: left; font-size: 30px; font-family: Comic Sans MS, cursive, sans-serif;}")
+               
+      
+               
+      )))

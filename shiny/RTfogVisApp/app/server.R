@@ -5,7 +5,8 @@ library(plyr)
 library(shiny)
 library(logging)
 library(mapview)
-
+library(DBI)
+library(jsonlite)
 
 
 ##########
@@ -15,21 +16,27 @@ library(mapview)
 
 firstOccurrence = TRUE
 
-  temp_directory<-"/external/temp/"
-  df_debug_file<-"/external/debug/debugDF.csv"
-  log_file<-"/external/log/logFile.log"
-  state_file<-"/external/state/currentState.json"
-  cameras_for_detection_file<-"/external/config/MVPCameras.json"
-  queue_conf_file<-"/external/config/queueConfig.json"
+  # temp_directory<-"/external/temp/"
+  # df_debug_file<-"/external/debug/debugDF.csv"
+  # log_file<-"/external/log/logFile.log"
+  # state_file<-"/external/state/currentState.json"
+  # cameras_for_detection_file<-"/external/config/MVPCameras.json"
+  # queue_conf_file<-"/external/config/queueConfig.json"
+  # DB_conf_file<-"/external/config/configDB.json"
+
   
   
   #local config
-  # temp_directory<-"/home/pagani/temp/"
-  # df_debug_file<-"/home/pagani/temp/debug/debugDF.csv"
-  # log_file<-"/home/pagani/temp/log/logFile.log"
-  # state_file<-"/home/pagani/temp/state/currentState.json"
-  # cameras_for_detection_file<-"/home/pagani/temp/config/MVPCameras.json"
-  # queue_conf_file<-"/home/pagani/temp/config/queueConfig.json"
+  temp_directory<-"/home/pagani/temp/"
+  df_debug_file<-"/home/pagani/temp/debug/debugDF.csv"
+  log_file<-"/home/pagani/temp/log/logFile.log"
+  state_file<-"/home/pagani/temp/state/currentState.json"
+  cameras_for_detection_file<-"/home/pagani/temp/config/MVPCameras.json"
+  queue_conf_file<-"/home/pagani/temp/config/queueConfig.json"
+  DB_conf_file<-"/home/pagani/temp/config/configDB.json"
+  temp_directory<-"/home/pagani/temp/Rtemp"
+  temp_directory<-"/tmp"
+  
 
 
 message("visualization platform ready")
@@ -37,6 +44,194 @@ logReset()
 basicConfig(level='FINEST')
 addHandler(writeToFile, file=log_file, level='DEBUG')
 with(getLogger(), names(handlers))
+
+
+set.tempdir(temp_directory)
+
+
+
+# dbConfig <- fromJSON(DB_conf_file)
+# 
+# connectionSetup <- dbConnect(RPostgreSQL::PostgreSQL(),
+#                 dbname = "FOGDB",
+#                 host = dbConfig[["host"]], port = 9418, # use 9418 within KNMI, default would be 5432. At the moment set to 9418
+# user = dbConfig[["user"]], password = dbConfig[["pw"]])
+# 
+# 
+# queryDBforPics<-function(){
+#   queryString<- "select * from images where random()<0.001 and day_phase in (1,0,20,10) and camera_id>260 limit 1;"
+#   
+#   tableLocations <- dbGetQuery(connectionSetup, queryString)
+# }
+
+
+
+
+
+
+#######Run prediciton on picture#########
+
+library(logging)
+
+logReset()
+basicConfig(level='FINEST')
+addHandler(writeToFile, file=log_file, level='DEBUG')
+with(getLogger(), names(handlers))
+
+
+
+fromImageToFeatures<-function(filename){
+  resolutionImg<-28
+  image<-tryCatch(
+    load.image(filename),
+    
+    error=function(error_message) {
+      #message("Yet another error message.")
+      #message("Here is the actual R error message:")
+      #next
+      return(NA)
+    }
+  )
+  if(is.na(image[[1]])){
+    v<-NA*1:(resolutionImg*resolutionImg)
+    message("Image not available error in acquisition")
+    v
+  }else{
+    image<-resize(image,resolutionImg,resolutionImg)
+    image<-blur_anisotropic(image, amplitude = 10000)
+    df<-as.data.frame(image)
+    v<-df$value
+    #mat<-rbind(mat,v)
+    v
+  }
+}
+
+
+
+
+library(RJSONIO)
+
+#'/nas-research.knmi.nl/sensordata/CAMERA/DEBILT/TESTSITE-SNOWDEPTH/201807/DEBILT-TESTSITE-SNOWDEPTH_20180710_0811.jpg
+
+#fileToAnalyze<-"/nas-research.knmi.nl/sensordata/CAMERA/DEBILT/TESTSITE-SNOWDEPTH/201807/DEBILT-TESTSITE-SNOWDEPTH_20180710_0811.jpg"
+
+#fileToAnalyze<-"/nas-research.knmi.nl/sensordata/CAMERA/RWS/A16/HM211/ID71681/201807/A16-HM211-ID71681_20180726_1220.jpg"
+
+library(stringr)
+
+
+predictImage<-function(filename){
+  
+imagesLocation<-"/home/pagani/share/"
+  
+fileLocation<-gsub(".*/nas-research.knmi.nl/sensordata/CAMERA/", imagesLocation, filename)
+
+
+partial<-str_extract(pattern = "[^/]*$", string =  filename)
+partial<-str_extract(string = partial, pattern = ".*(?=\\.)")
+timeStampTemp<-unlist(strsplit(partial, split = "_"))
+date<-timeStampTemp[length(timeStampTemp)-1]
+time<-timeStampTemp[length(timeStampTemp)]
+
+Sys.setenv(TZ = "UTC")
+
+timeStamp<-as.POSIXct(paste(date,time),format="%Y%m%d %H%M")
+originalPath<-filename
+
+locationAndID<-timeStampTemp[1]
+
+
+
+remote=FALSE
+
+if(remote==TRUE){
+  model_zip_path = "/workspace/andrea/exports/models/dl_grid_model_35.zip"
+  h2o_jar_path = "/usr/local/lib/R/site-library/h2o/java/h2o.jar"
+  devel_dir<-"/workspace/andrea/"
+  #for amazon###
+  fileLocation<-"/workspace/andrea/exports/A2-HM776-ID10915_20180606_0801.jpg"
+  #####
+  results_json<-"/workspace/andrea/exports/results/predictions/test.json"
+  temp_directory<-"/workspace/andrea/tmp"
+}else{
+  model_zip_path = "/home/pagani/nndataH2O/frozenModels/dl_grid_model_35.zip"
+  h2o_jar_path = "/usr/lib64/R/library/h2o/java/h2o.jar"
+  devel_dir<-"/home/pagani/development/"
+  results_json<-"/home/pagani/nndataH2O/frozenModels/results/predictions/test.json"
+  temp_directory<-"/home/pagani/temp/Rtemp/"
+  queue_conf_file<-"/home/pagani/development/fogDec/inst/extScripts/python/queueConfig.json"
+  
+}
+
+
+
+#jsonCameras<-paste0(devel_dir,"fogDec/inst/extScripts/python/MVPCameras.json")
+
+#camerasDF<-jsonlite::fromJSON(txt = jsonCameras)
+
+#camerasRWS<-camerasDF$cameras$RWS
+
+
+#pos<-gregexpr("-",locationAndID)
+#lastDash<-pos[[1]][length(pos[[1]])]
+#location<-substring(locationAndID,1,lastDash-1)
+#cameraID<-substring(locationAndID,lastDash+1,str_length(locationAndID))
+
+logdebug("looking if camera is in the allowed list")
+
+#cameraTarget<-camerasRWS[camerasRWS$location==location & camerasRWS$cameraID==cameraID,]
+#if(dim(cameraTarget)[1]==0){
+#  stop("camera not in the list for fog detection")
+#}
+#cbind(cameraTarget,fileLocation,originalPath, timeStamp)
+
+print(filename)
+
+library(imager)
+library(h2o)
+
+featuresImage<-fromImageToFeatures(filename)
+featuresImage<-t(featuresImage)
+
+
+
+
+#logdebug(paste("starting prediction for", args))
+prediction <- h2o.mojo_predict_df(featuresImage,
+                                  mojo_zip_path =  model_zip_path, 
+                                  classpath = h2o_jar_path, 
+                                  genmodel_jar_path = h2o_jar_path)
+
+
+#logdebug(paste("finished prediction for", args))
+
+
+fogClass<-prediction$predict
+
+predTRUE<-prediction$TRUE.
+predFALSE<-prediction$FALSE.
+
+return(list(fogClass,predTRUE,predFALSE))
+
+}
+
+
+
+
+
+
+#####################
+
+
+
+
+
+
+
+
+
+
+
 
 shinyServer(function(input, output, session) {
   #initialization (have to check what is needed after development, might not be needed) 
@@ -123,7 +318,7 @@ shinyServer(function(input, output, session) {
       output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(max(df$timeStamp)),"UTC  </div><br>")})
       
       
-      set.tempdir(temp_directory)
+      #set.tempdir(temp_directory)
       
       #setting icons to relevant colors and design
       # factpal <- colorFactor(topo.colors(2), c(TRUE,FALSE))
@@ -245,6 +440,52 @@ shinyServer(function(input, output, session) {
   }
   
   
+  # #validation<-function(){
+  #   output$images <- renderUI({
+  #     #print("BBBBBB")
+  #     #if(is.null(input$file)) return(NULL)
+  #     #print
+  #     renderImage(imagename)
+  #   })
+  # #}
+  # 
+    
+    ##########################################
+    
+  imagename<-"/home/pagani/share/RWS/A1/HM43/ID13972/201907/A1-HM43-ID13972_20190715_1620.jpg"
+  
+  
+  
+  fogginess<-predictImage(imagename)
+  if(fogginess[[1]]){
+    fogChar<-"FOG"
+  }else{
+    fogChar<-"NO FOG"
+  }
+  
+  output$FogBinary<-renderUI({HTML('Machine classification is:', fogChar)})
+  output$probFog<-renderUI({HTML('Probability of fog in the  image:',as.character(fogginess[[2]]))})
+  output$probNoFog<-renderUI({HTML('Probability of non-fog in the  image:',as.character(fogginess[[3]]))})
+  
+  print(fogginess)
+  
+  
+      output$images <- renderImage({
+       
+        
+        
+        
+        # Return a list containing the filename
+        list(src = imagename,
+             contentType = 'image/png',
+             #width = 400,
+             #height = 300,
+             alt = "This is alternate text")
+      }, deleteFile = TRUE)
+    
+  
+    
+    #############################################
   
   
   
@@ -253,9 +494,7 @@ shinyServer(function(input, output, session) {
   
   
   
-  
-  
-  
+  #output$images<- renderUI(HTML("<strong>FOG</strong>"))
   
   
   
@@ -427,7 +666,7 @@ shinyServer(function(input, output, session) {
   
   
   
-  reactivePoll(120000, session, checkFunc = fetchNewFogDetection )
+  #reactivePoll(120000, session, checkFunc = fetchNewFogDetection )
   
 })
 
