@@ -8,6 +8,9 @@ library(mapview)
 library(DBI)
 library(jsonlite)
 
+library(RJSONIO)
+library(stringr)
+library(logging)
 
 ##########
 #local and remote implementation variable naming/setting
@@ -36,7 +39,7 @@ firstOccurrence = TRUE
   DB_conf_file<-"/home/pagani/temp/config/configDB.json"
   temp_directory<-"/home/pagani/temp/Rtemp"
   temp_directory<-"/tmp"
-  
+  imagesLocation<-"/home/pagani/share/"
 
 
 message("visualization platform ready")
@@ -49,29 +52,29 @@ with(getLogger(), names(handlers))
 set.tempdir(temp_directory)
 
 
+queryDBforImage<-function(){
+dbConfig <- fromJSON(DB_conf_file)
 
-# dbConfig <- fromJSON(DB_conf_file)
-# 
-# connectionSetup <- dbConnect(RPostgreSQL::PostgreSQL(),
-#                 dbname = "FOGDB",
-#                 host = dbConfig[["host"]], port = 9418, # use 9418 within KNMI, default would be 5432. At the moment set to 9418
-# user = dbConfig[["user"]], password = dbConfig[["pw"]])
-# 
-# 
-# queryDBforPics<-function(){
-#   queryString<- "select * from images where random()<0.001 and day_phase in (1,0,20,10) and camera_id>260 limit 1;"
-#   
-#   tableLocations <- dbGetQuery(connectionSetup, queryString)
-# }
+connectionSetup <- dbConnect(RPostgreSQL::PostgreSQL(),
+                dbname = "FOGDB",
+                host = dbConfig[["host"]], port = 9418, # use 9418 within KNMI, default would be 5432. At the moment set to 9418
+user = dbConfig[["user"]], password = dbConfig[["pw"]])
 
+queryString<- "select * from images where random()<0.001 and day_phase in (1,0,20,10) and camera_id>260 limit 1;"
 
+imageToValidate <- dbGetQuery(connectionSetup, queryString)
+
+dbDisconnect(connectionSetup)
+
+imageToValidate
+}
 
 
 
 
 #######Run prediciton on picture#########
 
-library(logging)
+
 
 logReset()
 basicConfig(level='FINEST')
@@ -107,25 +110,13 @@ fromImageToFeatures<-function(filename){
 }
 
 
+convertToLocalFilepath<-function(remoteFilepath){
+  fileLocation<-gsub(".*/nas-research.knmi.nl/sensordata/CAMERA/", imagesLocation, remoteFilepath)
+  fileLocation
+}
 
-
-library(RJSONIO)
-
-#'/nas-research.knmi.nl/sensordata/CAMERA/DEBILT/TESTSITE-SNOWDEPTH/201807/DEBILT-TESTSITE-SNOWDEPTH_20180710_0811.jpg
-
-#fileToAnalyze<-"/nas-research.knmi.nl/sensordata/CAMERA/DEBILT/TESTSITE-SNOWDEPTH/201807/DEBILT-TESTSITE-SNOWDEPTH_20180710_0811.jpg"
-
-#fileToAnalyze<-"/nas-research.knmi.nl/sensordata/CAMERA/RWS/A16/HM211/ID71681/201807/A16-HM211-ID71681_20180726_1220.jpg"
-
-library(stringr)
-
-
-predictImage<-function(filename){
+predictImage<-function(filename, dayPhaseImage){
   
-imagesLocation<-"/home/pagani/share/"
-  
-fileLocation<-gsub(".*/nas-research.knmi.nl/sensordata/CAMERA/", imagesLocation, filename)
-
 
 partial<-str_extract(pattern = "[^/]*$", string =  filename)
 partial<-str_extract(string = partial, pattern = ".*(?=\\.)")
@@ -153,8 +144,16 @@ if(remote==TRUE){
   #####
   results_json<-"/workspace/andrea/exports/results/predictions/test.json"
   temp_directory<-"/workspace/andrea/tmp"
+  ##TO BE CHNAGED THE LOCATIONS
+  model_zip_path_day = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_35.zip"
+  model_zip_path_civil_dawn = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_8.zip"
+  model_zip_path_nautical_dawn = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_15.zip"
+  model_zip_path_night = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_NIGHT_15.zip"
 }else{
-  model_zip_path = "/home/pagani/nndataH2O/frozenModels/dl_grid_model_35.zip"
+  model_zip_path_day = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_35.zip"
+  model_zip_path_civil_dawn = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_8.zip"
+  model_zip_path_nautical_dawn = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_15.zip"
+  model_zip_path_night = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_NIGHT_15.zip"
   h2o_jar_path = "/usr/lib64/R/library/h2o/java/h2o.jar"
   devel_dir<-"/home/pagani/development/"
   results_json<-"/home/pagani/nndataH2O/frozenModels/results/predictions/test.json"
@@ -165,25 +164,7 @@ if(remote==TRUE){
 
 
 
-#jsonCameras<-paste0(devel_dir,"fogDec/inst/extScripts/python/MVPCameras.json")
 
-#camerasDF<-jsonlite::fromJSON(txt = jsonCameras)
-
-#camerasRWS<-camerasDF$cameras$RWS
-
-
-#pos<-gregexpr("-",locationAndID)
-#lastDash<-pos[[1]][length(pos[[1]])]
-#location<-substring(locationAndID,1,lastDash-1)
-#cameraID<-substring(locationAndID,lastDash+1,str_length(locationAndID))
-
-logdebug("looking if camera is in the allowed list")
-
-#cameraTarget<-camerasRWS[camerasRWS$location==location & camerasRWS$cameraID==cameraID,]
-#if(dim(cameraTarget)[1]==0){
-#  stop("camera not in the list for fog detection")
-#}
-#cbind(cameraTarget,fileLocation,originalPath, timeStamp)
 
 print(filename)
 
@@ -193,12 +174,18 @@ library(h2o)
 featuresImage<-fromImageToFeatures(filename)
 featuresImage<-t(featuresImage)
 
+model <- c(model_zip_path_day, model_zip_path_civil_dawn, model_zip_path_nautical_dawn, model_zip_path_night)
+names(model) <- c("1", "10", "20","0")
 
 
+
+modelPath<-model[[as.character(dayPhaseImage)]]
+message(modelPath)
+message(dayPhaseImage)
 
 #logdebug(paste("starting prediction for", args))
 prediction <- h2o.mojo_predict_df(featuresImage,
-                                  mojo_zip_path =  model_zip_path, 
+                                  mojo_zip_path =  modelPath, 
                                   classpath = h2o_jar_path, 
                                   genmodel_jar_path = h2o_jar_path)
 
@@ -440,23 +427,25 @@ shinyServer(function(input, output, session) {
   }
   
   
-  # #validation<-function(){
-  #   output$images <- renderUI({
-  #     #print("BBBBBB")
-  #     #if(is.null(input$file)) return(NULL)
-  #     #print
-  #     renderImage(imagename)
-  #   })
-  # #}
-  # 
+
     
-    ##########################################
+    ###################MANAGING OF THE VALIDATION PART#######################
     
-  imagename<-"/home/pagani/share/RWS/A1/HM43/ID13972/201907/A1-HM43-ID13972_20190715_1620.jpg"
+  #imagename<-"/home/pagani/share/RWS/A1/HM43/ID13972/201907/A1-HM43-ID13972_20190715_1620.jpg"
+  
+  getAndShowNewImage<-function(){
+  
+  imageDBrecord<-queryDBforImage()
+  
+  imagename<-imageDBrecord$filepath
+  
+  dayPhaseImage<-imageDBrecord$day_phase
+  
+  localImageFilepath<-convertToLocalFilepath(imagename)
   
   
   
-  fogginess<-predictImage(imagename)
+  fogginess<-predictImage(localImageFilepath, dayPhaseImage)
   if(fogginess[[1]]){
     fogChar<-"FOG"
   }else{
@@ -464,8 +453,8 @@ shinyServer(function(input, output, session) {
   }
   
   output$FogBinary<-renderUI({HTML('Machine classification is:', fogChar)})
-  output$probFog<-renderUI({HTML('Probability of fog in the  image:',as.character(fogginess[[2]]))})
-  output$probNoFog<-renderUI({HTML('Probability of non-fog in the  image:',as.character(fogginess[[3]]))})
+  output$probFog<-renderUI({HTML('Probability of fog in the  image:',as.character(round(100*fogginess[[2]],2)),"%")})
+  output$probNoFog<-renderUI({HTML('Probability of non-fog in the  image:',as.character(round(100*fogginess[[3]],2)),"%")})
   
   print(fogginess)
   
@@ -476,13 +465,33 @@ shinyServer(function(input, output, session) {
         
         
         # Return a list containing the filename
-        list(src = imagename,
+        list(src = localImageFilepath,
              contentType = 'image/png',
              #width = 400,
              #height = 300,
              alt = "This is alternate text")
       }, deleteFile = TRUE)
+      
+      
+      
+      
+      
+  }
+  
+  getAndShowNewImage()
+      
+  observeEvent(input$FOGbutton, {
     
+    getAndShowNewImage()
+  })
+  
+  observeEvent(input$NOFOGbutton, {
+    getAndShowNewImage()
+  })
+  
+  observeEvent(input$cannotButton, {
+    getAndShowNewImage()
+  })
   
     
     #############################################
