@@ -52,19 +52,40 @@ with(getLogger(), names(handlers))
 set.tempdir(temp_directory)
 
 
+prepareDBconnection<-function(){
+  dbConfig <- fromJSON(DB_conf_file)
+  
+  connectionSetup <- dbConnect(RPostgreSQL::PostgreSQL(),
+                               dbname = "FOGDB",
+                               host = dbConfig[["host"]], port = 9418, # use 9418 within KNMI, default would be 5432. At the moment set to 9418
+                               user = dbConfig[["user"]], password = dbConfig[["pw"]])
+  connectionSetup
+}
+
+
+
 queryDBforImage<-function(){
-dbConfig <- fromJSON(DB_conf_file)
 
-connectionSetup <- dbConnect(RPostgreSQL::PostgreSQL(),
-                dbname = "FOGDB",
-                host = dbConfig[["host"]], port = 9418, # use 9418 within KNMI, default would be 5432. At the moment set to 9418
-user = dbConfig[["user"]], password = dbConfig[["pw"]])
 
-queryString<- "select * from images where random()<0.001 and day_phase in (1,0,20,10) and camera_id>260 limit 1;"
+connectionSetup <-prepareDBconnection()
+
+#queryString<- "select * from images where random()<0.001 and day_phase in (1,0,20,10) and camera_id>260 limit 1;"
+
+#the view that is used is created as follows in the database:
+#
+#create view non_evaluated_images_RWS as SELECT t1.*
+#FROM images t1
+#LEFT JOIN manual_annotations t2 ON t2.image_id = t1.image_id
+#WHERE t2.image_id IS NULL and t1.camera_id>260  limit 10000;
+
+queryString<- "select * from non_evaluated_images_rws where random()<0.01 and day_phase in (1,0,20,10) and camera_id>260 limit 1;"
+
 
 imageToValidate <- dbGetQuery(connectionSetup, queryString)
 
 dbDisconnect(connectionSetup)
+
+print(imageToValidate)
 
 imageToValidate
 }
@@ -84,6 +105,7 @@ with(getLogger(), names(handlers))
 
 
 fromImageToFeatures<-function(filename){
+  print(filename)
   resolutionImg<-28
   image<-tryCatch(
     load.image(filename),
@@ -201,18 +223,6 @@ predFALSE<-prediction$FALSE.
 return(list(fogClass,predTRUE,predFALSE))
 
 }
-
-
-
-
-
-
-#####################
-
-
-
-
-
 
 
 
@@ -443,6 +453,12 @@ shinyServer(function(input, output, session) {
   
   localImageFilepath<-convertToLocalFilepath(imagename)
   
+  image_id<-imageDBrecord$image_id
+  camera_id<-imageDBrecord$camera_id
+  timestamp<-imageDBrecord$timestamp
+  
+  DFannotation<-data.frame(camera_id,timestamp,image_id)
+  
   
   
   fogginess<-predictImage(localImageFilepath, dayPhaseImage)
@@ -473,24 +489,75 @@ shinyServer(function(input, output, session) {
       }, deleteFile = TRUE)
       
       
-      
+      DFannotation
       
       
   }
   
-  getAndShowNewImage()
-      
+  dfInitial<<-getAndShowNewImage()
+  dfValid<<-NULL    
   observeEvent(input$FOGbutton, {
+    if(is.null(dfInitial)){
+      dfValid$visibility_qualitative<-"FOG"
+    print(dfValid)
+    con<-prepareDBconnection()
+    dbWriteTable(con, "manual_annotations", dfValid, append = TRUE, row.names = FALSE, match.cols = TRUE)
+    dbDisconnect(con)
+    dfValid<<-getAndShowNewImage()
+    Sys.sleep(0.3)
+    } else{
+      dfInitial$visibility_qualitative<-"FOG"
+      print(dfInitial)
+      con<-prepareDBconnection()
+      dbWriteTable(con, "manual_annotations", dfInitial, append = TRUE, row.names = FALSE, match.cols = TRUE)
+      dbDisconnect(con)
+      dfInitial<<-NULL
+      dfValid<<-getAndShowNewImage()
+    }
     
-    getAndShowNewImage()
   })
   
   observeEvent(input$NOFOGbutton, {
-    getAndShowNewImage()
+    if(is.null(dfInitial)){
+      dfValid$visibility_qualitative<-"NO FOG"
+      print(dfValid)
+      con<-prepareDBconnection()
+      dbWriteTable(con, "manual_annotations", dfValid, append = TRUE, row.names = FALSE, match.cols = TRUE)
+      dbDisconnect(con)
+      dfValid<<-getAndShowNewImage()
+      Sys.sleep(0.3)
+      
+    } else{
+      dfInitial$visibility_qualitative<-"NO FOG"
+      print(dfInitial)
+      con<-prepareDBconnection()
+      dbWriteTable(con, "manual_annotations", dfInitial, append = TRUE, row.names = FALSE, match.cols = TRUE)
+      dbDisconnect(con)
+      dfInitial<<-NULL
+      dfValid<<-getAndShowNewImage()
+    }
+  
   })
   
   observeEvent(input$cannotButton, {
-    getAndShowNewImage()
+    if(is.null(dfInitial)){
+      dfValid$visibility_qualitative<-"CANNOT SAY"
+      print(dfValid)
+      con<-prepareDBconnection()
+      dbWriteTable(con, "manual_annotations", dfValid, append = TRUE, row.names = FALSE, match.cols = TRUE)
+      dbDisconnect(con)
+      dfValid<<-getAndShowNewImage()
+      Sys.sleep(0.3)
+      
+    } else{
+      dfInitial$visibility_qualitative<-"CANNOT SAY"
+      print(dfInitial)
+      con<-prepareDBconnection()
+      dbWriteTable(con, "manual_annotations", dfInitial, append = TRUE, row.names = FALSE, match.cols = TRUE)
+      dbDisconnect(con)
+      dfInitial<<-NULL
+      dfValid<<-getAndShowNewImage()
+    }
   })
   
     
@@ -558,112 +625,7 @@ shinyServer(function(input, output, session) {
       
       visualizeResults(df)
       
-      # visualizeResults<-function()
-      # {
-      # if(is.null(df)==FALSE){
-      #   message(max(df$timeStamp))
-      #   output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(max(df$timeStamp)),"UTC  </div><br>")})
-      #  
-      #
-      # set.tempdir(temp_directory)
-      #
-      # #setting icons to relevant colors and design
-      # # factpal <- colorFactor(topo.colors(2), c(TRUE,FALSE))
-      # # icon.bad <- makeAwesomeIcon( markerColor = 'red', icon = "camera")
-      # # icon.good <- makeAwesomeIcon(markerColor = 'green', icon = "camera")
-      # # icon.na<- makeAwesomeIcon(markerColor = 'gray', icon = "camera")
-      # #
-      # # myIcons<-awesomeIconList(noFog = icon.good, fog = icon.bad, notAv = icon.na)
-      #
-      #
-      # #
-      # #inputDF<-data.frame(jsoninput,stringsAsFactors = F)
-      # #inputDF
-      #
-      # #inputDF<-inputDF[rep(1:nrow(inputDF),each=2),]
-      # #inputDF[2,10]=TRUE
-      # #inputDF[2,3]=5.1115
-      # #inputDF
-      #  
-      #  
-      #  
-      #  
-      #   jsonCameras<-jsonlite::fromJSON(cameras_for_detection_file)
-      #   dfCameras<-data.frame(jsonCameras$cameras$RWS)
-      #   dfCameras$longitude<-as.numeric(dfCameras$longitude)
-      #   dfCameras$latitude<-as.numeric(dfCameras$latitude)
-      #  
-      #   numCamerasToMonitor<-dim(dfCameras)[[1]]
-      #   numCamerasRetrieved<-dim(df)[[1]]
-      #  
-      #   if(numCamerasRetrieved!=numCamerasToMonitor){
-      #     loginfo(paste(numCamerasRetrieved,"retrieved cameras, time of retrieval",as.character(max(df$timeStamp)),"UTC"))
-      #     loginfo(paste("missing cameras:",dfCameras$location[!(dfCameras$cameraID %in% df$cameraID)]))
-      #   }
-      #  
-      #  
-      #  
-      #
-      # df$fogClass<-as.factor(df$fogClass)
-      # #inputDF$graphicClass<if(inputDF$fogClass==FALSE){"noFog"}
-      # #inputDF$graphicClass<-as.factor(inputDF$graphicClass)
-      # #inputDF$fogClass<-revalue(inputDF$fogClass, c("FALSE"="nofog", "TRUE"="fog"))
-      #
-      # df$icon <- factor(df$fogClass,
-      #                        levels = c("1","0","UNKNOWN"),
-      #                        labels = c("red", "green","gray"))
-      #
-      # df
-      # df$longitude<-as.numeric(df$longitude)
-      # df$latitude<-as.numeric(df$latitude)
-      #
-      # message("dataframe created")
-      # message(paste("saving dataframe for debug purposes in ",df_debug_file))
-      # write.csv(df,file = df_debug_file )
-      #
-      # missing<-dfCameras [ !dfCameras$cameras.RWS.cameraID %in% df$cameraID ,]
-      #
-      # iconsMissing <- awesomeIcons(icon = "camera",
-      #                       iconColor = "black",
-      #                       library = "ion",
-      #                       markerColor = "gray")
-      #
-      # icons <- awesomeIcons(icon = "camera",
-      #                       iconColor = "black",
-      #                       library = "ion",
-      #                       markerColor = df$icon
-      #                       )
-      #
-      #
-      #
-      # df$hyperink<-paste0('<a href="',df$ipAddr,'" target="_blank">View Camera ', df$location," " ,df$cameraID,  '</a>')
-      #
-      # if(nrow(missing)!=0){
-      # missing$hyperink<-paste0('<a href="',missing$cameras.RWS.ipAddr,'">View Camera ',missing$cameras.RWS.location," " ,missing$cameras.RWS.cameraID,'</a>')
-      # m <- leaflet() %>%
-      #   addTiles() %>%  # Add default OpenStreetMap map tiles
-      #   addAwesomeMarkers(data=df, ~longitude, ~latitude, icon = icons, popup = ~hyperink) %>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
-      #   #addCircleMarkers(data=df, ~longitude, ~latitude, popup = ~hyperink) #%>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
-      #
-      # }else{
-      #   m <- leaflet() %>%
-      #     addTiles() %>%  # Add default OpenStreetMap map tiles
-      #     addAwesomeMarkers(data=df, ~longitude, ~latitude, icon = icons, popup = ~hyperink)  %>% addControl(html= html_legend, position = "topright")
-      #     #addCircleMarkers(data=df, ~longitude, ~latitude,  popup = ~hyperink) #%>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
-      #  
-      #   }
-      #
-      #
-      #
-      #
-      # #output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(as.POSIXlt(Sys.time(), "UTC")),"UTC  </div><br>")})
-      #
-      # #icon11<-myIcons[inputDF$graphicClass]
-      #
-      # output$map <-renderLeaflet(m) 
-      # }
-      # }
-      #
+
       
     }
   }
@@ -675,7 +637,7 @@ shinyServer(function(input, output, session) {
   
   
   
-  #reactivePoll(120000, session, checkFunc = fetchNewFogDetection )
+  reactivePoll(120000, session, checkFunc = fetchNewFogDetection )
   
 })
 
