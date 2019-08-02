@@ -284,7 +284,7 @@ shinyServer(function(input, output, session) {
   #fetching messages
   library(curl)
   h <- new_handle()
-  handle_setopt(h,USERNAME=jsonQueue$user, PASSWORD=jsonQueue$pw, POST=1, POSTFIELDS='{"count":10000,"requeue":false,"encoding":"auto"}' )
+  handle_setopt(h,USERNAME=jsonQueue$user, PASSWORD=jsonQueue$pw, POST=1, POSTFIELDS='{"count":10000,"ackmode":"ack_requeue_false","encoding":"auto"}' )
   handle_setheaders(h,"Content-Type" = "application/json")
   
   
@@ -388,7 +388,7 @@ shinyServer(function(input, output, session) {
       
       df$localFileLocation<-gsub("pictures/","/external/pictures/",df$fileLocation)
       ######TO BE REMOVED####
-      #df$localFileLocation<-gsub("pictures/","/home/pagani/share/",df$fileLocation)
+      df$localFileLocation<-gsub("pictures/","/home/pagani/share/",df$fileLocation)
       ###########
       
       print(df$localFileLocation)
@@ -420,7 +420,7 @@ shinyServer(function(input, output, session) {
       }else{
         m <- leaflet() %>%
           addTiles() %>%  # Add default OpenStreetMap map tiles
-          addAwesomeMarkers(data=dfGoodPics, ~longitude, ~latitude, icon = icons, popup =  popupImage(popupFilenames,src = "local", embed = T))  %>% addControl(html= html_legend, position = "topright")
+          addAwesomeMarkers(data=dfGoodPics, ~longitude, ~latitude, icon = icons, popup = popupImage(popupFilenames,src = "local", embed = T))  %>% addControl(html= html_legend, position = "topright")
         #addCircleMarkers(data=dfGoodPics, ~longitude, ~latitude,  popup = ~hyperink) #%>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
         
       }
@@ -568,13 +568,6 @@ shinyServer(function(input, output, session) {
   
   
   
-  
-  
-  #output$images<- renderUI(HTML("<strong>FOG</strong>"))
-  
-  
-  
-  
   fetchNewFogDetection<-function(queueJson, handler){
     
     minReminder<-minute(Sys.time())%%10
@@ -597,7 +590,8 @@ shinyServer(function(input, output, session) {
     
     
     ##CHANGE HERE FOR THE FIRST OCCURRENCE
-    if(minReminder==3 | minReminder==4 ){
+    #if(minReminder==3 | minReminder==4 ){
+    if(minReminder==3 | minReminder==4 | minReminder==1 | minReminder==2 |minReminder==5 | minReminder==6| minReminder==7 | minReminder==8|minReminder==9 | minReminder==0  ){
       
       
       req <- curl_fetch_memory(paste0("http://",jsonQueue$host,":8080/api/queues/%2f/RTvisual/get"), handle = h)
@@ -637,7 +631,8 @@ shinyServer(function(input, output, session) {
   
   
   
-  reactivePoll(120000, session, checkFunc = fetchNewFogDetection )
+  #reactivePoll(120000, session, checkFunc = fetchNewFogDetection )
+  reactivePoll(1000, session, checkFunc = fetchNewFogDetection )
   
 })
 
