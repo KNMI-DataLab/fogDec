@@ -51,13 +51,13 @@ dashboardPage(
                absolutePanel(id="controls",
                              style="z-index:200;",
                              class = "titlePane",
-                             draggable = FALSE 
+                             draggable = FALSE
                              #htmlOutput("timeString")
                              #HTML('<div class="centered">',htmlOutput("timeString"),'</div><br>')
                ),
                #tags$style(type = "text/css", "#map {height: calc(100vh - 80px) !important;}"),
                #leafletOutput("map", width="100%", height="100%")
-               
+
                #tabPanel("Analysis",tableOutput('files'),
                         HTML('<br>',"<br>"),
                         imageOutput("images"),
@@ -66,16 +66,16 @@ dashboardPage(
                fluidRow(column(12,htmlOutput("FogBinary"))),
                fluidRow(column(12,htmlOutput("probFog"))),
                fluidRow(column(12,htmlOutput("probNoFog"))),
-               
-               
+
+
                HTML('<br>',"<br>"),
-               HTML('<expert>Please provide your expert judgement on the picture too!<br> 
+               HTML('<expert>Please provide your expert judgement on the picture too!<br>
                     Click on the button below to provide your input.</expert>'),
                HTML('<br>'),
                actionButton("FOGbutton", "FOG"),
                actionButton("NOFOGbutton", "NO FOG"),
                actionButton("cannotButton", "Cannot say")
-               
+
                ),
                tags$style(type="text/css", "#images { display: flex; justify-content: center; text-align:center}"),
                tags$style(type='text/css', "#FogBinary { margin-top: 10px; text-align: left; font-size: 30px; font-family: Comic Sans MS, cursive, sans-serif;}"),

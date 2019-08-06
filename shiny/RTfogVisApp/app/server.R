@@ -11,7 +11,7 @@ library(jsonlite)
 library(RJSONIO)
 library(stringr)
 library(logging)
-
+library(leafpop)
 ##########
 #local and remote implementation variable naming/setting
 ##########
@@ -367,6 +367,10 @@ shinyServer(function(input, output, session) {
       df$longitude<-as.numeric(df$longitude)
       df$latitude<-as.numeric(df$latitude)
       
+      
+      message("################TESTTTTTTTTTTTTTTTTTTTTTT################")
+      
+      
       message("dataframe created")
       message(paste("saving dataframe for debug purposes in ",df_debug_file))
       write.csv(df,file = df_debug_file )
@@ -386,9 +390,13 @@ shinyServer(function(input, output, session) {
       
       
       
-      df$localFileLocation<-gsub("pictures/","/external/pictures/",df$fileLocation)
+      #df$localFileLocation<-gsub("pictures/","/external/pictures/",df$fileLocation)
       ######TO BE REMOVED####
+      unlink("/data2/temp/tempPicFogVis/")
       df$localFileLocation<-gsub("pictures/","/home/pagani/share/",df$fileLocation)
+      df$filename<-basename(df$localFileLocation)
+      file.copy(df$localFileLocation,"/data2/temp/tempPicFogVis")
+      df$localFileLocation<-paste0("/data2/temp/tempPicFogVis/" ,df$filename)
       ###########
       
       print(df$localFileLocation)
@@ -405,29 +413,35 @@ shinyServer(function(input, output, session) {
       
       
       
-      
+      print(popupFilenames)
       
       
       dfGoodPics$hyperink<-paste0('<a href="',dfGoodPics$ipAddr,'" target="_blank">View Camera ', dfGoodPics$location," " ,dfGoodPics$cameraID,  '</a>')
       
-      if(nrow(missing)!=0){
-        missing$hyperink<-paste0('<a href="',missing$cameras.RWS.ipAddr,'">View Camera ',missing$cameras.RWS.location," " ,missing$cameras.RWS.cameraID,'</a>')
+      message('##############before  output maps#######################')
+      
+      
+      # if(nrow(missing)!=0){
+      #   missing$hyperink<-paste0('<a href="',missing$cameras.RWS.ipAddr,'">View Camera ',missing$cameras.RWS.location," " ,missing$cameras.RWS.cameraID,'</a>')
+      #   m <- leaflet() %>%
+      #     addTiles() %>%  # Add default OpenStreetMap map tiles
+      #     addAwesomeMarkers(data=dfGoodPics, ~longitude, ~latitude, icon = icons, popup =mapview::popupImage(popupFilenames,src = "local", embed = T)) %>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
+      #   #addCircleMarkers(data=dfGoodPics, ~longitude, ~latitude, popup = ~hyperink) #%>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
+      #   
+      # }else{
+        message('##############no missing rows#######################')
         m <- leaflet() %>%
           addTiles() %>%  # Add default OpenStreetMap map tiles
-          addAwesomeMarkers(data=dfGoodPics, ~longitude, ~latitude, icon = icons, popup = popupImage(popupFilenames,src = "local", embed = T)) %>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
-        #addCircleMarkers(data=dfGoodPics, ~longitude, ~latitude, popup = ~hyperink) #%>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
+          addAwesomeMarkers(data=dfGoodPics, ~longitude, ~latitude, icon = icons, popup =mapview::popupImage(popupFilenames,src = "local", embed = T)) %>%
+        addControl(html= html_legend, position = "topright")
+        #addCircleMarkers(data=dfGoodPics, ~longitude, ~latitude,  popup = ~hyperink) #%>% 
+         # addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
         
-      }else{
-        m <- leaflet() %>%
-          addTiles() %>%  # Add default OpenStreetMap map tiles
-          addAwesomeMarkers(data=dfGoodPics, ~longitude, ~latitude, icon = icons, popup = popupImage(popupFilenames,src = "local", embed = T))  %>% addControl(html= html_legend, position = "topright")
-        #addCircleMarkers(data=dfGoodPics, ~longitude, ~latitude,  popup = ~hyperink) #%>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
-        
-      }
+     # }
       
       
       
-      
+      message('##############printing output maps#######################')
       #output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(as.POSIXlt(Sys.time(), "UTC")),"UTC  </div><br>")})
       
       #icon11<-myIcons[inputdfGoodPics$graphicClass]
@@ -444,42 +458,42 @@ shinyServer(function(input, output, session) {
   #imagename<-"/home/pagani/share/RWS/A1/HM43/ID13972/201907/A1-HM43-ID13972_20190715_1620.jpg"
   
   getAndShowNewImage<-function(){
-  
+
   imageDBrecord<-queryDBforImage()
-  
+
   imagename<-imageDBrecord$filepath
-  
+
   dayPhaseImage<-imageDBrecord$day_phase
-  
+
   localImageFilepath<-convertToLocalFilepath(imagename)
-  
+
   image_id<-imageDBrecord$image_id
   camera_id<-imageDBrecord$camera_id
   timestamp<-imageDBrecord$timestamp
-  
+
   DFannotation<-data.frame(camera_id,timestamp,image_id)
-  
-  
-  
+
+
+
   fogginess<-predictImage(localImageFilepath, dayPhaseImage)
   if(fogginess[[1]]){
     fogChar<-"FOG"
   }else{
     fogChar<-"NO FOG"
   }
-  
+
   output$FogBinary<-renderUI({HTML('Machine classification is:', fogChar)})
   output$probFog<-renderUI({HTML('Probability of fog in the  image:',as.character(round(100*fogginess[[2]],2)),"%")})
   output$probNoFog<-renderUI({HTML('Probability of non-fog in the  image:',as.character(round(100*fogginess[[3]],2)),"%")})
-  
+
   print(fogginess)
-  
-  
+
+
       output$images <- renderImage({
-       
-        
-        
-        
+
+
+
+
         # Return a list containing the filename
         list(src = localImageFilepath,
              contentType = 'image/png',
@@ -487,15 +501,15 @@ shinyServer(function(input, output, session) {
              #height = 300,
              alt = "This is alternate text")
       }, deleteFile = TRUE)
-      
-      
+
+
       DFannotation
-      
-      
+
+
   }
-  
+
   dfInitial<<-getAndShowNewImage()
-  dfValid<<-NULL    
+  dfValid<<-NULL
   observeEvent(input$FOGbutton, {
     if(is.null(dfInitial)){
       dfValid$visibility_qualitative<-"FOG"
@@ -514,9 +528,9 @@ shinyServer(function(input, output, session) {
       dfInitial<<-NULL
       dfValid<<-getAndShowNewImage()
     }
-    
+
   })
-  
+
   observeEvent(input$NOFOGbutton, {
     if(is.null(dfInitial)){
       dfValid$visibility_qualitative<-"NO FOG"
@@ -526,7 +540,7 @@ shinyServer(function(input, output, session) {
       dbDisconnect(con)
       dfValid<<-getAndShowNewImage()
       Sys.sleep(0.3)
-      
+
     } else{
       dfInitial$visibility_qualitative<-"NO FOG"
       print(dfInitial)
@@ -536,9 +550,9 @@ shinyServer(function(input, output, session) {
       dfInitial<<-NULL
       dfValid<<-getAndShowNewImage()
     }
-  
+
   })
-  
+
   observeEvent(input$cannotButton, {
     if(is.null(dfInitial)){
       dfValid$visibility_qualitative<-"CANNOT SAY"
@@ -548,7 +562,7 @@ shinyServer(function(input, output, session) {
       dbDisconnect(con)
       dfValid<<-getAndShowNewImage()
       Sys.sleep(0.3)
-      
+
     } else{
       dfInitial$visibility_qualitative<-"CANNOT SAY"
       print(dfInitial)
@@ -559,7 +573,7 @@ shinyServer(function(input, output, session) {
       dfValid<<-getAndShowNewImage()
     }
   })
-  
+
     
     #############################################
   
@@ -591,7 +605,7 @@ shinyServer(function(input, output, session) {
     
     ##CHANGE HERE FOR THE FIRST OCCURRENCE
     #if(minReminder==3 | minReminder==4 ){
-    if(minReminder==3 | minReminder==4 | minReminder==1 | minReminder==2 |minReminder==5 | minReminder==6| minReminder==7 | minReminder==8|minReminder==9 | minReminder==0  ){
+    if(minReminder==3) {
       
       
       req <- curl_fetch_memory(paste0("http://",jsonQueue$host,":8080/api/queues/%2f/RTvisual/get"), handle = h)
@@ -632,7 +646,7 @@ shinyServer(function(input, output, session) {
   
   
   #reactivePoll(120000, session, checkFunc = fetchNewFogDetection )
-  reactivePoll(1000, session, checkFunc = fetchNewFogDetection )
+  reactivePoll(120000, session, checkFunc = fetchNewFogDetection )
   
 })
 
