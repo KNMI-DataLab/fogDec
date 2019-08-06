@@ -92,7 +92,7 @@ shinyServer(function(input, output, session) {
   #fetching messages
   library(curl)
   h <- new_handle()
-  handle_setopt(h,USERNAME=jsonQueue$user, PASSWORD=jsonQueue$pw, POST=1, POSTFIELDS='{"count":10000,"ackmode":"ack_reque_false","encoding":"auto"}' )
+  handle_setopt(h,USERNAME=jsonQueue$user, PASSWORD=jsonQueue$pw, POST=1, POSTFIELDS='{"count":10000,"ackmode":"ack_requeue_false","encoding":"auto"}' )
   handle_setheaders(h,"Content-Type" = "application/json")
   
   
