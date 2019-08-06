@@ -212,6 +212,10 @@ shinyServer(function(input, output, session) {
       popupFilenames<-as.vector(dfGoodPics$localFileLocation)
       
       
+      message("FILES NAMES LOCALS:")
+      message(popupFilenames)
+      
+      
       
       
       
