@@ -29,6 +29,7 @@ firstOccurrence<<-TRUE
   DB_conf_file<-"/external/config/configDB.json"
   tempImagesStorage<-"/external/tempImageStorage/"
   imagesLocation<-"/external/pictures/"
+  modelsPath<-"/external/models/"
 
   
   
@@ -176,16 +177,14 @@ if(remote==TRUE){
   model_zip_path_nautical_dawn = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_15.zip"
   model_zip_path_night = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_NIGHT_15.zip"
 }else{
-  model_zip_path_day = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_35.zip"
-  model_zip_path_civil_dawn = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_8.zip"
-  model_zip_path_nautical_dawn = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_15.zip"
-  model_zip_path_night = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_NIGHT_15.zip"
+  model_zip_path_day <- paste0(modelsPath,"dl_grid_model_35.zip")
+  model_zip_path_civil_dawn <- paste0(modelsPath,"dl_grid_model_8.zip")
+  model_zip_path_nautical_dawn <- paste0(modelsPath,"dl_grid_model_15.zip")
+  model_zip_path_night <-paste0(modelsPath, "dl_grid_model_NIGHT_15.zip")
   h2o_jar_path = "/usr/lib64/R/library/h2o/java/h2o.jar"
-  devel_dir<-"/home/pagani/development/"
-  results_json<-"/home/pagani/nndataH2O/frozenModels/results/predictions/test.json"
-  temp_directory<-"/home/pagani/temp/Rtemp/"
-  queue_conf_file<-"/home/pagani/development/fogDec/inst/extScripts/python/queueConfig.json"
-  
+  #devel_dir<-"/home/pagani/development/"
+  #results_json<-"/home/pagani/nndataH2O/frozenModels/results/predictions/test.json"
+
 }
 
 
