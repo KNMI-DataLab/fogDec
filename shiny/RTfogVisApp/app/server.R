@@ -12,6 +12,8 @@ library(RJSONIO)
 library(stringr)
 library(logging)
 library(leafpop)
+library(imager)
+library(h2o)
 ##########
 #local and remote implementation variable naming/setting
 ##########
@@ -26,6 +28,8 @@ firstOccurrence<<-TRUE
   # cameras_for_detection_file<-"/external/config/MVPCameras.json"
   # queue_conf_file<-"/external/config/queueConfig.json"
   # DB_conf_file<-"/external/config/configDB.json"
+  # tempImagesStorage<-"/external/tempImageStorage/
+  # imagesLocation<-"/external/pictures/"
 
   
   
@@ -40,6 +44,7 @@ firstOccurrence<<-TRUE
   temp_directory<-"/home/pagani/temp/Rtemp"
   temp_directory<-"/tmp"
   imagesLocation<-"/home/pagani/share/"
+  tempImagesStorage<-"/data2/temp/tempPicFogVis/"
 
 
 message("visualization platform ready")
@@ -105,7 +110,7 @@ with(getLogger(), names(handlers))
 
 
 fromImageToFeatures<-function(filename){
-  print(filename)
+  #print(filename)
   resolutionImg<-28
   image<-tryCatch(
     load.image(filename),
@@ -188,10 +193,9 @@ if(remote==TRUE){
 
 
 
-print(filename)
+#print(filename)
 
-library(imager)
-library(h2o)
+
 
 featuresImage<-fromImageToFeatures(filename)
 featuresImage<-t(featuresImage)
@@ -368,7 +372,7 @@ shinyServer(function(input, output, session) {
       df$latitude<-as.numeric(df$latitude)
       
       
-      message("################TESTTTTTTTTTTTTTTTTTTTTTT################")
+      #message("################TESTTTTTTTTTTTTTTTTTTTTTT################")
       
       
       message("dataframe created")
@@ -392,23 +396,23 @@ shinyServer(function(input, output, session) {
       
       #df$localFileLocation<-gsub("pictures/","/external/pictures/",df$fileLocation)
       ######TO BE REMOVED####
-      unlink("/data2/temp/tempPicFogVis/")
-      df$localFileLocation<-gsub("pictures/","/home/pagani/share/",df$fileLocation)
+      unlink(tempImagesStorage)
+      df$localFileLocation<-gsub("pictures/",imagesLocation,df$fileLocation)
       df$filename<-basename(df$localFileLocation)
-      file.copy(df$localFileLocation,"/data2/temp/tempPicFogVis")
-      df$localFileLocation<-paste0("/data2/temp/tempPicFogVis/" ,df$filename)
+      file.copy(df$localFileLocation,tempImagesStorage)
+      df$localFileLocation<-paste0(tempImagesStorage ,df$filename)
       ###########
       
-      print(df$localFileLocation)
+      #print(df$localFileLocation)
       objs <- data.table(filenames=rownames(file.info(df$localFileLocation)),file.info(df$localFileLocation))
-      print(objs)
+      #print(objs)
       goodPics<-objs[objs$size > 10] #bigger than 10 bytes
       goodPics<-data.table(goodPics)
       setkey(goodPics,filenames)
       df<-data.table(df)
       setkey(df,localFileLocation)
       dfGoodPics<-df[goodPics,nomatch=0]
-      print(dfGoodPics)
+      #print(dfGoodPics)
       popupFilenames<-as.vector(dfGoodPics$localFileLocation)
       
       
@@ -418,7 +422,7 @@ shinyServer(function(input, output, session) {
       
       dfGoodPics$hyperink<-paste0('<a href="',dfGoodPics$ipAddr,'" target="_blank">View Camera ', dfGoodPics$location," " ,dfGoodPics$cameraID,  '</a>')
       
-      message('##############before  output maps#######################')
+      #message('##############before  output maps#######################')
       
       
       if(nrow(missing)!=0){
@@ -429,7 +433,7 @@ shinyServer(function(input, output, session) {
         #addCircleMarkers(data=dfGoodPics, ~longitude, ~latitude, popup = ~hyperink) #%>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
 
       }else{
-        message('##############no missing rows#######################')
+        #message('##############no missing rows#######################')
         m <- leaflet() %>%
           addTiles() %>%  # Add default OpenStreetMap map tiles
           addAwesomeMarkers(data=dfGoodPics, ~longitude, ~latitude, icon = icons, popup =mapview::popupImage(popupFilenames,src = "local", embed = T)) %>%
@@ -441,7 +445,7 @@ shinyServer(function(input, output, session) {
       
       
       
-      message('##############printing output maps#######################')
+      #message('##############printing output maps#######################')
       #output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(as.POSIXlt(Sys.time(), "UTC")),"UTC  </div><br>")})
       
       #icon11<-myIcons[inputdfGoodPics$graphicClass]
@@ -455,8 +459,7 @@ shinyServer(function(input, output, session) {
     
     ###################MANAGING OF THE VALIDATION PART#######################
     
-  #imagename<-"/home/pagani/share/RWS/A1/HM43/ID13972/201907/A1-HM43-ID13972_20190715_1620.jpg"
-  
+
   getAndShowNewImage<-function(){
 
   imageDBrecord<-queryDBforImage()
