@@ -181,7 +181,7 @@ if(remote==TRUE){
   model_zip_path_civil_dawn <- paste0(modelsPath,"dl_grid_model_8.zip")
   model_zip_path_nautical_dawn <- paste0(modelsPath,"dl_grid_model_15.zip")
   model_zip_path_night <-paste0(modelsPath, "dl_grid_model_NIGHT_15.zip")
-  h2o_jar_path = "/usr/lib64/R/library/h2o/java/h2o.jar"
+  h2o_jar_path = "/usr/local/lib/R/site-library/h2o/java/h2o.jar"
   #devel_dir<-"/home/pagani/development/"
   #results_json<-"/home/pagani/nndataH2O/frozenModels/results/predictions/test.json"
 
