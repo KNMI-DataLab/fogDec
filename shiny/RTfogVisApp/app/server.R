@@ -421,14 +421,14 @@ shinyServer(function(input, output, session) {
       message('##############before  output maps#######################')
       
       
-      # if(nrow(missing)!=0){
-      #   missing$hyperink<-paste0('<a href="',missing$cameras.RWS.ipAddr,'">View Camera ',missing$cameras.RWS.location," " ,missing$cameras.RWS.cameraID,'</a>')
-      #   m <- leaflet() %>%
-      #     addTiles() %>%  # Add default OpenStreetMap map tiles
-      #     addAwesomeMarkers(data=dfGoodPics, ~longitude, ~latitude, icon = icons, popup =mapview::popupImage(popupFilenames,src = "local", embed = T)) %>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
-      #   #addCircleMarkers(data=dfGoodPics, ~longitude, ~latitude, popup = ~hyperink) #%>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
-      #   
-      # }else{
+      if(nrow(missing)!=0){
+        missing$hyperink<-paste0('<a href="',missing$cameras.RWS.ipAddr,'">View Camera ',missing$cameras.RWS.location," " ,missing$cameras.RWS.cameraID,'</a>')
+        m <- leaflet() %>%
+          addTiles() %>%  # Add default OpenStreetMap map tiles
+          addAwesomeMarkers(data=dfGoodPics, ~longitude, ~latitude, icon = icons, popup =mapview::popupImage(popupFilenames,src = "local", embed = T)) %>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
+        #addCircleMarkers(data=dfGoodPics, ~longitude, ~latitude, popup = ~hyperink) #%>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
+
+      }else{
         message('##############no missing rows#######################')
         m <- leaflet() %>%
           addTiles() %>%  # Add default OpenStreetMap map tiles
@@ -437,7 +437,7 @@ shinyServer(function(input, output, session) {
         #addCircleMarkers(data=dfGoodPics, ~longitude, ~latitude,  popup = ~hyperink) #%>% 
          # addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
         
-     # }
+      }
       
       
       
