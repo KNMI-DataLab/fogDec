@@ -72,14 +72,17 @@ dashboardPage(
                HTML('<expert>Please provide your expert judgement on the picture too!<br>
                     Click on the button below to provide your input.</expert>'),
                HTML('<br>'),
+               HTML('<nbmex>NB: consider FOG a visibility of 250m or less</nbmex>'),
+               HTML('<br>'),
                actionButton("FOGbutton", "FOG"),
                actionButton("NOFOGbutton", "NO FOG"),
                actionButton("cannotButton", "Cannot say")
-
                ),
                tags$style(type="text/css", "#images { display: flex; justify-content: center; text-align:center}"),
                tags$style(type='text/css', "#FogBinary { margin-top: 10px; text-align: left; font-size: 30px; font-family: Comic Sans MS, cursive, sans-serif;}"),
-               tags$style(type='text/css', "expert { margin-top: 10px; text-align: left; font-size: 15px; font-family: Comic Sans MS, cursive, sans-serif;}")
+               tags$style(type='text/css', "expert { margin-top: 10px; text-align: left; font-size: 15px; font-family: Comic Sans MS, cursive, sans-serif;}"),
+               tags$style(type='text/css', "nbmex { margin-top: 10px; text-align: left; font-size: 20px; font-family: Comic Sans MS, cursive, sans-serif;}")
+      
                
       
                
