@@ -11,7 +11,6 @@ library(jsonlite)
 library(RJSONIO)
 library(stringr)
 library(logging)
-#library(leafpop)
 library(imager)
 library(h2o)
 ##########
@@ -21,30 +20,30 @@ library(h2o)
 
 firstOccurrence<<-TRUE
 
-  # temp_directory<-"/external/temp/"
-  # df_debug_file<-"/external/debug/debugDF.csv"
-  # log_file<-"/external/log/logFile.log"
-  # state_file<-"/external/state/currentState.json"
-  # cameras_for_detection_file<-"/external/config/MVPCameras.json"
-  # queue_conf_file<-"/external/config/queueConfig.json"
-  # DB_conf_file<-"/external/config/configDB.json"
-  # tempImagesStorage<-"/external/tempImageStorage/
-  # imagesLocation<-"/external/pictures/"
+  temp_directory<-"/external/temp/"
+  df_debug_file<-"/external/debug/debugDF.csv"
+  log_file<-"/external/log/logFile.log"
+  state_file<-"/external/state/currentState.json"
+  cameras_for_detection_file<-"/external/config/MVPCameras.json"
+  queue_conf_file<-"/external/config/queueConfig.json"
+  DB_conf_file<-"/external/config/configDB.json"
+  tempImagesStorage<-"/external/tempImageStorage/"
+  imagesLocation<-"/external/pictures/"
 
   
   
-  #local config
-  temp_directory<-"/home/pagani/temp/"
-  df_debug_file<-"/home/pagani/temp/debug/debugDF.csv"
-  log_file<-"/home/pagani/temp/log/logFile.log"
-  state_file<-"/home/pagani/temp/state/currentState.json"
-  cameras_for_detection_file<-"/home/pagani/temp/config/MVPCameras.json"
-  queue_conf_file<-"/home/pagani/temp/config/queueConfig.json"
-  DB_conf_file<-"/home/pagani/temp/config/configDB.json"
-  temp_directory<-"/home/pagani/temp/Rtemp"
-  temp_directory<-"/tmp"
-  imagesLocation<-"/home/pagani/share/"
-  tempImagesStorage<-"/data2/temp/tempPicFogVis/"
+  # local config
+  # temp_directory<-"/home/pagani/temp/"
+  # df_debug_file<-"/home/pagani/temp/debug/debugDF.csv"
+  # log_file<-"/home/pagani/temp/log/logFile.log"
+  # state_file<-"/home/pagani/temp/state/currentState.json"
+  # cameras_for_detection_file<-"/home/pagani/temp/config/MVPCameras.json"
+  # queue_conf_file<-"/home/pagani/temp/config/queueConfig.json"
+  # DB_conf_file<-"/home/pagani/temp/config/configDB.json"
+  # temp_directory<-"/home/pagani/temp/Rtemp"
+  # temp_directory<-"/tmp"
+  # imagesLocation<-"/home/pagani/share/"
+  # tempImagesStorage<-"/data2/temp/tempPicFogVis/"
 
 
 message("visualization platform ready")
