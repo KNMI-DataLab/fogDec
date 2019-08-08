@@ -17,7 +17,7 @@ library(leafpop)
 ##########
 
 
-firstOccurrence = TRUE
+firstOccurrence<<-TRUE
 
   # temp_directory<-"/external/temp/"
   # df_debug_file<-"/external/debug/debugDF.csv"
@@ -588,7 +588,7 @@ shinyServer(function(input, output, session) {
     
     
     if(firstOccurrence==TRUE){
-      firstOccurrence=FALSE
+      firstOccurrence<<-FALSE
       message("First Occurrence, queue is empty: using last retrieved values")
       df<-tryCatch({
         fromJSONtoDF(state_file)
