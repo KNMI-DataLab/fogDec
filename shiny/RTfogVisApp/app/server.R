@@ -11,7 +11,7 @@ library(jsonlite)
 library(RJSONIO)
 library(stringr)
 library(logging)
-library(leafpop)
+#library(leafpop)
 library(imager)
 library(h2o)
 ##########
