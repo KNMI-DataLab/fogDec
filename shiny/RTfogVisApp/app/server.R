@@ -30,10 +30,12 @@ firstOccurrence<<-TRUE
   tempImagesStorage<-"/external/tempImageStorage/"
   imagesLocation<-"/external/pictures/"
   modelsPath<-"/external/models/"
+  h2o_jar_path = "/usr/local/lib/R/site-library/h2o/java/h2o.jar"
+
 
   
   
-  # local config
+  #local config
   # temp_directory<-"/home/pagani/temp/"
   # df_debug_file<-"/home/pagani/temp/debug/debugDF.csv"
   # log_file<-"/home/pagani/temp/log/logFile.log"
@@ -45,6 +47,17 @@ firstOccurrence<<-TRUE
   # temp_directory<-"/tmp"
   # imagesLocation<-"/home/pagani/share/"
   # tempImagesStorage<-"/data2/temp/tempPicFogVis/"
+  # modelsPath<-"/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/"
+  # h2o_jar_path = "/usr/lib64/R/library/h2o/java/h2o.jar"
+  # 
+  
+  model_zip_path_day <- paste0(modelsPath,"dl_grid_model_35.zip")
+  model_zip_path_civil_dawn <- paste0(modelsPath,"dl_grid_model_8.zip")
+  model_zip_path_nautical_dawn <- paste0(modelsPath,"dl_grid_model_15.zip")
+  model_zip_path_night <-paste0(modelsPath, "dl_grid_model_NIGHT_15.zip")
+  
+  
+  
 
 
 message("visualization platform ready")
@@ -160,32 +173,31 @@ locationAndID<-timeStampTemp[1]
 
 
 
-remote=FALSE
-
-if(remote==TRUE){
-  model_zip_path = "/workspace/andrea/exports/models/dl_grid_model_35.zip"
-  h2o_jar_path = "/usr/local/lib/R/site-library/h2o/java/h2o.jar"
-  devel_dir<-"/workspace/andrea/"
-  #for amazon###
-  fileLocation<-"/workspace/andrea/exports/A2-HM776-ID10915_20180606_0801.jpg"
-  #####
-  results_json<-"/workspace/andrea/exports/results/predictions/test.json"
-  temp_directory<-"/workspace/andrea/tmp"
-  ##TO BE CHNAGED THE LOCATIONS
-  model_zip_path_day = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_35.zip"
-  model_zip_path_civil_dawn = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_8.zip"
-  model_zip_path_nautical_dawn = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_15.zip"
-  model_zip_path_night = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_NIGHT_15.zip"
-}else{
-  model_zip_path_day <- paste0(modelsPath,"dl_grid_model_35.zip")
-  model_zip_path_civil_dawn <- paste0(modelsPath,"dl_grid_model_8.zip")
-  model_zip_path_nautical_dawn <- paste0(modelsPath,"dl_grid_model_15.zip")
-  model_zip_path_night <-paste0(modelsPath, "dl_grid_model_NIGHT_15.zip")
-  h2o_jar_path = "/usr/local/lib/R/site-library/h2o/java/h2o.jar"
-  #devel_dir<-"/home/pagani/development/"
-  #results_json<-"/home/pagani/nndataH2O/frozenModels/results/predictions/test.json"
-
-}
+# remote=FALSE
+# 
+# if(remote==TRUE){
+#   model_zip_path = "/workspace/andrea/exports/models/dl_grid_model_35.zip"
+#   h2o_jar_path = "/usr/local/lib/R/site-library/h2o/java/h2o.jar"
+#   devel_dir<-"/workspace/andrea/"
+#   #for amazon###
+#   fileLocation<-"/workspace/andrea/exports/A2-HM776-ID10915_20180606_0801.jpg"
+#   #####
+#   results_json<-"/workspace/andrea/exports/results/predictions/test.json"
+#   temp_directory<-"/workspace/andrea/tmp"
+#   ##TO BE CHNAGED THE LOCATIONS
+#   model_zip_path_day = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_35.zip"
+#   model_zip_path_civil_dawn = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_8.zip"
+#   model_zip_path_nautical_dawn = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_15.zip"
+#   model_zip_path_night = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_NIGHT_15.zip"
+# }else{
+#   model_zip_path_day <- paste0(modelsPath,"dl_grid_model_35.zip")
+#   model_zip_path_civil_dawn <- paste0(modelsPath,"dl_grid_model_8.zip")
+#   model_zip_path_nautical_dawn <- paste0(modelsPath,"dl_grid_model_15.zip")
+#   model_zip_path_night <-paste0(modelsPath, "dl_grid_model_NIGHT_15.zip")
+#   #devel_dir<-"/home/pagani/development/"
+#   #results_json<-"/home/pagani/nndataH2O/frozenModels/results/predictions/test.json"
+# 
+# }
 
 
 
