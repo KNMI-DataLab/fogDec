@@ -618,7 +618,7 @@ shinyServer(function(input, output, session) {
     
     ##CHANGE HERE FOR THE FIRST OCCURRENCE
     #if(minReminder==3 | minReminder==4 ){
-    if(minReminder==3) {
+    if(minReminder==3| minReminder==2) {
       
       
       req <- curl_fetch_memory(paste0("http://",jsonQueue$host,":8080/api/queues/%2f/RTvisual/get"), handle = h)
