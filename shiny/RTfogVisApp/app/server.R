@@ -27,11 +27,15 @@ firstOccurrence<<-TRUE
   cameras_for_detection_file<-"/external/config/MVPCameras.json"
   queue_conf_file<-"/external/config/queueConfig.json"
   DB_conf_file<-"/external/config/configDB.json"
-  tempImagesStorage<-"/external/tempImageStorage/"
-  imagesLocation<-"/external/pictures/"
+  #tempImagesStorage<-"/external/tempImageStorage/"
+  imagesLocationDetection<-"/external/pictures/detection/"
+  imagesLocationValidation<-"/external/pictures/validation/"
   modelsPath<-"/external/models/"
   h2o_jar_path = "/usr/local/lib/R/site-library/h2o/java/h2o.jar"
-
+  ####AWS config part###
+  aws_S3_config = "/external/config/S3config.json"
+  
+  
 
   
   
@@ -45,7 +49,7 @@ firstOccurrence<<-TRUE
   # DB_conf_file<-"/home/pagani/temp/config/configDB.json"
   # temp_directory<-"/home/pagani/temp/Rtemp"
   # temp_directory<-"/tmp"
-  # imagesLocation<-"/home/pagani/share/"
+  # imagesLocationDetection<-"/home/pagani/share/"
   # tempImagesStorage<-"/data2/temp/tempPicFogVis/"
   # modelsPath<-"/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/"
   # h2o_jar_path = "/usr/lib64/R/library/h2o/java/h2o.jar"
@@ -56,6 +60,19 @@ firstOccurrence<<-TRUE
   model_zip_path_nautical_dawn <- paste0(modelsPath,"dl_grid_model_15.zip")
   model_zip_path_night <-paste0(modelsPath, "dl_grid_model_NIGHT_15.zip")
   
+  
+  
+  
+  library(aws.s3)
+  ##AWS S3 section to access to images
+  S3config<-jsonlite::fromJSON(aws_S3_config)
+  
+  Sys.setenv("AWS_DEFAULT_REGION" = S3config$region_name,
+             "AWS_ACCESS_KEY_ID" = S3config$aws_access_key_id,
+             "AWS_SECRET_ACCESS_KEY" = S3config$aws_secret_access_key
+  )
+  
+  print("initialized S3 credentials")
   
   
 
@@ -151,7 +168,7 @@ fromImageToFeatures<-function(filename){
 
 
 convertToLocalFilepath<-function(remoteFilepath){
-  fileLocation<-gsub(".*/nas-research.knmi.nl/sensordata/CAMERA/", imagesLocation, remoteFilepath)
+  fileLocation<-gsub(".*/nas-research.knmi.nl/sensordata/CAMERA/", "", remoteFilepath)
   fileLocation
 }
 
@@ -406,11 +423,29 @@ shinyServer(function(input, output, session) {
       
       #df$localFileLocation<-gsub("pictures/","/external/pictures/",df$fileLocation)
       ######TO BE REMOVED####
-      unlink(tempImagesStorage)
-      df$localFileLocation<-gsub("pictures/",imagesLocation,df$fileLocation)
+      #unlink(tempImagesStorage)
+      df$localFileLocation<-gsub("pictures/",imagesLocationDetection,df$fileLocation)
       df$filename<-basename(df$localFileLocation)
-      file.copy(df$localFileLocation,tempImagesStorage)
-      df$localFileLocation<-paste0(tempImagesStorage ,df$filename)
+      
+      
+      
+      #file.copy(df$localFileLocation,tempImagesStorage)
+      
+      ################
+      localTempSavedLocation <- paste0(imagesLocationDetection,fileLocation)
+      
+      save_object(object = fileLocation, bucket = 'knmi-fogdetection-dataset',
+                  file = localTempSavedLocation)
+      print(paste("file location",localTempSavedLocation))
+      print("object saved")
+      
+      
+      
+      
+      #################
+      
+      
+      df$localFileLocation<-paste0(localTempSavedLocation ,df$filename)
       ###########
       
       #print(df$localFileLocation)
@@ -479,6 +514,19 @@ shinyServer(function(input, output, session) {
   dayPhaseImage<-imageDBrecord$day_phase
 
   localImageFilepath<-convertToLocalFilepath(imagename)
+  
+  
+  #############3
+  localTempSavedLocation <- paste0(imagesLocationValidation,localImageFilepath)
+  
+  save_object(object = localImageFilepath, bucket = 'knmi-fogdetection-dataset',
+              file = localTempSavedLocation)
+  print(paste("file location",localTempSavedLocation))
+  print("object saved")
+  
+  ###############
+  
+  
 
   image_id<-imageDBrecord$image_id
   camera_id<-imageDBrecord$camera_id
@@ -503,10 +551,6 @@ shinyServer(function(input, output, session) {
 
 
       output$images <- renderImage({
-
-
-
-
         # Return a list containing the filename
         list(src = localImageFilepath,
              contentType = 'image/png',
@@ -514,11 +558,7 @@ shinyServer(function(input, output, session) {
              #height = 300,
              alt = "This is alternate text")
       }, deleteFile = TRUE)
-
-
       DFannotation
-
-
   }
 
   dfInitial<<-getAndShowNewImage()
