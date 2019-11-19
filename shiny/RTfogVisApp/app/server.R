@@ -514,10 +514,11 @@ shinyServer(function(input, output, session) {
   dayPhaseImage<-imageDBrecord$day_phase
 
   localImageFilepath<-convertToLocalFilepath(imagename)
+  filenameImage<-basename(localImageFilepath)
   
   
   #############3
-  localTempSavedLocation <- paste0(imagesLocationValidation,localImageFilepath)
+  localTempSavedLocation <- paste0(imagesLocationValidation,filenameImage)
   
   save_object(object = localImageFilepath, bucket = 'knmi-fogdetection-dataset',
               file = localTempSavedLocation)
