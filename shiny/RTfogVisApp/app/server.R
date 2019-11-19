@@ -420,9 +420,9 @@ shinyServer(function(input, output, session) {
       )
       
       
-      print('#######')
-      print(df[1])
-      print('#######')
+      #print('#######')
+      #print(df[1])
+      #print('#######')
       
       
       #df$localFileLocation<-gsub("pictures/","/external/pictures/",df$fileLocation)
@@ -432,8 +432,12 @@ shinyServer(function(input, output, session) {
       df$filename<-basename(df$localFileLocation)
       
       
-      #localImageFilepath<-convertToLocalFilepath(imagename)
+      localImageFilepath<-convertToLocalFilepath(df$fileLocation)
       #filenameImage<-basename(localImageFilepath)
+
+	print(localImageFilepath)
+
+
       
       
       
