@@ -535,6 +535,9 @@ shinyServer(function(input, output, session) {
 
   localImageFilepath<-convertToLocalFilepath(imagename)
   filenameImage<-basename(localImageFilepath)
+
+  print("validation part")
+  print(filenameImage)
   
   
   #############3
@@ -583,7 +586,7 @@ error=function(cond) {
 
       output$images <- renderImage({
         # Return a list containing the filename
-        list(src = localImageFilepath,
+        list(src = localTempSavedLocation,
              contentType = 'image/png',
              #width = 400,
              #height = 300,
