@@ -447,7 +447,7 @@ shinyServer(function(input, output, session) {
       ################
       localTempSavedLocation <- paste0(imagesLocationDetection,df$filename)
       
-      save_object(object = fileLocation, bucket = 'knmi-fogdetection-dataset',
+      save_object(object = localImageFilepath, bucket = 'knmi-fogdetection-dataset',
                   file = localTempSavedLocation)
       print(paste("file location",localTempSavedLocation))
       print("object saved real time detection")
