@@ -421,11 +421,18 @@ shinyServer(function(input, output, session) {
       
       
       
+      print(df$fileLocation)
+      
       #df$localFileLocation<-gsub("pictures/","/external/pictures/",df$fileLocation)
       ######TO BE REMOVED####
       #unlink(tempImagesStorage)
       df$localFileLocation<-gsub("pictures/",imagesLocationDetection,df$fileLocation)
       df$filename<-basename(df$localFileLocation)
+      
+      
+      #localImageFilepath<-convertToLocalFilepath(imagename)
+      #filenameImage<-basename(localImageFilepath)
+      
       
       
       
