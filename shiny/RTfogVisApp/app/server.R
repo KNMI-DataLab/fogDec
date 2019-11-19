@@ -537,7 +537,7 @@ shinyServer(function(input, output, session) {
 
 
 
-  fogginess<-predictImage(localImageFilepath, dayPhaseImage)
+  fogginess<-predictImage(localTempSavedLocation, dayPhaseImage)
   if(fogginess[[1]]){
     fogChar<-"FOG"
   }else{
