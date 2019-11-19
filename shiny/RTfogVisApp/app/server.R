@@ -25,7 +25,7 @@ firstOccurrence<<-TRUE
   log_file<-"/external/log/logFile.log"
   state_file<-"/external/state/currentState.json"
   cameras_for_detection_file<-"/external/config/MVPCameras.json"
-  queue_conf_file<-"/external/config/queueConfig.json"
+  queue_conf_file<-"/external/config/queueConf.json"
   DB_conf_file<-"/external/config/configDB.json"
   #tempImagesStorage<-"/external/tempImageStorage/"
   imagesLocationDetection<-"/external/pictures/detection/"
