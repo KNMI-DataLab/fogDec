@@ -432,7 +432,7 @@ shinyServer(function(input, output, session) {
       #file.copy(df$localFileLocation,tempImagesStorage)
       
       ################
-      localTempSavedLocation <- paste0(imagesLocationDetection,fileLocation)
+      localTempSavedLocation <- paste0(imagesLocationDetection,df$filename)
       
       save_object(object = fileLocation, bucket = 'knmi-fogdetection-dataset',
                   file = localTempSavedLocation)
