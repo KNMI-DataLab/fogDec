@@ -529,8 +529,18 @@ shinyServer(function(input, output, session) {
   #############3
   localTempSavedLocation <- paste0(imagesLocationValidation,filenameImage)
   
+  out<-tryCatch({
+
   save_object(object = localImageFilepath, bucket = 'knmi-fogdetection-dataset',
               file = localTempSavedLocation)
+},
+error=function(cond) {
+            message(paste("URL does not seem to exist:", url))
+            message("Here's the original error message:")
+            message(cond)
+            # Choose a return value in case of error
+            return(NA)})
+
   print(paste("file location",localTempSavedLocation))
   print("object saved")
   
