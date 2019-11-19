@@ -420,8 +420,10 @@ shinyServer(function(input, output, session) {
       )
       
       
-      
+      print('#######')
       print(df$fileLocation)
+      print('#######')
+      
       
       #df$localFileLocation<-gsub("pictures/","/external/pictures/",df$fileLocation)
       ######TO BE REMOVED####
