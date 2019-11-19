@@ -421,7 +421,7 @@ shinyServer(function(input, output, session) {
       
       
       print('#######')
-      print(df$fileLocation)
+      print(df[1])
       print('#######')
       
       
