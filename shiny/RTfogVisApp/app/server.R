@@ -539,7 +539,7 @@ shinyServer(function(input, output, session) {
               file = localTempSavedLocation)
 },
 error=function(cond) {
-            message(paste("URL does not seem to exist:", url))
+            message(paste("URL does not seem to exist))
             message("Here's the original error message:")
             message(cond)
             # Choose a return value in case of error
