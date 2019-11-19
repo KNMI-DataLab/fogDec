@@ -168,7 +168,7 @@ fromImageToFeatures<-function(filename){
 
 
 convertToLocalFilepath<-function(remoteFilepath){
-  fileLocation<-gsub(".*/nas-research.knmi.nl/sensordata/CAMERA/RWS/", "", remoteFilepath)
+  fileLocation<-gsub(".*/RWS/", "", remoteFilepath)
   fileLocation
 }
 
