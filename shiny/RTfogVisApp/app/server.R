@@ -465,7 +465,7 @@ shinyServer(function(input, output, session) {
       #################
       
       
-      df$localFileLocation<-paste0(localTempSavedLocation ,df$filename)
+      df$localFileLocation<-localTempSavedLocation
       ###########
       
       #print(df$localFileLocation)
