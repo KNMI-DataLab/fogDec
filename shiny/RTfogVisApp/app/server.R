@@ -553,7 +553,7 @@ error=function(cond) {
             message("Here's the original error message:")
             message(cond)
             # Choose a return value in case of error
-            return(NA)})
+            return(NULL)})
 
   print(paste("file location",localTempSavedLocation))
   print("object saved")
