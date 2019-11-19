@@ -434,7 +434,7 @@ shinyServer(function(input, output, session) {
       
       localImageFilepath<-convertToLocalFilepath(df$fileLocation)
       #filenameImage<-basename(localImageFilepath)
-
+	print(df$fileLocation)
 	print(localImageFilepath)
 
 
