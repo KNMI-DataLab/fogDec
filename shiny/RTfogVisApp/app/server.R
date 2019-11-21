@@ -557,6 +557,10 @@ error=function(cond) {
 
 if(is.null(out)){
 return(NULL)}
+  
+  if(is.null(out)){
+    getAndShowNewImage()
+  }
 
 
   print(paste("file location",localTempSavedLocation))
