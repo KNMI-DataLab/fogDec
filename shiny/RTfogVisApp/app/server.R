@@ -543,23 +543,24 @@ shinyServer(function(input, output, session) {
   #############3
   localTempSavedLocation <- paste0(imagesLocationValidation,filenameImage)
   
-  out<-tryCatch({
+#  out<-tryCatch({
+    
+  head_obj<-head_object(object = localImageFilepath, bucket = 'knmi-fogdetection-dataset')
 
+  print(head_obj)
+  
   save_object(object = localImageFilepath, bucket = 'knmi-fogdetection-dataset',
               file = localTempSavedLocation)
-},
-error=function(cond) {
-            message(paste("URL does not seem to exist"))
-            message("Here's the original error message:")
-            message(cond)
-            getAndShowNewImage()
-            # Choose a return value in case of error
-            return("pippo")})
+# },
+# error=function(cond) {
+#             message(paste("URL does not seem to exist"))
+#             message("Here's the original error message:")
+#             message(cond)
+#             getAndShowNewImage()
+#             # Choose a return value in case of error
+#             return("pippo")})
 
-  if(out=="pippo"){
-  print("I am inside issue")
-    getAndShowNewImage()
-  }
+  
 
 
   print(paste("file location",localTempSavedLocation))
