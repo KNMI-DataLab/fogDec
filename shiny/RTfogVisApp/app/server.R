@@ -552,6 +552,7 @@ error=function(cond) {
             message(paste("URL does not seem to exist"))
             message("Here's the original error message:")
             message(cond)
+            getAndShowNewImage()
             # Choose a return value in case of error
             return("pippo")})
 
