@@ -573,7 +573,7 @@ shinyServer(function(input, output, session) {
     dfInitial<<-getAndShowNewImage()  
     print("567")
   }
-  
+  print("test 1111")
   dfValid<<-NULL
   observeEvent(input$FOGbutton, {
     if(is.null(dfInitial)){
