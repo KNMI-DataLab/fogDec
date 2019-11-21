@@ -547,10 +547,12 @@ shinyServer(function(input, output, session) {
     
   head_obj<-head_object(object = localImageFilepath, bucket = 'knmi-fogdetection-dataset')
 
-  print(head_obj)
-  
+  if(head_obj){
   save_object(object = localImageFilepath, bucket = 'knmi-fogdetection-dataset',
               file = localTempSavedLocation)
+  } else{
+    getAndShowNewImage()
+  }
 # },
 # error=function(cond) {
 #             message(paste("URL does not seem to exist"))
