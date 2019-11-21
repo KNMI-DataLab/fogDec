@@ -555,9 +555,6 @@ error=function(cond) {
             # Choose a return value in case of error
             return(NULL)})
 
-if(is.null(out)){
-return(NULL)}
-  
   if(is.null(out)){
     getAndShowNewImage()
   }
