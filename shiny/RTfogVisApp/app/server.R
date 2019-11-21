@@ -610,6 +610,10 @@ shinyServer(function(input, output, session) {
   }
 
   dfInitial<<-getAndShowNewImage()
+  while(is.null(dfInitial)){
+    dfInitial<<-getAndShowNewImage()  
+  }
+  
   dfValid<<-NULL
   observeEvent(input$FOGbutton, {
     if(is.null(dfInitial)){
@@ -619,6 +623,9 @@ shinyServer(function(input, output, session) {
     dbWriteTable(con, "manual_annotations", dfValid, append = TRUE, row.names = FALSE, match.cols = TRUE)
     dbDisconnect(con)
     dfValid<<-getAndShowNewImage()
+    while(is.null(dfValid)){
+      dfValid<<-getAndShowNewImage()  
+    }
     Sys.sleep(0.3)
     } else{
       dfInitial$visibility_qualitative<-"FOG"
@@ -628,6 +635,9 @@ shinyServer(function(input, output, session) {
       dbDisconnect(con)
       dfInitial<<-NULL
       dfValid<<-getAndShowNewImage()
+      while(is.null(dfValid)){
+        dfValid<<-getAndShowNewImage()  
+      }
     }
 
   })
@@ -640,6 +650,9 @@ shinyServer(function(input, output, session) {
       dbWriteTable(con, "manual_annotations", dfValid, append = TRUE, row.names = FALSE, match.cols = TRUE)
       dbDisconnect(con)
       dfValid<<-getAndShowNewImage()
+      while(is.null(dfValid)){
+        dfValid<<-getAndShowNewImage()  
+      }
       Sys.sleep(0.3)
 
     } else{
@@ -650,6 +663,9 @@ shinyServer(function(input, output, session) {
       dbDisconnect(con)
       dfInitial<<-NULL
       dfValid<<-getAndShowNewImage()
+      while(is.null(dfValid)){
+        dfValid<<-getAndShowNewImage()  
+      }
     }
 
   })
@@ -662,6 +678,9 @@ shinyServer(function(input, output, session) {
       dbWriteTable(con, "manual_annotations", dfValid, append = TRUE, row.names = FALSE, match.cols = TRUE)
       dbDisconnect(con)
       dfValid<<-getAndShowNewImage()
+      while(is.null(dfValid)){
+        dfValid<<-getAndShowNewImage()  
+      }
       Sys.sleep(0.3)
 
     } else{
@@ -672,6 +691,9 @@ shinyServer(function(input, output, session) {
       dbDisconnect(con)
       dfInitial<<-NULL
       dfValid<<-getAndShowNewImage()
+      while(is.null(dfValid)){
+        dfValid<<-getAndShowNewImage()  
+      }
     }
   })
 
