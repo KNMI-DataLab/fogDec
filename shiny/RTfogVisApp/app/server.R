@@ -555,7 +555,9 @@ shinyServer(function(input, output, session) {
               file = localTempSavedLocation)
   } else{
     print("inside error")
-    return(NULL)
+    DFannotation<-NULL
+    print(DFannotation)
+    return(DFannotation)
   }
   print(paste("file location",localTempSavedLocation))
   print("object saved")
