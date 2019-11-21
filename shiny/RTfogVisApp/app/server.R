@@ -557,14 +557,7 @@ shinyServer(function(input, output, session) {
     print("inside error")
     return(NULL)
   }
-# },
-# error=function(cond) {
-#             message(paste("URL does not seem to exist"))
-#             message("Here's the original error message:")
-#             message(cond)
-#             getAndShowNewImage()
-#             # Choose a return value in case of error
-#             return("pippo")})
+
 
   
 
@@ -572,46 +565,13 @@ shinyServer(function(input, output, session) {
   print(paste("file location",localTempSavedLocation))
   print("object saved")
   
-  ###############
-  
-  
-
-  image_id<-imageDBrecord$image_id
-  camera_id<-imageDBrecord$camera_id
-  timestamp<-imageDBrecord$timestamp
-
-  DFannotation<-data.frame(camera_id,timestamp,image_id)
-
-
-
-  fogginess<-predictImage(localTempSavedLocation, dayPhaseImage)
-  if(fogginess[[1]]){
-    fogChar<-"FOG"
-  }else{
-    fogChar<-"NO FOG"
-  }
-
-  output$FogBinary<-renderUI({HTML('Machine classification is:', fogChar)})
-  output$probFog<-renderUI({HTML('Probability of fog in the  image:',as.character(round(100*fogginess[[2]],2)),"%")})
-  output$probNoFog<-renderUI({HTML('Probability of non-fog in the  image:',as.character(round(100*fogginess[[3]],2)),"%")})
-
-  print(fogginess)
-
-
-      output$images <- renderImage({
-        # Return a list containing the filename
-        list(src = localTempSavedLocation,
-             contentType = 'image/png',
-             #width = 400,
-             #height = 300,
-             alt = "This is alternate text")
-      }, deleteFile = TRUE)
-      DFannotation
   }
 
   dfInitial<<-getAndShowNewImage()
   while(is.null(dfInitial)){
+    print("123")
     dfInitial<<-getAndShowNewImage()  
+    print("567")
   }
   
   dfValid<<-NULL
@@ -624,7 +584,9 @@ shinyServer(function(input, output, session) {
     dbDisconnect(con)
     dfValid<<-getAndShowNewImage()
     while(is.null(dfValid)){
-      dfValid<<-getAndShowNewImage()  
+      print("ABC111")
+      dfValid<<-getAndShowNewImage()
+      print("ABC222")
     }
     Sys.sleep(0.3)
     } else{
@@ -636,7 +598,9 @@ shinyServer(function(input, output, session) {
       dfInitial<<-NULL
       dfValid<<-getAndShowNewImage()
       while(is.null(dfValid)){
-        dfValid<<-getAndShowNewImage()  
+        print("ABC111")
+        dfValid<<-getAndShowNewImage()
+        print("ABC222")  
       }
     }
 
@@ -651,7 +615,9 @@ shinyServer(function(input, output, session) {
       dbDisconnect(con)
       dfValid<<-getAndShowNewImage()
       while(is.null(dfValid)){
-        dfValid<<-getAndShowNewImage()  
+        print("ABC111")
+        dfValid<<-getAndShowNewImage()
+        print("ABC222")  
       }
       Sys.sleep(0.3)
 
@@ -664,7 +630,9 @@ shinyServer(function(input, output, session) {
       dfInitial<<-NULL
       dfValid<<-getAndShowNewImage()
       while(is.null(dfValid)){
-        dfValid<<-getAndShowNewImage()  
+        print("ABC111")
+        dfValid<<-getAndShowNewImage()
+        print("ABC222")  
       }
     }
 
@@ -679,7 +647,9 @@ shinyServer(function(input, output, session) {
       dbDisconnect(con)
       dfValid<<-getAndShowNewImage()
       while(is.null(dfValid)){
-        dfValid<<-getAndShowNewImage()  
+        print("ABC111")
+        dfValid<<-getAndShowNewImage()
+        print("ABC222") 
       }
       Sys.sleep(0.3)
 
@@ -692,7 +662,9 @@ shinyServer(function(input, output, session) {
       dfInitial<<-NULL
       dfValid<<-getAndShowNewImage()
       while(is.null(dfValid)){
-        dfValid<<-getAndShowNewImage()  
+        print("ABC111")
+        dfValid<<-getAndShowNewImage()
+        print("ABC222")  
       }
     }
   })
