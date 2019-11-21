@@ -613,31 +613,25 @@ shinyServer(function(input, output, session) {
     if(is.null(dfInitial)){
       dfValid$visibility_qualitative<-"FOG"
     print(dfValid)
+    if(is.null(dfValid)==FALSE){
     con<-prepareDBconnection()
     dbWriteTable(con, "manual_annotations", dfValid, append = TRUE, row.names = FALSE, match.cols = TRUE)
     dbDisconnect(con)
+    }
     dfValid<<-getAndShowNewImage()
     print(dfValid)
-    while(is.null(dfValid)){
-      print("ABC111")
-      dfValid<<-getAndShowNewImage()
-      print("ABC222")
-    }
     Sys.sleep(0.3)
     } else{
       dfInitial$visibility_qualitative<-"FOG"
       print(dfInitial)
+      if(is.null(dfInitial)==FALSE){
       con<-prepareDBconnection()
       dbWriteTable(con, "manual_annotations", dfInitial, append = TRUE, row.names = FALSE, match.cols = TRUE)
       dbDisconnect(con)
+      }
       dfInitial<<-NULL
       dfValid<<-getAndShowNewImage()
       print(dfValid)
-      while(is.null(dfValid)){
-        print("ABC111")
-        dfValid<<-getAndShowNewImage()
-        print("ABC222")  
-      }
     }
 
   })
@@ -646,32 +640,26 @@ shinyServer(function(input, output, session) {
     if(is.null(dfInitial)){
       dfValid$visibility_qualitative<-"NO FOG"
       print(dfValid)
+      if(is.null(dfValid)==FALSE){
       con<-prepareDBconnection()
       dbWriteTable(con, "manual_annotations", dfValid, append = TRUE, row.names = FALSE, match.cols = TRUE)
       dbDisconnect(con)
+      }
       dfValid<<-getAndShowNewImage()
       print(dfValid)
-      while(is.null(dfValid)){
-        print("ABC111")
-        dfValid<<-getAndShowNewImage()
-        print("ABC222")  
-      }
       Sys.sleep(0.3)
 
     } else{
       dfInitial$visibility_qualitative<-"NO FOG"
       print(dfInitial)
+      if(is.null(dfInitial)==FALSE){
       con<-prepareDBconnection()
       dbWriteTable(con, "manual_annotations", dfInitial, append = TRUE, row.names = FALSE, match.cols = TRUE)
       dbDisconnect(con)
+      }
       dfInitial<<-NULL
       dfValid<<-getAndShowNewImage()
       print(dfValid)
-      while(is.null(dfValid)){
-        print("ABC111")
-        dfValid<<-getAndShowNewImage()
-        print("ABC222")  
-      }
     }
 
   })
@@ -680,32 +668,26 @@ shinyServer(function(input, output, session) {
     if(is.null(dfInitial)){
       dfValid$visibility_qualitative<-"CANNOT SAY"
       print(dfValid)
+      if(is.null(dfValid)==FALSE){
       con<-prepareDBconnection()
       dbWriteTable(con, "manual_annotations", dfValid, append = TRUE, row.names = FALSE, match.cols = TRUE)
       dbDisconnect(con)
+      }
       dfValid<<-getAndShowNewImage()
       print(dfValid)
-      while(is.null(dfValid)){
-        print("ABC111")
-        dfValid<<-getAndShowNewImage()
-        print("ABC222") 
-      }
       Sys.sleep(0.3)
 
     } else{
       dfInitial$visibility_qualitative<-"CANNOT SAY"
       print(dfInitial)
+      if(is.null(dfInitial)==FALSE){
       con<-prepareDBconnection()
       dbWriteTable(con, "manual_annotations", dfInitial, append = TRUE, row.names = FALSE, match.cols = TRUE)
       dbDisconnect(con)
+      }
       dfInitial<<-NULL
       dfValid<<-getAndShowNewImage()
       print(dfValid)
-      while(is.null(dfValid)){
-        print("ABC111")
-        dfValid<<-getAndShowNewImage()
-        print("ABC222")  
-      }
     }
   })
 
