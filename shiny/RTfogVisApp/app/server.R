@@ -557,11 +557,6 @@ shinyServer(function(input, output, session) {
     print("inside error")
     return(NULL)
   }
-
-
-  
-
-
   print(paste("file location",localTempSavedLocation))
   print("object saved")
   
@@ -620,6 +615,7 @@ shinyServer(function(input, output, session) {
     dbWriteTable(con, "manual_annotations", dfValid, append = TRUE, row.names = FALSE, match.cols = TRUE)
     dbDisconnect(con)
     dfValid<<-getAndShowNewImage()
+    print(dfValid)
     while(is.null(dfValid)){
       print("ABC111")
       dfValid<<-getAndShowNewImage()
@@ -634,6 +630,7 @@ shinyServer(function(input, output, session) {
       dbDisconnect(con)
       dfInitial<<-NULL
       dfValid<<-getAndShowNewImage()
+      print(dfValid)
       while(is.null(dfValid)){
         print("ABC111")
         dfValid<<-getAndShowNewImage()
@@ -651,6 +648,7 @@ shinyServer(function(input, output, session) {
       dbWriteTable(con, "manual_annotations", dfValid, append = TRUE, row.names = FALSE, match.cols = TRUE)
       dbDisconnect(con)
       dfValid<<-getAndShowNewImage()
+      print(dfValid)
       while(is.null(dfValid)){
         print("ABC111")
         dfValid<<-getAndShowNewImage()
@@ -666,6 +664,7 @@ shinyServer(function(input, output, session) {
       dbDisconnect(con)
       dfInitial<<-NULL
       dfValid<<-getAndShowNewImage()
+      print(dfValid)
       while(is.null(dfValid)){
         print("ABC111")
         dfValid<<-getAndShowNewImage()
@@ -683,6 +682,7 @@ shinyServer(function(input, output, session) {
       dbWriteTable(con, "manual_annotations", dfValid, append = TRUE, row.names = FALSE, match.cols = TRUE)
       dbDisconnect(con)
       dfValid<<-getAndShowNewImage()
+      print(dfValid)
       while(is.null(dfValid)){
         print("ABC111")
         dfValid<<-getAndShowNewImage()
@@ -698,6 +698,7 @@ shinyServer(function(input, output, session) {
       dbDisconnect(con)
       dfInitial<<-NULL
       dfValid<<-getAndShowNewImage()
+      print(dfValid)
       while(is.null(dfValid)){
         print("ABC111")
         dfValid<<-getAndShowNewImage()
