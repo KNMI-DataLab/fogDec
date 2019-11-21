@@ -611,9 +611,9 @@ shinyServer(function(input, output, session) {
   dfValid<<-NULL
   observeEvent(input$FOGbutton, {
     if(is.null(dfInitial)){
-      dfValid$visibility_qualitative<-"FOG"
-    print(dfValid)
     if(is.null(dfValid)==FALSE){
+    dfValid$visibility_qualitative<-"FOG"
+    print(dfValid)
     con<-prepareDBconnection()
     dbWriteTable(con, "manual_annotations", dfValid, append = TRUE, row.names = FALSE, match.cols = TRUE)
     dbDisconnect(con)
@@ -622,9 +622,10 @@ shinyServer(function(input, output, session) {
     print(dfValid)
     Sys.sleep(0.3)
     } else{
-      dfInitial$visibility_qualitative<-"FOG"
-      print(dfInitial)
+      
       if(is.null(dfInitial)==FALSE){
+        dfInitial$visibility_qualitative<-"FOG"
+        print(dfInitial)
       con<-prepareDBconnection()
       dbWriteTable(con, "manual_annotations", dfInitial, append = TRUE, row.names = FALSE, match.cols = TRUE)
       dbDisconnect(con)
@@ -638,9 +639,10 @@ shinyServer(function(input, output, session) {
 
   observeEvent(input$NOFOGbutton, {
     if(is.null(dfInitial)){
-      dfValid$visibility_qualitative<-"NO FOG"
-      print(dfValid)
+      
       if(is.null(dfValid)==FALSE){
+        dfValid$visibility_qualitative<-"NO FOG"
+        print(dfValid)
       con<-prepareDBconnection()
       dbWriteTable(con, "manual_annotations", dfValid, append = TRUE, row.names = FALSE, match.cols = TRUE)
       dbDisconnect(con)
@@ -650,9 +652,10 @@ shinyServer(function(input, output, session) {
       Sys.sleep(0.3)
 
     } else{
-      dfInitial$visibility_qualitative<-"NO FOG"
-      print(dfInitial)
+      
       if(is.null(dfInitial)==FALSE){
+        dfInitial$visibility_qualitative<-"NO FOG"
+        print(dfInitial)
       con<-prepareDBconnection()
       dbWriteTable(con, "manual_annotations", dfInitial, append = TRUE, row.names = FALSE, match.cols = TRUE)
       dbDisconnect(con)
@@ -666,9 +669,10 @@ shinyServer(function(input, output, session) {
 
   observeEvent(input$cannotButton, {
     if(is.null(dfInitial)){
-      dfValid$visibility_qualitative<-"CANNOT SAY"
-      print(dfValid)
+      
       if(is.null(dfValid)==FALSE){
+        dfValid$visibility_qualitative<-"CANNOT SAY"
+        print(dfValid)
       con<-prepareDBconnection()
       dbWriteTable(con, "manual_annotations", dfValid, append = TRUE, row.names = FALSE, match.cols = TRUE)
       dbDisconnect(con)
@@ -678,9 +682,10 @@ shinyServer(function(input, output, session) {
       Sys.sleep(0.3)
 
     } else{
-      dfInitial$visibility_qualitative<-"CANNOT SAY"
-      print(dfInitial)
+      
       if(is.null(dfInitial)==FALSE){
+        dfInitial$visibility_qualitative<-"CANNOT SAY"
+        print(dfInitial)
       con<-prepareDBconnection()
       dbWriteTable(con, "manual_annotations", dfInitial, append = TRUE, row.names = FALSE, match.cols = TRUE)
       dbDisconnect(con)
