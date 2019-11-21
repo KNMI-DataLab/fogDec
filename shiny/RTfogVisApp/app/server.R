@@ -565,8 +565,45 @@ shinyServer(function(input, output, session) {
   print(paste("file location",localTempSavedLocation))
   print("object saved")
   
+  
+  image_id<-imageDBrecord$image_id
+  camera_id<-imageDBrecord$camera_id
+  timestamp<-imageDBrecord$timestamp
+  
+  DFannotation<-data.frame(camera_id,timestamp,image_id)
+  
+  
+  
+  fogginess<-predictImage(localTempSavedLocation, dayPhaseImage)
+  if(fogginess[[1]]){
+    fogChar<-"FOG"
+  }else{
+    fogChar<-"NO FOG"
+  }
+  
+  output$FogBinary<-renderUI({HTML('Machine classification is:', fogChar)})
+  output$probFog<-renderUI({HTML('Probability of fog in the  image:',as.character(round(100*fogginess[[2]],2)),"%")})
+  output$probNoFog<-renderUI({HTML('Probability of non-fog in the  image:',as.character(round(100*fogginess[[3]],2)),"%")})
+  
+  print(fogginess)
+  
+  
+  output$images <- renderImage({
+    # Return a list containing the filename
+    list(src = localTempSavedLocation,
+         contentType = 'image/png',
+         #width = 400,
+         #height = 300,
+         alt = "This is alternate text")
+  }, deleteFile = TRUE)
+  DFannotation
+  
   }
 
+  
+  
+  
+  
   dfInitial<<-getAndShowNewImage()
   while(is.null(dfInitial)){
     print("123")
