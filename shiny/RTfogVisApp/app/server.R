@@ -53,6 +53,9 @@ firstOccurrence<<-TRUE
   # tempImagesStorage<-"/data2/temp/tempPicFogVis/"
   # modelsPath<-"/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/"
   # h2o_jar_path = "/usr/lib64/R/library/h2o/java/h2o.jar"
+  # aws_S3_config<- "/home/pagani/temp/S3config.json"
+  # imagesLocationDetection<-"/data2/pictures/detection/"
+  # imagesLocationValidation<-"/data2/pictures/validation/"
   # 
   
   model_zip_path_day <- paste0(modelsPath,"dl_grid_model_35.zip")
@@ -547,11 +550,12 @@ shinyServer(function(input, output, session) {
     
   head_obj<-head_object(object = localImageFilepath, bucket = 'knmi-fogdetection-dataset')
 
-  if(head_obj){
+  if(head_obj==TRUE){
   save_object(object = localImageFilepath, bucket = 'knmi-fogdetection-dataset',
               file = localTempSavedLocation)
   } else{
-    getAndShowNewImage()
+    print("inside error")
+    return(NULL)
   }
 # },
 # error=function(cond) {
