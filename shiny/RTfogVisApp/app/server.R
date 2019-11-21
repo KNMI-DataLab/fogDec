@@ -553,9 +553,10 @@ error=function(cond) {
             message("Here's the original error message:")
             message(cond)
             # Choose a return value in case of error
-            return(NULL)})
+            return("pippo")})
 
-  if(is.null(out)){
+  if(out=="pippo"){
+  print("I am inside issue")
     getAndShowNewImage()
   }
 
