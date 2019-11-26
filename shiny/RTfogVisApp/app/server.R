@@ -603,7 +603,7 @@ shinyServer(function(input, output, session) {
   
   dfInitial<<-getAndShowNewImage()
   while(is.null(dfInitial)){
-    unlink(imagesLocationValidation)
+    unlink(paste0(imagesLocationValidation,"*.jpg"))
     dfInitial<<-getAndShowNewImage()  
     
   }
@@ -617,7 +617,7 @@ shinyServer(function(input, output, session) {
     dbWriteTable(con, "manual_annotations", dfValid, append = TRUE, row.names = FALSE, match.cols = TRUE)
     dbDisconnect(con)
     }
-    unlink(imagesLocationValidation)
+    unlink(paste0(imagesLocationValidation,"*.jpg"))
     dfValid<<-getAndShowNewImage()
     print(dfValid)
     Sys.sleep(0.3)
@@ -631,7 +631,7 @@ shinyServer(function(input, output, session) {
       dbDisconnect(con)
       }
       dfInitial<<-NULL
-      unlink(imagesLocationValidation)
+      unlink(paste0(imagesLocationValidation,"*.jpg"))
       dfValid<<-getAndShowNewImage()
       print(dfValid)
     }
@@ -663,7 +663,7 @@ shinyServer(function(input, output, session) {
       dbDisconnect(con)
       }
       dfInitial<<-NULL
-      unlink(imagesLocationValidation)
+      unlink(paste0(imagesLocationValidation,"*.jpg"))
       dfValid<<-getAndShowNewImage()
       print(dfValid)
     }
@@ -680,7 +680,7 @@ shinyServer(function(input, output, session) {
       dbWriteTable(con, "manual_annotations", dfValid, append = TRUE, row.names = FALSE, match.cols = TRUE)
       dbDisconnect(con)
       }
-      unlink(imagesLocationValidation)
+      unlink(paste0(imagesLocationValidation,"*.jpg"))
       dfValid<<-getAndShowNewImage()
       print(dfValid)
       Sys.sleep(0.3)
@@ -695,7 +695,7 @@ shinyServer(function(input, output, session) {
       dbDisconnect(con)
       }
       dfInitial<<-NULL
-      unlink(imagesLocationValidation)
+      unlink(paste0(imagesLocationValidation,"*.jpg"))
       dfValid<<-getAndShowNewImage()
       print(dfValid)
     }
@@ -734,7 +734,7 @@ shinyServer(function(input, output, session) {
    if(minReminder==3| minReminder==2) {
      
      #removing the pictures previously temporary stored
-     unlink(paste0(imagesLocationDetection+"*.jpg"))
+     unlink(paste0(imagesLocationDetection,"*.jpg"))
       
       
       req <- curl_fetch_memory(paste0("http://",jsonQueue$host,":8080/api/queues/%2f/RTvisual/get"), handle = h)
