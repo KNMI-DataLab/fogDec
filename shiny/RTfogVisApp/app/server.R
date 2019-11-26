@@ -603,11 +603,10 @@ shinyServer(function(input, output, session) {
   
   dfInitial<<-getAndShowNewImage()
   while(is.null(dfInitial)){
-    print("123")
+    unlink(imagesLocationValidation)
     dfInitial<<-getAndShowNewImage()  
-    print("567")
+    
   }
-  print("test 1111")
   dfValid<<-NULL
   observeEvent(input$FOGbutton, {
     if(is.null(dfInitial)){
@@ -618,6 +617,7 @@ shinyServer(function(input, output, session) {
     dbWriteTable(con, "manual_annotations", dfValid, append = TRUE, row.names = FALSE, match.cols = TRUE)
     dbDisconnect(con)
     }
+    unlink(imagesLocationValidation)
     dfValid<<-getAndShowNewImage()
     print(dfValid)
     Sys.sleep(0.3)
@@ -631,6 +631,7 @@ shinyServer(function(input, output, session) {
       dbDisconnect(con)
       }
       dfInitial<<-NULL
+      unlink(imagesLocationValidation)
       dfValid<<-getAndShowNewImage()
       print(dfValid)
     }
@@ -647,6 +648,7 @@ shinyServer(function(input, output, session) {
       dbWriteTable(con, "manual_annotations", dfValid, append = TRUE, row.names = FALSE, match.cols = TRUE)
       dbDisconnect(con)
       }
+      unlink(imagesLocationValidation)
       dfValid<<-getAndShowNewImage()
       print(dfValid)
       Sys.sleep(0.3)
@@ -661,6 +663,7 @@ shinyServer(function(input, output, session) {
       dbDisconnect(con)
       }
       dfInitial<<-NULL
+      unlink(imagesLocationValidation)
       dfValid<<-getAndShowNewImage()
       print(dfValid)
     }
@@ -677,6 +680,7 @@ shinyServer(function(input, output, session) {
       dbWriteTable(con, "manual_annotations", dfValid, append = TRUE, row.names = FALSE, match.cols = TRUE)
       dbDisconnect(con)
       }
+      unlink(imagesLocationValidation)
       dfValid<<-getAndShowNewImage()
       print(dfValid)
       Sys.sleep(0.3)
@@ -691,6 +695,7 @@ shinyServer(function(input, output, session) {
       dbDisconnect(con)
       }
       dfInitial<<-NULL
+      unlink(imagesLocationValidation)
       dfValid<<-getAndShowNewImage()
       print(dfValid)
     }
@@ -705,8 +710,6 @@ shinyServer(function(input, output, session) {
   
   
   fetchNewFogDetection<-function(queueJson, handler){
-    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-  print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
     minReminder<-minute(Sys.time())%%10
    print(minReminder)
     
@@ -729,6 +732,9 @@ shinyServer(function(input, output, session) {
     ##CHANGE HERE FOR THE FIRST OCCURRENCE
     #if(minReminder==3 | minReminder==4 ){
    if(minReminder==3| minReminder==2) {
+     
+     #removing the pictures previously temporary stored
+     unlink(paste0(imagesLocationDetection+"*.jpg"))
       
       
       req <- curl_fetch_memory(paste0("http://",jsonQueue$host,":8080/api/queues/%2f/RTvisual/get"), handle = h)
@@ -762,7 +768,7 @@ shinyServer(function(input, output, session) {
 
       
     }
- # }
+ }
   #m  # Print the map
   
   
@@ -772,8 +778,8 @@ shinyServer(function(input, output, session) {
   
   
   #reactivePoll(120000, session, checkFunc = fetchNewFogDetection )
- react_fetch_det<-reactivePoll(120000, session, checkFunc = fetchNewFogDetection )
-  reactive(react_fetch_det())
-})
+ react_fetch_det<-reactivePoll(120000, session, checkFunc = fetchNewFogDetection)
+ reactive(react_fetch_det())
+  })
 
 
