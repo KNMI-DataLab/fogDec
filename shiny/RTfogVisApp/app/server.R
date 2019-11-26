@@ -437,8 +437,8 @@ shinyServer(function(input, output, session) {
       
       localImageFilepath<-convertToLocalFilepath(df$fileLocation)
       #filenameImage<-basename(localImageFilepath)
-	print(df$fileLocation)
-	print(localImageFilepath)
+#	print(df$fileLocation)
+#	print(localImageFilepath)
 
 
       
@@ -455,8 +455,8 @@ shinyServer(function(input, output, session) {
       localTempSavedLocation <-paste0(imagesLocationDetection,basename(AWSPath))
       save_object(object = AWSPath, bucket = 'knmi-fogdetection-dataset',
                   file = localTempSavedLocation)
-      print(paste("file location",localTempSavedLocation))
-      print("object saved real time detection")
+    #  print(paste("file location",localTempSavedLocation))
+    #  print("object saved real time detection")
 	}
       
 
@@ -485,7 +485,7 @@ shinyServer(function(input, output, session) {
       
       
       
-      print(popupFilenames)
+      #print(popupFilenames)
       
       
       dfGoodPics$hyperink<-paste0('<a href="',dfGoodPics$ipAddr,'" target="_blank">View Camera ', dfGoodPics$location," " ,dfGoodPics$cameraID,  '</a>')
@@ -539,8 +539,8 @@ shinyServer(function(input, output, session) {
   localImageFilepath<-convertToLocalFilepath(imagename)
   filenameImage<-basename(localImageFilepath)
 
-  print("validation part")
-  print(filenameImage)
+  #print("validation part")
+  #print(filenameImage)
   
   
   #############3
@@ -554,13 +554,13 @@ shinyServer(function(input, output, session) {
   save_object(object = localImageFilepath, bucket = 'knmi-fogdetection-dataset',
               file = localTempSavedLocation)
   } else{
-    print("inside error")
+    #print("inside error")
     DFannotation<-NULL
-    print(DFannotation)
+    #print(DFannotation)
     return(DFannotation)
   }
-  print(paste("file location",localTempSavedLocation))
-  print("object saved")
+  #print(paste("file location",localTempSavedLocation))
+  #print("object saved")
   
   
   image_id<-imageDBrecord$image_id
@@ -705,9 +705,10 @@ shinyServer(function(input, output, session) {
   
   
   fetchNewFogDetection<-function(queueJson, handler){
-    
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+  print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
     minReminder<-minute(Sys.time())%%10
-    
+   print(minReminder)
     
     if(firstOccurrence==TRUE){
       firstOccurrence<<-FALSE
@@ -727,14 +728,17 @@ shinyServer(function(input, output, session) {
     
     ##CHANGE HERE FOR THE FIRST OCCURRENCE
     #if(minReminder==3 | minReminder==4 ){
-    if(minReminder==3| minReminder==2) {
+   if(minReminder==3| minReminder==2) {
       
       
       req <- curl_fetch_memory(paste0("http://",jsonQueue$host,":8080/api/queues/%2f/RTvisual/get"), handle = h)
       
       text<-rawToChar(req$content)
       if(text!="[]"){
-        message(text)
+
+	      print("INSIDE ERROR EMPTY")
+	     print(text)
+        #message(text)
         writeLines(text,state_file)
         df<-fromJSONtoDF(text)
         #output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(max(df$timeStamp)),"UTC  </div><br>")})
@@ -758,7 +762,7 @@ shinyServer(function(input, output, session) {
 
       
     }
-  }
+ # }
   #m  # Print the map
   
   
@@ -768,8 +772,8 @@ shinyServer(function(input, output, session) {
   
   
   #reactivePoll(120000, session, checkFunc = fetchNewFogDetection )
-  reactivePoll(120000, session, checkFunc = fetchNewFogDetection )
-  
+ react_fetch_det<-reactivePoll(120000, session, checkFunc = fetchNewFogDetection )
+  reactive(react_fetch_det())
 })
 
 
