@@ -254,7 +254,7 @@ fogClass<-prediction$predict
 predTRUE<-prediction$TRUE.
 predFALSE<-prediction$FALSE.
 
-return(list(fogClass,predTRUE,predFALSE))
+return(list(fogClass,predTRUE,predFALSE,modelPath))
 
 }
 
@@ -566,8 +566,14 @@ shinyServer(function(input, output, session) {
   image_id<-imageDBrecord$image_id
   camera_id<-imageDBrecord$camera_id
   timestamp<-imageDBrecord$timestamp
+  visibility_qualitative_annotator<-NA
+  annotator_name<-Sys.getenv("SHINYPROXY_USERNAME")
+  loginfo(paste("annotator",annotator_name))
+    
   
-  DFannotation<-data.frame(camera_id,timestamp,image_id)
+
+  
+
   
   
   
@@ -577,6 +583,11 @@ shinyServer(function(input, output, session) {
   }else{
     fogChar<-"NO FOG"
   }
+
+  visibility_qualitative_detection_model<-fogChar
+  detection_model_name<-basename(fogginess[[4]])
+
+  DFannotation<-data.frame(camera_id,timestamp,image_id,visibility_qualitative_annotator,annotator_name,visibility_qualitative_detection_model,detection_model_name)
   
   output$FogBinary<-renderUI({HTML('Machine classification is:', fogChar)})
   output$probFog<-renderUI({HTML('Probability of fog in the  image:',as.character(round(100*fogginess[[2]],2)),"%")})
