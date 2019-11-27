@@ -622,7 +622,7 @@ shinyServer(function(input, output, session) {
   observeEvent(input$FOGbutton, {
     if(is.null(dfInitial)){
     if(is.null(dfValid)==FALSE){
-    dfValid$visibility_qualitative<-"FOG"
+    dfValid$visibility_qualitative_annotator<-"FOG"
     print(dfValid)
     con<-prepareDBconnection()
     dbWriteTable(con, "manual_annotations", dfValid, append = TRUE, row.names = FALSE, match.cols = TRUE)
@@ -635,7 +635,7 @@ shinyServer(function(input, output, session) {
     } else{
       
       if(is.null(dfInitial)==FALSE){
-        dfInitial$visibility_qualitative<-"FOG"
+        dfInitial$visibility_qualitative_annotator<-"FOG"
         print(dfInitial)
       con<-prepareDBconnection()
       dbWriteTable(con, "manual_annotations", dfInitial, append = TRUE, row.names = FALSE, match.cols = TRUE)
@@ -653,7 +653,7 @@ shinyServer(function(input, output, session) {
     if(is.null(dfInitial)){
       
       if(is.null(dfValid)==FALSE){
-        dfValid$visibility_qualitative<-"NO FOG"
+        dfValid$visibility_qualitative_annotator<-"NO FOG"
         print(dfValid)
       con<-prepareDBconnection()
       dbWriteTable(con, "manual_annotations", dfValid, append = TRUE, row.names = FALSE, match.cols = TRUE)
@@ -667,7 +667,7 @@ shinyServer(function(input, output, session) {
     } else{
       
       if(is.null(dfInitial)==FALSE){
-        dfInitial$visibility_qualitative<-"NO FOG"
+        dfInitial$visibility_qualitative_annotator<-"NO FOG"
         print(dfInitial)
       con<-prepareDBconnection()
       dbWriteTable(con, "manual_annotations", dfInitial, append = TRUE, row.names = FALSE, match.cols = TRUE)
@@ -685,7 +685,7 @@ shinyServer(function(input, output, session) {
     if(is.null(dfInitial)){
       
       if(is.null(dfValid)==FALSE){
-        dfValid$visibility_qualitative<-"CANNOT SAY"
+        dfValid$visibility_qualitative_annotator<-"CANNOT SAY"
         print(dfValid)
       con<-prepareDBconnection()
       dbWriteTable(con, "manual_annotations", dfValid, append = TRUE, row.names = FALSE, match.cols = TRUE)
@@ -699,7 +699,7 @@ shinyServer(function(input, output, session) {
     } else{
       
       if(is.null(dfInitial)==FALSE){
-        dfInitial$visibility_qualitative<-"CANNOT SAY"
+        dfInitial$visibility_qualitative_annotator<-"CANNOT SAY"
         print(dfInitial)
       con<-prepareDBconnection()
       dbWriteTable(con, "manual_annotations", dfInitial, append = TRUE, row.names = FALSE, match.cols = TRUE)
