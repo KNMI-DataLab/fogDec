@@ -53,9 +53,12 @@ tableAnnotation <- dbGetQuery(connectionSetup, "CREATE TABLE manual_annotations 
                                                 camera_id integer NOT NULL references cameras(camera_id),
                                                 timestamp timestamp NOT NULL,
                                                 image_id integer NOT NULL references images(image_id),
-                                                visibility_qualitative varchar,
+                                                visibility_qualitative_annotator varchar,
+						annotator_name varchar,
+						visibility_qualitative_detection_model varchar,
+						detection_model_name varchar,
                                                 annotation varchar,
-                                                PRIMARY KEY(image_id));")
+                                                PRIMARY KEY(annotation_id));")
 
 tableImageFeatures <- dbGetQuery(connectionSetup, "CREATE TABLE image_features (
                                                   feature_id SERIAL,
