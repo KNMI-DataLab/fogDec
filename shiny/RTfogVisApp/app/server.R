@@ -132,7 +132,7 @@ imageToValidate
 
 queryMongoDetectionArchive <- function(){
 mongoConfig <- fromJSON(archive_detection_DB_config)
-m <- mongo("collection", url = paste0("mongodb://",mongoConfig[[host]],":",mongoConfig[[port]],"/fogDetectionArchive")
+m <- mongo("collection", url = paste0("mongodb://",mongoConfig[[host]],":",mongoConfig[[port]],"/fogDetectionArchive"))
 #sample one foggy case in the archive
 foggyCase <- m$aggregate('[{"$match":{"features.properties.fogClass":1}},{"$sample":{"size":1}}]')
 
