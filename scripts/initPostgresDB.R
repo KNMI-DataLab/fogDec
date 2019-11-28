@@ -5,7 +5,7 @@ dbConfig <- fromJSON("config.json")
 
 connectionSetup <- dbConnect(RPostgreSQL::PostgreSQL(),
                 dbname = "FOGDB",
-                host = dbConfig[["host"]], port = 9418, # use 9418 within KNMI, default would be 5432. At the moment set to 9418 as per directions
+                host = dbConfig[["host"]], port = 9418, # use 9418 within KNMI, default would be 5432. At the moment set to 9418
                 user = dbConfig[["user"]], password = dbConfig[["pw"]])
 
 
@@ -52,10 +52,13 @@ tableAnnotation <- dbGetQuery(connectionSetup, "CREATE TABLE manual_annotations 
                                                 annotation_id SERIAL,
                                                 camera_id integer NOT NULL references cameras(camera_id),
                                                 timestamp timestamp NOT NULL,
-                                                image_id integer NOT NULL references images(image_id),
-                                                visibility_qualitative varchar,
+                                                image_id integer,
+                                                visibility_qualitative_annotator varchar,
+						                                    annotator_name varchar,
+						                                    visibility_qualitative_detection_model varchar,
+						                                    detection_model_name varchar,
                                                 annotation varchar,
-                                                PRIMARY KEY(image_id));")
+                                                PRIMARY KEY(annotation_id));")
 
 tableImageFeatures <- dbGetQuery(connectionSetup, "CREATE TABLE image_features (
                                                   feature_id SERIAL,
@@ -69,6 +72,7 @@ tableImageFeatures <- dbGetQuery(connectionSetup, "CREATE TABLE image_features (
                                                   mean_hue double precision, 
                                                   mean_saturation double precision, 
                                                   mean_brightness double precision,       
+                                                  mean_transmission double precision,
                                                   PRIMARY KEY(image_id));")
 
 tableMeteoFeaturesStations <- dbGetQuery(connectionSetup, "CREATE TABLE meteo_features_stations (
@@ -82,6 +86,17 @@ tableMeteoFeaturesStations <- dbGetQuery(connectionSetup, "CREATE TABLE meteo_fe
                                                   mor_visibility double precision,
                                                   unique(location_id, timestamp),
                                                   PRIMARY KEY(meteo_feature_id));")
+
+
+tableMeteoStations <- dbGetQuery(connectionSetup, "CREATE TABLE meteo_stations (
+                                                  meteo_station_id SERIAL,
+                                                  meteo_station_name varchar,
+                                                  location_id integer NOT NULL references locations(location_id), 
+                                                  knmi_kis_id varchar NOT NULL,
+                                                  meteo_station_type varchar,
+                                                  meteo_station_location_code varchar,
+                                                  unique(knmi_kis_id),
+                                                  PRIMARY KEY(meteo_station_id));")
 
 
 

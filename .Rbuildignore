@@ -1,6 +1,17 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^\.travis\.yml$
+^ApproachDescription.*$
 ^ApproachDescription\.Rmd$
 ^ApproachDescription\.html$
 ^ApproachDescription_cache/$
+^PresentationProject.*$
+^FogDetection\.Rmd$
+^cache$
+^config\.json$
+^figure$
+^externalDocs$
+^properties\.csv$
+^propertiesBackup\.csv$
+^results$
+^scripts$

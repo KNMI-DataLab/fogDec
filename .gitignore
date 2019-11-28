@@ -16,5 +16,6 @@ PresentationProject.synctex.gz
 PresentationProject.tex
 PresentationProject.toc
 config.json
+camerasConf.json
 *.o
 *.so

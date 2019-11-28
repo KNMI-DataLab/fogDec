@@ -15,12 +15,20 @@ Imports:
     caret,
     abind,
     tree,
-    changepoint
+    changepoint,
+    DBI,
+    jsonlite,
+    rgdal,
+    postGIStools,
+    stats,
+    RPostgreSQL,
+    geosphere
 License: LGPL
 LazyData: true
 RoxygenNote: 5.0.1
 LinkingTo: Rcpp
-Suggests: knitr,
+Suggests:
+    knitr,
     rmarkdown,
     testthat,
     doParallel,

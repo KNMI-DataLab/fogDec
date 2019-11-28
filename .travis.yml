@@ -1,12 +1,20 @@
 # Sample .travis.yml for R projects
 
+dist: trusty
+sudo: required
+
+addons:
+  apt:
+    packages:
+      - libgdal-dev
+      - libproj-dev
+
 language: r
 warnings_are_errors: true
-sudo: required
 
 r_github_packages:
   - MartinRoth/visDec
-
+  - PieceMaker/RPostgreSQL/patch
 r_packages:
   - covr
 after_success:

@@ -1,4 +1,0 @@
-locationID,stationID,locationName,lon,lat,filePattern,filePrefix,imageFormat,fileLocation
-2,290_A_a,Twente,6.89,52.276944,na*me_yyyymmddhhmm.jpg,EHTW,jpg,~/efs/test
-UK21,7_709,M90 Junction 1A EB Slip,-3.41708734646,55.9572414242,na*me_yyyymmddhhmm.jpg,7_709,jpg,~/efs/scotland
-UK11,7_715,M90 Craigbrae 2,-3.38812369656,55.9701062242,na*me_yyyymmddhhmm.jpg,7_715,jpg,~/efs/scotland

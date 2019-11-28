@@ -1,0 +1,8 @@
+wiel_ID;station_name;station_description;RMI_code;KIS_ID;lat;lon
+1;DMVSL;DMVSL: Maasvlakte Slufter;MVSL;344_A_MVS;51.933;3.999
+2;DMMPB;DMMPB: Maasmond Papegaaiebek;MMPB;344_A_MMP;51.975;4.076
+3;DRP04;DRP04: Beergat;RP04;344_A_EPT;51.945;4.084
+4;DRP05;DRP05: Caland West;RP05;344_CAW;51.964;4.133
+5;DRP06;DRP06: Caland Midden;RP06;344_A_CAM;51.945;4.174
+6;DRP32;DRP32: Caland Oost;RP32;344_A_CAZ;51.918;4.221
+9;DRP10;DRP10: Geulhaven;RP10;344_A_GHV;51.892;4.313

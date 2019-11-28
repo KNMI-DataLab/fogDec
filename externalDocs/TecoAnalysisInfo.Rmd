@@ -1,0 +1,116 @@
+---
+title: "TECO analysis (draft)"
+author: "Andrea Pagani"
+date: "7/19/2018"
+output:
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+load libraries
+
+```{r cars, echo=FALSE}
+library(h2o)
+library(doParallel)
+library(imager)
+library(data.table)
+library(fogDec)
+library(dplyr)
+
+```
+
+make the training, validation and test sets for the 2.5km and 7.5km distances
+
+```{r pressure, echo=FALSE}
+#photoDir<-"~/share"
+#setwd(photoDir) ##For RStudio
+
+set.seed(11)
+
+trainValTestSetList7500<-createTrainValidTestSetsBinary("~/share/", dateMax= "\'2018-05-14 00:00:00\'", dbConfigDir = "~/development/fogDec/",maxDist=7500)
+trainValTestSetList2500<-createTrainValidTestSetsBinary("~/share/", dateMax= "\'2018-05-14 00:00:00\'", dbConfigDir = "~/development/fogDec/",maxDist=2500)
+
+samplesTrain7500<-trainValTestSetList7500[[1]]
+samplesTrain2500<-trainValTestSetList2500[[1]]
+
+samplesTest2500<-trainValTestSetList2500[[3]]
+samplesTest7500<-trainValTestSetList7500[[3]]
+
+```
+
+
+
+```{r cameras_highways}
+length(grep("^A",unique(samplesTrain2500$camera_description)))
+#16 number of cameras in the 2500m distance dataset
+length(grep("^A",unique(samplesTrain7500$camera_description)))
+# 82 number of cameras in the 7500m distance dataset
+```
+
+```{r sensors_highway}
+test11<-trainSet[grepl("^A",samplesTrain2500$camera_description),]
+length(unique(test11$KISstations))
+#4
+
+test22<-trainSet[grepl("^A",samplesTrain7500$camera_description),]
+length(unique(test22$KISstations))
+#7
+
+```
+
+
+```{r amount_pic_highways}
+
+length(grep("^A",(samplesTrain7500$camera_description)))
+#[1] 1012515 amount of pictures  from highways for training 7500m distance set
+ length(grep("^A",(samplesTrain2500$camera_description)))
+#[1] 197428 amount of pictures from highways for training 2500m distance set
+ 
+ 
+nrow(samplesTrain7500)
+#[1] 1176430 total amount of pictures for training 7500m distance set
+nrow(samplesTrain2500)
+#[1] 347905 total amount of pictures for training 2500m distance set
+
+
+```
+
+
+
+get the non common samples of trainings and test sets of each other
+```{r}
+#samplesTest2500$origin<-2500
+#samplesTest7500$origin<-7500
+#samplesTrain2500$origin<-2500
+#samplesTrain7500$origin<-7500
+testFull<-rbind(samplesTest2500,samplesTest7500)
+trainFull<-rbind(samplesTrain2500,samplesTrain7500)
+setkey(testFull,image_id)
+setkey(trainFull,image_id)
+diffDT<-setdiff(testFull, trainFull)
+
+nrow(samplesTest2500)
+nrow(samplesTest7500)
+
+
+```
+
+
+```{r}
+data<-fread("/home/pagani/nndataH2O/TECO/testSetPixelValues.csv")
+datatest<-fread("/home/pagani/nndataH2O/TECO/testSetDiff.csv")
+setkey(data,filepath)
+setkey(datatest,filepath)
+matched<-datatest[data, nomatch=0]
+nrow(matched)
+#345645 total images in the testset
+length(grep("^A",(matched$camera_description)))
+#310811 images coming from highways
+
+```
+
+
+
