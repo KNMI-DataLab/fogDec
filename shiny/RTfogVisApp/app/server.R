@@ -7,6 +7,7 @@ library(logging)
 library(mapview)
 library(DBI)
 library(jsonlite)
+library(mongolite)
 
 library(RJSONIO)
 library(stringr)
@@ -34,6 +35,7 @@ firstOccurrence<<-TRUE
   h2o_jar_path = "/usr/local/lib/R/site-library/h2o/java/h2o.jar"
   ####AWS config part###
   aws_S3_config = "/external/config/S3config.json"
+  archive_detection_DB_config = "/external/config/mongoConfig.json"
   
   
 
@@ -126,6 +128,20 @@ dbDisconnect(connectionSetup)
 print(imageToValidate)
 
 imageToValidate
+}
+
+queryMongoDetectionArchive <- function(){
+mongoConfig <- fromJSON(archive_detection_DB_config)
+m <- mongo("collection", url = paste0("mongodb://",mongoConfig[[host]],":",mongoConfig[[port]],"/fogDetectionArchive")
+#sample one foggy case in the archive
+foggyCase <- m$aggregate('[{"$match":{"features.properties.fogClass":1}},{"$sample":{"size":1}}]')
+
+dfFoggy<-lapply(foggyCase$features,function(x){(x$properties)})
+dfFoggy<-do.call(rbind,dfFoggy)
+
+dfFoggy
+
+
 }
 
 
@@ -530,24 +546,39 @@ shinyServer(function(input, output, session) {
 
   getAndShowNewImage<-function(){
 
+  #random sample from the metadataDB and from the archive of foggy detected images
+  #15% of the times a detected foggy image should be called
+  randNum<-sample(1:100,1)
+  if(randNum<=15){
+  mongoRecord<-queryMongoDetectionArchive()
+  imagename<-mongoRecord$originalPath
+
+  camera_id<-mongoRecord$cameraID
+  timestamp<-mongoRecord$timeStampMongoFormat
+  image_id<-NA
+  if(mongoRecord$fogClass==1){
+	    fogChar<-"FOG"
+   }else{
+	    fogChar<-"NO FOG"
+	  }
+  visibility_qualitative_detection_model<-fogChar
+  detection_model_name<-NA
+  probFog<-mongoRecord$predTRUE
+  probNoFog<-mongoRecord$predFALSE
+
+
+  }else{
   imageDBrecord<-queryDBforImage()
-
   imagename<-imageDBrecord$filepath
-
   dayPhaseImage<-imageDBrecord$day_phase
+  image_id<-imageDBrecord$image_id
+  camera_id<-imageDBrecord$camera_id
+  timestamp<-imageDBrecord$timestamp
+  }
 
   localImageFilepath<-convertToLocalFilepath(imagename)
   filenameImage<-basename(localImageFilepath)
-
-  #print("validation part")
-  #print(filenameImage)
-  
-  
-  #############3
-  localTempSavedLocation <- paste0(imagesLocationValidation,filenameImage)
-  
-#  out<-tryCatch({
-    
+  localTempSavedLocation <- paste0(imagesLocationValidation,filenameImage) 
   head_obj<-head_object(object = localImageFilepath, bucket = 'knmi-fogdetection-dataset')
 
   if(head_obj==TRUE){
@@ -563,37 +594,33 @@ shinyServer(function(input, output, session) {
   #print("object saved")
   
   
-  image_id<-imageDBrecord$image_id
-  camera_id<-imageDBrecord$camera_id
-  timestamp<-imageDBrecord$timestamp
+  
   visibility_qualitative_annotator<-NA
   annotator_name<-Sys.getenv("SHINYPROXY_USERNAME")
   loginfo(paste("annotator",annotator_name))
-    
-  
-
-  
-
-  
-  
-  
+     
+  if(randNum>15){
   fogginess<-predictImage(localTempSavedLocation, dayPhaseImage)
   if(fogginess[[1]]){
     fogChar<-"FOG"
   }else{
     fogChar<-"NO FOG"
-  }
-
+    }
   visibility_qualitative_detection_model<-fogChar
   detection_model_name<-basename(fogginess[[4]])
+  probFog<-fogginess[[2]]
+  probNoFog<-fogginess[[3]]
+  }
+
+  
 
   DFannotation<-data.frame(camera_id,timestamp,image_id,visibility_qualitative_annotator,annotator_name,visibility_qualitative_detection_model,detection_model_name)
   
   output$FogBinary<-renderUI({HTML('Machine classification is:', fogChar)})
-  output$probFog<-renderUI({HTML('Probability of fog in the  image:',as.character(round(100*fogginess[[2]],2)),"%")})
-  output$probNoFog<-renderUI({HTML('Probability of non-fog in the  image:',as.character(round(100*fogginess[[3]],2)),"%")})
+  output$probFog<-renderUI({HTML('Probability of fog in the  image:',as.character(round(100*probFog,2)),"%")})
+  output$probNoFog<-renderUI({HTML('Probability of non-fog in the  image:',as.character(round(100*probNoFog,2)),"%")})
   
-  print(fogginess)
+  #print(fogginess)
   
   
   output$images <- renderImage({
