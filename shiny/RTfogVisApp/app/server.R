@@ -104,6 +104,14 @@ prepareDBconnection<-function(){
 
 
 
+query_camera_id<-function(mongoCameraID){
+connectionSetup <-prepareDBconnection()
+queryString<- paste0("select camera_id from cameras where camera_name='",mongoCameraID,"';")
+camera_id<- dbGetQuery(connectionSetup, queryString)
+dbDisconnect(connectionSetup)
+camera_id
+}
+
 queryDBforImage<-function(){
 
 
@@ -553,7 +561,9 @@ shinyServer(function(input, output, session) {
   mongoRecord<-queryMongoDetectionArchive()
   imagename<-mongoRecord$originalPath
 
-  camera_id<-mongoRecord$cameraID
+  camera_id<-query_camera_id(mongoRecord$cameraID)
+
+  #camera_id<-mongoRecord$cameraID
   timestamp<-mongoRecord$timeStampMongoFormat
   image_id<-NA
   if(mongoRecord$fogClass==1){
@@ -572,7 +582,7 @@ shinyServer(function(input, output, session) {
   imagename<-imageDBrecord$filepath
   dayPhaseImage<-imageDBrecord$day_phase
   image_id<-imageDBrecord$image_id
-  camera_id<-NA #imageDBrecord$camera_id
+  camera_id<-imageDBrecord$camera_id
   timestamp<-imageDBrecord$timestamp
   }
 
