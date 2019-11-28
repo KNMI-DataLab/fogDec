@@ -572,7 +572,7 @@ shinyServer(function(input, output, session) {
   imagename<-imageDBrecord$filepath
   dayPhaseImage<-imageDBrecord$day_phase
   image_id<-imageDBrecord$image_id
-  camera_id<-imageDBrecord$camera_id
+  camera_id<-NA #imageDBrecord$camera_id
   timestamp<-imageDBrecord$timestamp
   }
 
