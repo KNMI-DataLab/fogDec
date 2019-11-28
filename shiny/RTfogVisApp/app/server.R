@@ -587,7 +587,7 @@ shinyServer(function(input, output, session) {
   }
   
 
-  message(paste0("camera_id is ",camera_id))
+  #message(paste0("camera_id is ",camera_id))
   localImageFilepath<-convertToLocalFilepath(imagename)
   filenameImage<-basename(localImageFilepath)
   localTempSavedLocation <- paste0(imagesLocationValidation,filenameImage) 
