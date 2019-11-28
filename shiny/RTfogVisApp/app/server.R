@@ -585,7 +585,9 @@ shinyServer(function(input, output, session) {
   camera_id<-imageDBrecord$camera_id
   timestamp<-imageDBrecord$timestamp
   }
+  
 
+  message(paste0("camera_id is ",camera_id))
   localImageFilepath<-convertToLocalFilepath(imagename)
   filenameImage<-basename(localImageFilepath)
   localTempSavedLocation <- paste0(imagesLocationValidation,filenameImage) 
