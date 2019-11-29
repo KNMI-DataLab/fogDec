@@ -36,7 +36,7 @@ firstOccurrence<<-TRUE
   ####AWS config part###
   aws_S3_config = "/external/config/S3config.json"
   archive_detection_DB_config = "/external/config/mongoConfig.json"
-  
+  foggyDataLocation<-"/external/data/foggyImagesDetected.RDS"
   
 
   
@@ -137,6 +137,15 @@ print(imageToValidate)
 
 imageToValidate
 }
+
+
+dataFoggy<<-readRDS(foggyDataLocation)
+
+sampleArchiveFoggyCases(dtFoggy){
+  sampledCase<-dtFoggy[sample(.N, 1)]
+  sampledCase
+}
+
 
 queryMongoDetectionArchive <- function(){
 mongoConfig <- fromJSON(archive_detection_DB_config)
@@ -558,23 +567,24 @@ shinyServer(function(input, output, session) {
   #15% of the times a detected foggy image should be called
   randNum<-sample(1:100,1)
   if(randNum<=15){
-  mongoRecord<-queryMongoDetectionArchive()
-  imagename<-mongoRecord$originalPath
+  #fogArchiveRecord<-queryMongoDetectionArchive()
+  fogArchiveRecord<-sampleArchiveFoggyCases(dataFoggy)
+  imagename<-fogArchiveRecord$originalPath
 
-  camera_id<-query_camera_id(mongoRecord$cameraID)
+  camera_id<-query_camera_id(fogArchiveRecord$cameraID)
 
-  #camera_id<-mongoRecord$cameraID
-  timestamp<-mongoRecord$timeStampMongoFormat
+  #camera_id<-fogArchiveRecord$cameraID
+  timestamp<-fogArchiveRecord$timeStampMongoFormat
   image_id<-NA
-  if(mongoRecord$fogClass==1){
+  if(fogArchiveRecord$fogClass==1){
 	    fogChar<-"FOG"
    }else{
 	    fogChar<-"NO FOG"
 	  }
   visibility_qualitative_detection_model<-fogChar
   detection_model_name<-NA
-  probFog<-mongoRecord$predTRUE
-  probNoFog<-mongoRecord$predFALSE
+  probFog<-fogArchiveRecord$predTRUE
+  probNoFog<-fogArchiveRecord$predFALSE
 
 
   }else{
