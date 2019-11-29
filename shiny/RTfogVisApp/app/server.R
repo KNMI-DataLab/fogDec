@@ -141,7 +141,7 @@ imageToValidate
 
 dataFoggy<<-readRDS(foggyDataLocation)
 
-sampleArchiveFoggyCases(dtFoggy){
+sampleArchiveFoggyCases<-function(dtFoggy){
   sampledCase<-dtFoggy[sample(.N, 1)]
   sampledCase
 }
