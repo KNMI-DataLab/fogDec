@@ -797,31 +797,32 @@ shinyServer(function(input, output, session) {
      unlink(paste0(imagesLocationDetection,"*.jpg"))
       
       
-      req <- curl_fetch_memory(paste0("http://",jsonQueue$host,":8080/api/queues/%2f/RTvisual/get"), handle = h)
+      #req <- curl_fetch_memory(paste0("http://",jsonQueue$host,":8080/api/queues/%2f/RTvisual/get"), handle = h)
       
-      text<-rawToChar(req$content)
-      if(text!="[]"){
-
-	      print("INSIDE ERROR EMPTY")
-	     print(text)
-        #message(text)
-        writeLines(text,state_file)
-        df<-fromJSONtoDF(text)
-        #output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(max(df$timeStamp)),"UTC  </div><br>")})
-        
-      }else{
-        message("Queue is empty: using last retrieved values")
-        df<-tryCatch({
-          fromJSONtoDF(state_file)
-        },
-        error=function(cond){
-          message("state file not available")
-          output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(as.POSIXlt(Sys.time(), "UTC")),"UTC  </div><br>")})
-          df<-NULL
-          return(df)
-        })   
-      }
+      #text<-rawToChar(req$content)
+#       if(text!="[]"){
+# 
+# 	      print("INSIDE ERROR EMPTY")
+# 	     print(text)
+#         #message(text)
+#         writeLines(text,state_file)
+#         df<-fromJSONtoDF(text)
+#         #output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(max(df$timeStamp)),"UTC  </div><br>")})
+#         
+#       }else{
+#         message("Queue is empty: using last retrieved values")
+#         df<-tryCatch({
+#           fromJSONtoDF(state_file)
+#         },
+#         error=function(cond){
+#           message("state file not available")
+#           output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(as.POSIXlt(Sys.time(), "UTC")),"UTC  </div><br>")})
+#           df<-NULL
+#           return(df)
+#         })   
+#       }
       
+     df<-fromJSONtoDF(state_file)
       
       visualizeResults(df)
       
