@@ -294,318 +294,188 @@ return(list(fogClass,predTRUE,predFALSE,modelPath))
 
 
 
+fromJSONtoDF<-function(text){
+  parsedJSON<-jsonlite::fromJSON(text)
+  #print(parsedJSON)
+  jsoninput<-lapply(parsedJSON$payload,jsonlite::fromJSON)
+  #print(df)
+  df <- data.frame(matrix(unlist(jsoninput), nrow=length(jsoninput), byrow=T), stringsAsFactors = F)
+  #extracting only the relevant columns for the purpose of visualization from the GeoJson data-framed structure
+  df<-df[,6:17]
+  #and setting the related names
+  colnames(df)<-c("id","location", "cameraID", "longitude", "latitude", "ipAddr", "_note", "fileLocation", "originalPath", "timeStamp", "fogClass", "predTRUE")
+  #names(jsoninput[[1]][[3]][[3]])
+  df
+}
 
-
-
-shinyServer(function(input, output, session) {
-  #initialization (have to check what is needed after development, might not be needed) 
-  
-  
-  
-  jsonCameras<-jsonlite::fromJSON(cameras_for_detection_file)
-  dfCameras<-data.frame(jsonCameras$cameras$RWS)
-  dfCameras$longitude<-as.numeric(dfCameras$longitude)
-  dfCameras$latitude<-as.numeric(dfCameras$latitude)
-  
-  iconsInit <- awesomeIcons(icon = "camera",
-                            iconColor = "black",
-                            library = "ion",
-                            markerColor = "gray")
-  
-  
-  #output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(as.POSIXlt(Sys.time(), "UTC")),"UTC  </div><br>")})
-  
-  
-  html_legend <- paste0("<link href='shared/font-awesome/css/font-awesome.min.css'/><div class='bold'>
-                        <img src='iconGreenNoBack.png' style='width:15px;height:20px;'>   NO FOG<br/>
-                        <img src='iconRedNoBack.png'style='width:15px;height:20px;'>  FOG<br/>
-                        <img src='iconGreyNoBack.png' style='width:15px;height:20px;'>  NA<br/></div>")
-  
-  
-  
-  
-  dfCameras$hyperink<-paste0('<a href="',dfCameras$ipAddr,'" target="_blank">View Camera ', dfCameras$location," " ,dfCameras$cameraID,  '</a>')
-  
-  
-  
-  
-  mapInit<-leaflet(dfCameras) %>% addTiles() %>%  addAwesomeMarkers( ~longitude, ~latitude, icon = iconsInit, popup = ~hyperink ) %>% addControl(html= html_legend, position = "topright")
-  
-  
-  
-  output$map<-renderLeaflet(mapInit)
-  
-  
-  
-  
-  
-  jsonQueue<-jsonlite::fromJSON(queue_conf_file)
-  
-  
-  
-  ###FIRST ATTEMPT OF VISUALIZATION
-  
-  #commandretrieve<-'curl -i -u guest:guest -H "content-type:application/json" -X POST http://145.23.219.231:8080/api/queues/%2f/RTvisual/get -d\'{"count":5,"requeue":true,"encoding":"auto","truncate":500000}\''
-  #testRec<-system(commandretrieve)
-  
-  #fetching messages
-  library(curl)
-  h <- new_handle()
-  handle_setopt(h,USERNAME=jsonQueue$user, PASSWORD=jsonQueue$pw, POST=1, POSTFIELDS='{"count":10000,"ackmode":"ack_requeue_false","encoding":"auto"}' )
-  handle_setheaders(h,"Content-Type" = "application/json")
-  
-  
-  
-  
-  fromJSONtoDF<-function(text){
-    parsedJSON<-jsonlite::fromJSON(text)
-    #print(parsedJSON)
-    jsoninput<-lapply(parsedJSON$payload,jsonlite::fromJSON)
-    #print(df)
-    df <- data.frame(matrix(unlist(jsoninput), nrow=length(jsoninput), byrow=T), stringsAsFactors = F)
-    #extracting only the relevant columns for the purpose of visualization from the GeoJson data-framed structure
-    df<-df[,6:17]
-    #and setting the related names
-    colnames(df)<-c("id","location", "cameraID", "longitude", "latitude", "ipAddr", "_note", "fileLocation", "originalPath", "timeStamp", "fogClass", "predTRUE")
-    #names(jsoninput[[1]][[3]][[3]])
+visualizeResults<-function(df){
+  if(is.null(df)==FALSE){
+    message(max(df$timeStamp))
+    output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(max(df$timeStamp)),"UTC  </div><br>")})
+    
+    
+    
+    jsonCameras<-jsonlite::fromJSON(cameras_for_detection_file)
+    dfCameras<-data.frame(jsonCameras$cameras$RWS)
+    dfCameras$longitude<-as.numeric(dfCameras$longitude)
+    dfCameras$latitude<-as.numeric(dfCameras$latitude)
+    
+    numCamerasToMonitor<-dim(dfCameras)[[1]]
+    numCamerasRetrieved<-dim(df)[[1]]
+    
+    if(numCamerasRetrieved!=numCamerasToMonitor){
+      loginfo(paste(numCamerasRetrieved,"retrieved cameras, time of retrieval",as.character(max(df$timeStamp)),"UTC"))
+      loginfo(paste("missing cameras first 100:",head(dfCameras$location[!(dfCameras$cameraID %in% df$cameraID)]),100))
+    }
+    
+    
+    
+    
+    df$fogClass<-as.factor(df$fogClass)
+    
+    
+    df$icon <- factor(df$fogClass,
+                      levels = c("1","0","UNKNOWN"),
+                      labels = c("red", "green","gray"))
+    
     df
-  }
-  
-  
-  
-  
-  
-  visualizeResults<-function(df)
-  {
-    if(is.null(df)==FALSE){
-      message(max(df$timeStamp))
-      output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(max(df$timeStamp)),"UTC  </div><br>")})
-      
-      
-      #set.tempdir(temp_directory)
-      
-      #setting icons to relevant colors and design
-      # factpal <- colorFactor(topo.colors(2), c(TRUE,FALSE))
-      # icon.bad <- makeAwesomeIcon( markerColor = 'red', icon = "camera")
-      # icon.good <- makeAwesomeIcon(markerColor = 'green', icon = "camera")
-      # icon.na<- makeAwesomeIcon(markerColor = 'gray', icon = "camera")
-      #
-      # myIcons<-awesomeIconList(noFog = icon.good, fog = icon.bad, notAv = icon.na)
-      
-      
-      #
-      #inputDF<-data.frame(jsoninput,stringsAsFactors = F)
-      #inputDF
-      
-      #inputDF<-inputDF[rep(1:nrow(inputDF),each=2),]
-      #inputDF[2,10]=TRUE
-      #inputDF[2,3]=5.1115
-      #inputDF
-      
-      
-      
-      
-      jsonCameras<-jsonlite::fromJSON(cameras_for_detection_file)
-      dfCameras<-data.frame(jsonCameras$cameras$RWS)
-      dfCameras$longitude<-as.numeric(dfCameras$longitude)
-      dfCameras$latitude<-as.numeric(dfCameras$latitude)
-      
-      numCamerasToMonitor<-dim(dfCameras)[[1]]
-      numCamerasRetrieved<-dim(df)[[1]]
-      
-      if(numCamerasRetrieved!=numCamerasToMonitor){
-        loginfo(paste(numCamerasRetrieved,"retrieved cameras, time of retrieval",as.character(max(df$timeStamp)),"UTC"))
-        loginfo(paste("missing cameras first 100:",head(dfCameras$location[!(dfCameras$cameraID %in% df$cameraID)]),100))
-      }
-      
-      
-      
-      
-      df$fogClass<-as.factor(df$fogClass)
-      #inputDF$graphicClass<if(inputDF$fogClass==FALSE){"noFog"}
-      #inputDF$graphicClass<-as.factor(inputDF$graphicClass)
-      #inputDF$fogClass<-revalue(inputDF$fogClass, c("FALSE"="nofog", "TRUE"="fog"))
-      
-      df$icon <- factor(df$fogClass,
-                        levels = c("1","0","UNKNOWN"),
-                        labels = c("red", "green","gray"))
-      
-      df
-      df$longitude<-as.numeric(df$longitude)
-      df$latitude<-as.numeric(df$latitude)
-      
-      
-      #message("################TESTTTTTTTTTTTTTTTTTTTTTT################")
-      
-      
-      #message("dataframe created")
-      #message(paste("saving dataframe for debug purposes in ",df_debug_file))
-      #write.csv(df,file = df_debug_file )
-      
-      missing<-dfCameras [ !dfCameras$cameras.RWS.cameraID %in% df$cameraID ,]
-      
-      iconsMissing <- awesomeIcons(icon = "camera",
-                                   iconColor = "black",
-                                   library = "ion",
-                                   markerColor = "gray")
-      
-      icons <- awesomeIcons(icon = "camera",
-                            iconColor = "black",
-                            library = "ion",
-                            markerColor = df$icon
-      )
-      
-      
-      #print('#######')
-      #print(df[1])
-      #print('#######')
-      
-      
-      #df$localFileLocation<-gsub("pictures/","/external/pictures/",df$fileLocation)
-      ######TO BE REMOVED####
-      #unlink(tempImagesStorage)
-      df$localFileLocation<-gsub("pictures/",imagesLocationDetection,df$fileLocation)
-      df$filename<-basename(df$localFileLocation)
-      
-      
-      localImageFilepath<-convertToLocalFilepath(df$fileLocation)
-      #filenameImage<-basename(localImageFilepath)
-#	print(df$fileLocation)
-#	print(localImageFilepath)
-
-
-      
-      
-      
-      
-      #file.copy(df$localFileLocation,tempImagesStorage)
-      
-      ################
-      localTempSavedLocation <- paste0(imagesLocationDetection,df$filename)
-
-
-      saveMultipleObjects<-function(AWSPath){
+    df$longitude<-as.numeric(df$longitude)
+    df$latitude<-as.numeric(df$latitude)
+    
+    missing<-dfCameras [ !dfCameras$cameras.RWS.cameraID %in% df$cameraID ,]
+    
+    iconsMissing <- awesomeIcons(icon = "camera",
+                                 iconColor = "black",
+                                 library = "ion",
+                                 markerColor = "gray")
+    
+    icons <- awesomeIcons(icon = "camera",
+                          iconColor = "black",
+                          library = "ion",
+                          markerColor = df$icon
+    )
+    
+    
+    
+    df$localFileLocation<-gsub("pictures/",imagesLocationDetection,df$fileLocation)
+    df$filename<-basename(df$localFileLocation)
+    
+    
+    localImageFilepath<-convertToLocalFilepath(df$fileLocation)
+    
+    localTempSavedLocation <- paste0(imagesLocationDetection,df$filename)
+    
+    
+    saveMultipleObjects<-function(AWSPath){
       localTempSavedLocation <-paste0(imagesLocationDetection,basename(AWSPath))
       save_object(object = AWSPath, bucket = 'knmi-fogdetection-dataset',
                   file = localTempSavedLocation)
-    #  print(paste("file location",localTempSavedLocation))
-    #  print("object saved real time detection")
-	}
-      
-
-      lapply(localImageFilepath, saveMultipleObjects)	
-      
-      
-      
-      
-      #################
-      
-      
-      df$localFileLocation<-localTempSavedLocation
-      ###########
-      
-      #print(df$localFileLocation)
-      objs <- data.table(filenames=rownames(file.info(df$localFileLocation)),file.info(df$localFileLocation))
-      #print(objs)
-      goodPics<-objs[objs$size > 10] #bigger than 10 bytes
-      goodPics<-data.table(goodPics)
-      setkey(goodPics,filenames)
-      df<-data.table(df)
-      setkey(df,localFileLocation)
-      dfGoodPics<-df[goodPics,nomatch=0]
-      #print(dfGoodPics)
-      popupFilenames<-as.vector(dfGoodPics$localFileLocation)
-      
-      
-      
-      #print(popupFilenames)
-      
-      
-      dfGoodPics$hyperink<-paste0('<a href="',dfGoodPics$ipAddr,'" target="_blank">View Camera ', dfGoodPics$location," " ,dfGoodPics$cameraID,  '</a>')
-      
-      #message('##############before  output maps#######################')
-      
-      
-      if(nrow(missing)!=0){
-        missing$hyperink<-paste0('<a href="',missing$cameras.RWS.ipAddr,'">View Camera ',missing$cameras.RWS.location," " ,missing$cameras.RWS.cameraID,'</a>')
-        m <- leaflet() %>%
-          addTiles() %>%  # Add default OpenStreetMap map tiles
-          addAwesomeMarkers(data=dfGoodPics, ~longitude, ~latitude, icon = icons, popup =mapview::popupImage(popupFilenames,src = "local", embed = T)) %>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
-        #addCircleMarkers(data=dfGoodPics, ~longitude, ~latitude, popup = ~hyperink) #%>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
-
-      }else{
-        #message('##############no missing rows#######################')
-        m <- leaflet() %>%
-          addTiles() %>%  # Add default OpenStreetMap map tiles
-          addAwesomeMarkers(data=dfGoodPics, ~longitude, ~latitude, icon = icons, popup =mapview::popupImage(popupFilenames,src = "local", embed = T)) %>%
-        addControl(html= html_legend, position = "topright")
-        #addCircleMarkers(data=dfGoodPics, ~longitude, ~latitude,  popup = ~hyperink) #%>% 
-         # addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
-        
-      }
-      
-      
-      
-      #message('##############printing output maps#######################')
-      #output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(as.POSIXlt(Sys.time(), "UTC")),"UTC  </div><br>")})
-      
-      #icon11<-myIcons[inputdfGoodPics$graphicClass]
-      
-      output$map <-renderLeaflet(m) 
+      #  print(paste("file location",localTempSavedLocation))
+      #  print("object saved real time detection")
     }
+    
+    
+    lapply(localImageFilepath, saveMultipleObjects)	
+    
+    
+    
+    
+    
+    df$localFileLocation<-localTempSavedLocation
+    ###########
+    
+    #print(df$localFileLocation)
+    objs <- data.table(filenames=rownames(file.info(df$localFileLocation)),file.info(df$localFileLocation))
+    #print(objs)
+    goodPics<-objs[objs$size > 10] #bigger than 10 bytes
+    goodPics<-data.table(goodPics)
+    setkey(goodPics,filenames)
+    df<-data.table(df)
+    setkey(df,localFileLocation)
+    dfGoodPics<-df[goodPics,nomatch=0]
+    #print(dfGoodPics)
+    popupFilenames<-as.vector(dfGoodPics$localFileLocation)
+    
+    
+    
+    #print(popupFilenames)
+    
+    
+    dfGoodPics$hyperink<-paste0('<a href="',dfGoodPics$ipAddr,'" target="_blank">View Camera ', dfGoodPics$location," " ,dfGoodPics$cameraID,  '</a>')
+    
+    #message('##############before  output maps#######################')
+    
+    
+    if(nrow(missing)!=0){
+      missing$hyperink<-paste0('<a href="',missing$cameras.RWS.ipAddr,'">View Camera ',missing$cameras.RWS.location," " ,missing$cameras.RWS.cameraID,'</a>')
+      m <- leaflet() %>%
+        addTiles() %>%  # Add default OpenStreetMap map tiles
+        addAwesomeMarkers(data=dfGoodPics, ~longitude, ~latitude, icon = icons, popup =mapview::popupImage(popupFilenames,src = "local", embed = T)) %>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
+      #addCircleMarkers(data=dfGoodPics, ~longitude, ~latitude, popup = ~hyperink) #%>% addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
+      
+    }else{
+      #message('##############no missing rows#######################')
+      m <- leaflet() %>%
+        addTiles() %>%  # Add default OpenStreetMap map tiles
+        addAwesomeMarkers(data=dfGoodPics, ~longitude, ~latitude, icon = icons, popup =mapview::popupImage(popupFilenames,src = "local", embed = T)) %>%
+        addControl(html= html_legend, position = "topright")
+      #addCircleMarkers(data=dfGoodPics, ~longitude, ~latitude,  popup = ~hyperink) #%>% 
+      # addAwesomeMarkers(data=missing,~cameras.RWS.longitude, ~cameras.RWS.latitude, icon = iconsMissing, popup=~hyperink) %>% addControl(html= html_legend, position = "topright")
+      
+    }
+    
+    
+    output$map <-renderLeaflet(m) 
   }
+}
+
+
+###################MANAGING OF THE VALIDATION PART#######################
+getAndShowNewImage<-function(){
   
-  
-
-    
-    ###################MANAGING OF THE VALIDATION PART#######################
-    
-
-  getAndShowNewImage<-function(){
-
   #random sample from the metadataDB and from the archive of foggy detected images
   #15% of the times a detected foggy image should be called
   randNum<-sample(1:100,1)
   if(randNum<=15){
-  #fogArchiveRecord<-queryMongoDetectionArchive()
-  fogArchiveRecord<-sampleArchiveFoggyCases(dataFoggy)
-  imagename<-fogArchiveRecord$originalPath
-
-  camera_id<-query_camera_id(fogArchiveRecord$cameraID)
-
-  #camera_id<-fogArchiveRecord$cameraID
-  timestamp<-fogArchiveRecord$timeStampMongoFormat
-  image_id<-NA
-  if(fogArchiveRecord$fogClass==1){
-	    fogChar<-"FOG"
-   }else{
-	    fogChar<-"NO FOG"
-	  }
-  visibility_qualitative_detection_model<-fogChar
-  detection_model_name<-NA
-  probFog<-fogArchiveRecord$predTRUE
-  probNoFog<-fogArchiveRecord$predFALSE
-
-
+    #fogArchiveRecord<-queryMongoDetectionArchive()
+    fogArchiveRecord<-sampleArchiveFoggyCases(dataFoggy)
+    imagename<-fogArchiveRecord$originalPath
+    
+    camera_id<-query_camera_id(fogArchiveRecord$cameraID)
+    
+    #camera_id<-fogArchiveRecord$cameraID
+    timestamp<-fogArchiveRecord$timeStampMongoFormat
+    image_id<-NA
+    if(fogArchiveRecord$fogClass==1){
+      fogChar<-"FOG"
+    }else{
+      fogChar<-"NO FOG"
+    }
+    visibility_qualitative_detection_model<-fogChar
+    detection_model_name<-NA
+    probFog<-fogArchiveRecord$predTRUE
+    probNoFog<-fogArchiveRecord$predFALSE
+    
+    
   }else{
-  imageDBrecord<-queryDBforImage()
-  imagename<-imageDBrecord$filepath
-  dayPhaseImage<-imageDBrecord$day_phase
-  image_id<-imageDBrecord$image_id
-  camera_id<-imageDBrecord$camera_id
-  timestamp<-imageDBrecord$timestamp
+    imageDBrecord<-queryDBforImage()
+    imagename<-imageDBrecord$filepath
+    dayPhaseImage<-imageDBrecord$day_phase
+    image_id<-imageDBrecord$image_id
+    camera_id<-imageDBrecord$camera_id
+    timestamp<-imageDBrecord$timestamp
   }
   
-
+  
   #message(paste0("camera_id is ",camera_id))
   localImageFilepath<-convertToLocalFilepath(imagename)
   filenameImage<-basename(localImageFilepath)
   localTempSavedLocation <- paste0(imagesLocationValidation,filenameImage) 
   head_obj<-head_object(object = localImageFilepath, bucket = 'knmi-fogdetection-dataset')
-
+  
   if(head_obj==TRUE){
-  save_object(object = localImageFilepath, bucket = 'knmi-fogdetection-dataset',
-              file = localTempSavedLocation)
+    save_object(object = localImageFilepath, bucket = 'knmi-fogdetection-dataset',
+                file = localTempSavedLocation)
   } else{
     #print("inside error")
     DFannotation<-NULL
@@ -620,22 +490,22 @@ shinyServer(function(input, output, session) {
   visibility_qualitative_annotator<-NA
   annotator_name<-Sys.getenv("SHINYPROXY_USERNAME")
   loginfo(paste("annotator",annotator_name))
-     
-  if(randNum>15){
-  fogginess<-predictImage(localTempSavedLocation, dayPhaseImage)
-  if(fogginess[[1]]){
-    fogChar<-"FOG"
-  }else{
-    fogChar<-"NO FOG"
-    }
-  visibility_qualitative_detection_model<-fogChar
-  detection_model_name<-basename(fogginess[[4]])
-  probFog<-fogginess[[2]]
-  probNoFog<-fogginess[[3]]
-  }
-
   
-
+  if(randNum>15){
+    fogginess<-predictImage(localTempSavedLocation, dayPhaseImage)
+    if(fogginess[[1]]){
+      fogChar<-"FOG"
+    }else{
+      fogChar<-"NO FOG"
+    }
+    visibility_qualitative_detection_model<-fogChar
+    detection_model_name<-basename(fogginess[[4]])
+    probFog<-fogginess[[2]]
+    probNoFog<-fogginess[[3]]
+  }
+  
+  
+  
   DFannotation<-data.frame(camera_id,timestamp,image_id,visibility_qualitative_annotator,annotator_name,visibility_qualitative_detection_model,detection_model_name)
   
   output$FogBinary<-renderUI({HTML('Machine classification is:', fogChar)})
@@ -655,11 +525,34 @@ shinyServer(function(input, output, session) {
   }, deleteFile = TRUE)
   DFannotation
   
-  }
+}
 
+
+
+
+
+shinyServer(function(input, output, session) {
+  jsonCameras<-jsonlite::fromJSON(cameras_for_detection_file)
+  dfCameras<-data.frame(jsonCameras$cameras$RWS)
+  dfCameras$longitude<-as.numeric(dfCameras$longitude)
+  dfCameras$latitude<-as.numeric(dfCameras$latitude)
+  
+  iconsInit <- awesomeIcons(icon = "camera",
+                            iconColor = "black",
+                            library = "ion",
+                            markerColor = "gray")
   
   
+  #output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(as.POSIXlt(Sys.time(), "UTC")),"UTC  </div><br>")})
   
+  
+  html_legend <- paste0("<link href='shared/font-awesome/css/font-awesome.min.css'/><div class='bold'>
+                        <img src='iconGreenNoBack.png' style='width:15px;height:20px;'>   NO FOG<br/>
+                        <img src='iconRedNoBack.png'style='width:15px;height:20px;'>  FOG<br/>
+                        <img src='iconGreyNoBack.png' style='width:15px;height:20px;'>  NA<br/></div>")
+  dfCameras$hyperink<-paste0('<a href="',dfCameras$ipAddr,'" target="_blank">View Camera ', dfCameras$location," " ,dfCameras$cameraID,  '</a>')
+  mapInit<-leaflet(dfCameras) %>% addTiles() %>%  addAwesomeMarkers( ~longitude, ~latitude, icon = iconsInit, popup = ~hyperink ) %>% addControl(html= html_legend, position = "topright")
+  output$map<-renderLeaflet(mapInit)
   
   dfInitial<<-getAndShowNewImage()
   while(is.null(dfInitial)){
@@ -761,14 +654,6 @@ shinyServer(function(input, output, session) {
     }
   })
 
-    
-    #############################################
-  
-  
-  
-  
-  
-  
   fetchNewFogDetection<-function(queueJson, handler){
     minReminder<-minute(Sys.time())%%10
    print(minReminder)
@@ -790,37 +675,11 @@ shinyServer(function(input, output, session) {
     
     
     ##CHANGE HERE FOR THE FIRST OCCURRENCE
-    #if(minReminder==3 | minReminder==4 ){
-   if(minReminder==3| minReminder==2) {
+   if(minReminder==3| minReminder==4) {
      
      #removing the pictures previously temporary stored
      unlink(paste0(imagesLocationDetection,"*.jpg"))
       
-      
-      #req <- curl_fetch_memory(paste0("http://",jsonQueue$host,":8080/api/queues/%2f/RTvisual/get"), handle = h)
-      
-      #text<-rawToChar(req$content)
-#       if(text!="[]"){
-# 
-# 	      print("INSIDE ERROR EMPTY")
-# 	     print(text)
-#         #message(text)
-#         writeLines(text,state_file)
-#         df<-fromJSONtoDF(text)
-#         #output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(max(df$timeStamp)),"UTC  </div><br>")})
-#         
-#       }else{
-#         message("Queue is empty: using last retrieved values")
-#         df<-tryCatch({
-#           fromJSONtoDF(state_file)
-#         },
-#         error=function(cond){
-#           message("state file not available")
-#           output$timeString<-renderUI({HTML('<div class="centered">Last Updated:', as.character(as.POSIXlt(Sys.time(), "UTC")),"UTC  </div><br>")})
-#           df<-NULL
-#           return(df)
-#         })   
-#       }
       
      df<-fromJSONtoDF(state_file)
       
@@ -830,15 +689,7 @@ shinyServer(function(input, output, session) {
       
     }
  }
-  #m  # Print the map
-  
-  
-  
-  #fetchNewFogDetection(jsonQueue,h)
-  
-  
-  
-  #reactivePoll(120000, session, checkFunc = fetchNewFogDetection )
+   
  react_fetch_det<-reactivePoll(120000, session, checkFunc = fetchNewFogDetection)
  reactive(react_fetch_det())
   })
