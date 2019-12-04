@@ -438,9 +438,9 @@ shinyServer(function(input, output, session) {
       #message("################TESTTTTTTTTTTTTTTTTTTTTTT################")
       
       
-      message("dataframe created")
-      message(paste("saving dataframe for debug purposes in ",df_debug_file))
-      write.csv(df,file = df_debug_file )
+      #message("dataframe created")
+      #message(paste("saving dataframe for debug purposes in ",df_debug_file))
+      #write.csv(df,file = df_debug_file )
       
       missing<-dfCameras [ !dfCameras$cameras.RWS.cameraID %in% df$cameraID ,]
       
