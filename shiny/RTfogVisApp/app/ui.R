@@ -66,7 +66,9 @@ dashboardPage(
                fluidRow(column(12,htmlOutput("FogBinary"))),
                fluidRow(column(12,htmlOutput("probFog"))),
                fluidRow(column(12,htmlOutput("probNoFog"))),
-
+               #debug
+               fluidRow(column(12,htmlOutput("pictureTimestamp"))),
+               ###
 
                HTML('<br>',"<br>"),
                HTML('<expert>Please provide your expert judgement on the picture too!<br>

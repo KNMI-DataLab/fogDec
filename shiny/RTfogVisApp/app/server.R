@@ -37,6 +37,7 @@ firstOccurrence<<-TRUE
   aws_S3_config = "/external/config/S3config.json"
   archive_detection_DB_config = "/external/config/mongoConfig.json"
   foggyDataLocation<-"/external/data/foggyImagesDetected.RDS"
+  promisingFoggyDaysLocation<-"/external/data/promisingFoggyDays.RDS"
   
 
   
@@ -141,7 +142,9 @@ imageToValidate
 
 dataFoggy<<-readRDS(foggyDataLocation)
 
-sampleArchiveFoggyCases<-function(dtFoggy){
+promisingFoggyDays<<-readRDS(promisingFoggyDaysLocation)
+
+sampleFoggyCases<-function(dtFoggy){
   sampledCase<-dtFoggy[sample(.N, 1)]
   sampledCase
 }
@@ -471,7 +474,7 @@ shinyServer(function(input, output, session) {
   randNum<-sample(1:100,1)
   if(randNum<=15){
   #fogArchiveRecord<-queryMongoDetectionArchive()
-  fogArchiveRecord<-sampleArchiveFoggyCases(dataFoggy)
+  fogArchiveRecord<-sampleFoggyCases(dataFoggy)
   imagename<-fogArchiveRecord$originalPath
 
   camera_id<-query_camera_id(fogArchiveRecord$cameraID)
@@ -490,6 +493,19 @@ shinyServer(function(input, output, session) {
   probNoFog<-fogArchiveRecord$predFALSE
 
 
+  }else if(randNum<=45){
+    potentialFoggyRecord<-sampleFoggyCases(promisingFoggyDays)
+    
+    ########
+    imagename<-potentialFoggyRecord$filepath
+    
+    camera_id<-potentialFoggyRecord$camera_id
+    dayPhaseImage<-potentialFoggyRecord$day_phase
+    #camera_id<-fogArchiveRecord$cameraID
+    timestamp<-potentialFoggyRecord$timestamp
+    image_id<-potentialFoggyRecord$image_id
+    ###########
+    
   }else{
   imageDBrecord<-queryDBforImage()
   imagename<-imageDBrecord$filepath
@@ -544,6 +560,9 @@ shinyServer(function(input, output, session) {
   output$FogBinary<-renderUI({HTML('Machine classification is:', fogChar)})
   output$probFog<-renderUI({HTML('Probability of fog in the  image:',as.character(round(100*probFog,2)),"%")})
   output$probNoFog<-renderUI({HTML('Probability of non-fog in the  image:',as.character(round(100*probNoFog,2)),"%")})
+  
+  #debug
+  output$pictureTimestamp<-renderUI({HTML('Picture take at:',as.character(timestamp))})
   
   #print(fogginess)
   
