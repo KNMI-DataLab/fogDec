@@ -67,7 +67,7 @@ dashboardPage(
                fluidRow(column(12,htmlOutput("probFog"))),
                fluidRow(column(12,htmlOutput("probNoFog"))),
                #debug
-               fluidRow(column(12,htmlOutput("pictureTimestamp"))),
+               #fluidRow(column(12,htmlOutput("pictureTimestamp"))),
                ###
 
                HTML('<br>',"<br>"),

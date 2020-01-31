@@ -134,6 +134,8 @@ imageToValidate <- dbGetQuery(connectionSetup, queryString)
 
 dbDisconnect(connectionSetup)
 
+#print("QUERY EXECUTED")
+
 print(imageToValidate)
 
 imageToValidate
@@ -472,6 +474,9 @@ shinyServer(function(input, output, session) {
   #random sample from the metadataDB and from the archive of foggy detected images
   #15% of the times a detected foggy image should be called
   randNum<-sample(1:100,1)
+  print("--------------------")
+  print(randNum)
+  print("--------------------")
   if(randNum<=15){
   #fogArchiveRecord<-queryMongoDetectionArchive()
   fogArchiveRecord<-sampleFoggyCases(dataFoggy)
@@ -506,7 +511,8 @@ shinyServer(function(input, output, session) {
     image_id<-potentialFoggyRecord$image_id
     ###########
     
-  }else{
+  }else{ 
+  #print("I AM IN >45")  
   imageDBrecord<-queryDBforImage()
   imagename<-imageDBrecord$filepath
   dayPhaseImage<-imageDBrecord$day_phase

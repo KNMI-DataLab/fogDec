@@ -16,7 +16,6 @@ con <- dbConnect(RPostgreSQL::PostgreSQL(),
 imagesToLabel <- as.data.table(dbGetQuery(con, "SELECT * FROM images WHERE 
 (timestamp >= '2019-12-30' AND timestamp <  '2020-01-02') OR
 timestamp = '2019-12-03' OR
-(timestamp >= '2020-01-21' AND timestamp <  '2020-01-24')
-  LIMIT 10;"))
+(timestamp >= '2020-01-21' AND timestamp <  '2020-01-24');"))
 
 saveRDS(imagesToLabel,file = "/external/data/promisingFoggyDays.RDS")
