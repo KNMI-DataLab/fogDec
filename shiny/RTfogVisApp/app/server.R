@@ -423,15 +423,20 @@ shinyServer(function(input, output, session) {
       #print(df$localFileLocation)
       objs <- data.table(filenames=rownames(file.info(df$localFileLocation)),file.info(df$localFileLocation))
       #print(objs)
-      goodPics<-objs[objs$size > 10] #bigger than 10 bytes
-      goodPics<-data.table(goodPics)
-      setkey(goodPics,filenames)
-      df<-data.table(df)
-      setkey(df,localFileLocation)
-      dfGoodPics<-df[goodPics,nomatch=0]
-      #print(dfGoodPics)
-      popupFilenames<-as.vector(dfGoodPics$localFileLocation)
       
+      #####TRY TO IDENTIFY THE CAUSE OF THE MARKER SWITCH IN COLOR########
+      # goodPics<-objs[objs$size > 10] #bigger than 10 bytes
+      # goodPics<-data.table(goodPics)
+      # setkey(goodPics,filenames)
+      # df<-data.table(df)
+      # setkey(df,localFileLocation)
+      # dfGoodPics<-df[goodPics,nomatch=0]
+      # #print(dfGoodPics)
+      # popupFilenames<-as.vector(dfGoodPics$localFileLocation)
+      
+      dfGoodPics<-df
+      
+      #####TRY TO IDENTIFY THE CAUSE OF THE MARKER SWITCH IN COLOR########
       
       
       #print(popupFilenames)
