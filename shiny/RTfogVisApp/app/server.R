@@ -435,6 +435,7 @@ shinyServer(function(input, output, session) {
       # popupFilenames<-as.vector(dfGoodPics$localFileLocation)
       
       dfGoodPics<-df
+      popupFilenames<-as.vector(dfGoodPics$localFileLocation)
       
       #####TRY TO IDENTIFY THE CAUSE OF THE MARKER SWITCH IN COLOR########
       
