@@ -294,7 +294,7 @@ selectedScript<-scriptDayCivilDD
   
 
 
-system(paste0('python3 ',selectedScript,' ',filename))
+system(paste0('python3 ',selectedScript,' ',filename), wait = T)
 #####
 
 message(modelPath)
@@ -309,6 +309,9 @@ message(dayPhaseImage)
 
 #logdebug(paste("finished prediction for", args))
 prediction<-fromJSON("/tmp/predicitonLabel.json")
+print("****INSIDE PREDICTION****")
+print(prediction)
+print("****INSIDE PREDICTION****")
 
 fogClass<-prediction$fogClass
 
