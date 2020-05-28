@@ -61,7 +61,7 @@ predFALSE = Y_pred[0,2]
 
 print("image fog class: "+ str(fogClass))
 
-df2 = pd.DataFrame({"fileLocation":[localTempSavedLocation], "originalPath":[localTempSavedLocation],                    "fogClass":[fogClass], "predTrue":[predTRUE], "predFalse":[predFALSE], "model_id": [model_path]})
+df2 = pd.DataFrame({"fileLocation":[localTempSavedLocation], "originalPath":[localTempSavedLocation], "fogClass":[fogClass], "predTrue":[predTRUE], "predFalse":[predFALSE], "model_id": [model_path]})
 
 #cameraTarget = cameraTarget.reset_index(drop=True)
 

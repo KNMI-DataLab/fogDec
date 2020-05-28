@@ -297,8 +297,8 @@ selectedScript<-scriptDayCivilDD
 system(paste0('python3 ',selectedScript,' ',filename), wait = T)
 #####
 
-message(modelPath)
-message(dayPhaseImage)
+#message(modelPath)
+#message(dayPhaseImage)
 
 #logdebug(paste("starting prediction for", args))
 # prediction <- h2o.mojo_predict_df(featuresImage,
@@ -318,7 +318,7 @@ fogClass<-prediction$fogClass
 predTRUE<-prediction$predTrue
 predFALSE<-prediction$predFalse
 
-modelsPath<-"MODEL"
+modelsPath<-prediction$model_id
 
 
 print(list(fogClass,predTRUE,predFALSE,modelPath))
