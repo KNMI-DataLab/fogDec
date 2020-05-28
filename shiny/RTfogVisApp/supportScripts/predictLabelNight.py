@@ -26,9 +26,9 @@ img = image.img_to_array(image.load_img(localTempSavedLocation, target_size=(ima
 img2 = np.expand_dims(img, axis=0)
 
 print("starting prediction for "+ localTempSavedLocation)
-logger.info("starting prediction for %s ", localTempSavedLocation)
+#logger.info("starting prediction for %s ", localTempSavedLocation)
 
-logger.info("loading model and making prediction")
+#logger.info("loading model and making prediction")
 
 model = load_model(model_path)
 Y_pred = model.predict(img2)
@@ -48,7 +48,7 @@ prediction = target_names[y_pred]
 print(Y_pred)
 
 print("finished prediction for "+ localTempSavedLocation)
-logger.info("finished prediction for %s", localTempSavedLocation)
+#logger.info("finished prediction for %s", localTempSavedLocation)
 
 fogClassDict = {"No Fog":0, "Fog":1, "Cannot Say":2}
 
