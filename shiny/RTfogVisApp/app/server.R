@@ -275,15 +275,15 @@ locationAndID<-timeStampTemp[1]
 
 
 
-featuresImage<-fromImageToFeatures(filename)
-featuresImage<-t(featuresImage)
+#featuresImage<-fromImageToFeatures(filename)
+#featuresImage<-t(featuresImage)
 
-model <- c(model_zip_path_day, model_zip_path_civil_dawn, model_zip_path_nautical_dawn, model_zip_path_night)
-names(model) <- c("1", "10", "20","0")
+#model <- c(model_zip_path_day, model_zip_path_civil_dawn, model_zip_path_nautical_dawn, model_zip_path_night)
+#names(model) <- c("1", "10", "20","0")
 
 
 
-modelPath<-model[[as.character(dayPhaseImage)]]
+#modelPath<-model[[as.character(dayPhaseImage)]]
 
 #####
 if (dayPhaseImage %in% c(1,10,11)){
@@ -590,6 +590,7 @@ shinyServer(function(input, output, session) {
   loginfo(paste("annotator",annotator_name))
      
   if(randNum>15){
+  print(localTempSavedLocation)
   fogginess<-predictImage(localTempSavedLocation, dayPhaseImage)
   print("########################")
   print(fogginess)
