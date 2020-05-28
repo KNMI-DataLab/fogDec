@@ -563,9 +563,9 @@ shinyServer(function(input, output, session) {
   camera_id<-imageDBrecord$camera_id
   timestamp<-imageDBrecord$timestamp
   }
-  print("##########################")
-  print(dayPhaseImage)
-  print("##########################")
+  #print("##########################")
+  #print(dayPhaseImage)
+  #print("##########################")
 
   #message(paste0("camera_id is ",camera_id))
   localImageFilepath<-convertToLocalFilepath(imagename)
