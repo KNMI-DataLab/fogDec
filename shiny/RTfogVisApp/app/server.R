@@ -586,7 +586,10 @@ shinyServer(function(input, output, session) {
      
   if(randNum>15){
   fogginess<-predictImage(localTempSavedLocation, dayPhaseImage)
-  if(fogginess[[1]]){
+  print("########################")
+  print(fogginess)
+  print("########################")
+  if(fogginess[[1]]==1){
     fogChar<-"FOG"
   }else{
     fogChar<-"NO FOG"
