@@ -17,6 +17,7 @@ image_width = 200
 
 
 model_path = "/external/models/best-MODEL.h5"
+#model_path = "/home/pagani/development/fogdetectionengine/models/best-MODEL.h5"
 
 localTempSavedLocation = sys.argv[1]
 
@@ -25,9 +26,9 @@ img = image.img_to_array(image.load_img(localTempSavedLocation, target_size=(ima
 img2 = np.expand_dims(img, axis=0)
 
 print("starting prediction for "+ localTempSavedLocation)
-logger.info("starting prediction for %s ", localTempSavedLocation)
+#logger.info("starting prediction for %s ", localTempSavedLocation)
 
-logger.info("loading model and making prediction")
+#logger.info("loading model and making prediction")
 
 model = load_model(model_path)
 Y_pred = model.predict(img2)
@@ -47,7 +48,7 @@ prediction = target_names[y_pred]
 print(Y_pred)
 
 print("finished prediction for "+ localTempSavedLocation)
-logger.info("finished prediction for %s", localTempSavedLocation)
+#logger.info("finished prediction for %s", localTempSavedLocation)
 
 fogClassDict = {"No Fog":0, "Fog":1, "Cannot Say":2}
 
@@ -60,19 +61,20 @@ predFALSE = Y_pred[0,2]
 
 print("image fog class: "+ str(fogClass))
 
-df2 = pd.DataFrame({"fileLocation":[fileLocation], "originalPath":[originalPath], "timeStamp":[timeStamp],
-                    "fogClass":[fogClass], "predTrue":[predTRUE], "predFalse":[predFALSE], "model_id": [model_path]})
+df2 = pd.DataFrame({"fileLocation":[localTempSavedLocation], "originalPath":[localTempSavedLocation],                    "fogClass":[fogClass], "predTrue":[predTRUE], "predFalse":[predFALSE], "model_id": [model_path]})
 
-cameraTarget = cameraTarget.reset_index(drop=True)
+#cameraTarget = cameraTarget.reset_index(drop=True)
 
-final = pd.concat([cameraTarget, df2], axis=1)
+#final = pd.concat([cameraTarget, df2], axis=1)
 
 #final =
 
-finalJSON = final.to_json(orient="records")
-#finalDICT = final.to_dict('records')
+#finalJSON = df2.to_json(orient="records")
+finalDICT = df2.to_dict('records')
+#with open('/tmp/predicitonLabel.json', 'w') as outfile:
+#    json.dump(finalJSON, outfile)
 with open('/tmp/predicitonLabel.json', 'w') as outfile:
-    json.dump(finalJSON, outfile)
+    json.dump(finalDICT, outfile)
 
 
 

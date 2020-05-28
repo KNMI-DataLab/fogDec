@@ -61,19 +61,23 @@ predFALSE = Y_pred[0,2]
 
 print("image fog class: "+ str(fogClass))
 
-df2 = pd.DataFrame({"fileLocation":[fileLocation], "originalPath":[originalPath], "timeStamp":[timeStamp],
-                    "fogClass":[fogClass], "predTrue":[predTRUE], "predFalse":[predFALSE], "model_id": [model_path]})
+df2 = pd.DataFrame({"fileLocation":[localTempSavedLocation], "originalPath":[localTempSavedLocation],                    "fogClass":[fogClass], "predTrue":[predTRUE], "predFalse":[predFALSE], "model_id": [model_path]})
 
-cameraTarget = cameraTarget.reset_index(drop=True)
+#cameraTarget = cameraTarget.reset_index(drop=True)
 
-final = pd.concat([cameraTarget, df2], axis=1)
+#final = pd.concat([cameraTarget, df2], axis=1)
 
 #final =
 
-finalJSON = final.to_json(orient="records")
-#finalDICT = final.to_dict('records')
+#finalJSON = df2.to_json(orient="records")
+finalDICT = df2.to_dict('records')
+#with open('/tmp/predicitonLabel.json', 'w') as outfile:
+#    json.dump(finalJSON, outfile)
 with open('/tmp/predicitonLabel.json', 'w') as outfile:
-    json.dump(finalJSON, outfile)
+    json.dump(finalDICT, outfile)
+
+
+
 
 
 
