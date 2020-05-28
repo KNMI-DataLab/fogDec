@@ -308,7 +308,7 @@ system(paste0('python3 ',selectedScript,' ',filename), wait = T)
 
 
 #logdebug(paste("finished prediction for", args))
-prediction<-fromJSON("/tmp/predicitonLabel.json")
+prediction<-jsonlite::fromJSON("/tmp/predicitonLabel.json")
 print("****INSIDE PREDICTION****")
 print(prediction)
 print("****INSIDE PREDICTION END****")
