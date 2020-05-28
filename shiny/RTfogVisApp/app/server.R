@@ -13,7 +13,7 @@ library(RJSONIO)
 library(stringr)
 library(logging)
 library(imager)
-library(h2o)
+#library(h2o)
 ##########
 #local and remote implementation variable naming/setting
 ##########
@@ -38,6 +38,8 @@ firstOccurrence<<-TRUE
   archive_detection_DB_config = "/external/config/mongoConfig.json"
   foggyDataLocation<-"/external/data/foggyImagesDetected.RDS"
   promisingFoggyDaysLocation<-"/external/data/promisingFoggyDays.RDS"
+  scriptDayCivilDD<-"/visApp/fogDec/shiny/RTfogVisApp/supportScripts/predictLabelDay.py"
+  scriptNightAstroNautDD<-"/visApp/fogDec/shiny/RTfogVisApp/supportScripts/predictLabelNight.py"
   
 
   
@@ -134,7 +136,7 @@ imageToValidate <- dbGetQuery(connectionSetup, queryString)
 
 dbDisconnect(connectionSetup)
 
-#print("QUERY EXECUTED")
+print("QUERY EXECUTED")
 
 print(imageToValidate)
 
@@ -179,6 +181,14 @@ addHandler(writeToFile, file=log_file, level='DEBUG')
 with(getLogger(), names(handlers))
 
 
+
+##########Dealing with feedback textbox##########
+
+observeEvent(input$submitMessageButton, {
+  cat("Showing", input$item)
+})
+
+#########################
 
 fromImageToFeatures<-function(filename){
   #print(filename)
@@ -274,23 +284,36 @@ names(model) <- c("1", "10", "20","0")
 
 
 modelPath<-model[[as.character(dayPhaseImage)]]
+
+#####
+if (dayPhaseImage %in% c(1,10,11)){
+selectedScript<-scriptDayCivilDD
+} else{
+  selectedScript<-scriptNightAstroNautDD
+}
+  
+
+
+system(paste0('python3 ',selectedScript,' ',filename))
+#####
+
 message(modelPath)
 message(dayPhaseImage)
 
 #logdebug(paste("starting prediction for", args))
-prediction <- h2o.mojo_predict_df(featuresImage,
-                                  mojo_zip_path =  modelPath, 
-                                  classpath = h2o_jar_path, 
-                                  genmodel_jar_path = h2o_jar_path)
+# prediction <- h2o.mojo_predict_df(featuresImage,
+#                                   mojo_zip_path =  modelPath, 
+#                                   classpath = h2o_jar_path, 
+#                                   genmodel_jar_path = h2o_jar_path)
 
 
 #logdebug(paste("finished prediction for", args))
+prediction<-fromJSON("/tmp/predicitonLabel.json")
 
+fogClass<-prediction$fogClass
 
-fogClass<-prediction$predict
-
-predTRUE<-prediction$TRUE.
-predFALSE<-prediction$FALSE.
+predTRUE<-prediction$predTrue
+predFALSE<-prediction$predFalse
 
 return(list(fogClass,predTRUE,predFALSE,modelPath))
 
@@ -486,6 +509,13 @@ shinyServer(function(input, output, session) {
   if(randNum<=15){
   #fogArchiveRecord<-queryMongoDetectionArchive()
   fogArchiveRecord<-sampleFoggyCases(dataFoggy)
+  
+  print("--------------------")
+  print(fogArchiveRecord)
+  print("--------------------")
+  
+  
+  
   imagename<-fogArchiveRecord$originalPath
 
   camera_id<-query_camera_id(fogArchiveRecord$cameraID)
@@ -526,7 +556,9 @@ shinyServer(function(input, output, session) {
   camera_id<-imageDBrecord$camera_id
   timestamp<-imageDBrecord$timestamp
   }
-  
+  print("##########################")
+  print(dayPhaseImage)
+  print("##########################")
 
   #message(paste0("camera_id is ",camera_id))
   localImageFilepath<-convertToLocalFilepath(imagename)
