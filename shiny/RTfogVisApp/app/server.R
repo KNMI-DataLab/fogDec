@@ -597,7 +597,7 @@ shinyServer(function(input, output, session) {
   print("########################")
   print(fogginess)
   print("########################")
-  if(fogginess[[1]][[1]]==1){
+  if(fogginess[[1]]==1){
     fogChar<-"FOG"
   }else{
     fogChar<-"NO FOG"
@@ -634,7 +634,7 @@ shinyServer(function(input, output, session) {
   
   }
 
-  
+  print("HERE")
   dfInitial<<-getAndShowNewImage()
   print("DFINITIAL")
   print(dfInitial)
