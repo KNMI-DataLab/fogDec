@@ -315,6 +315,8 @@ fogClass<-prediction$fogClass
 predTRUE<-prediction$predTrue
 predFALSE<-prediction$predFalse
 
+
+print(list(fogClass,predTRUE,predFALSE,modelPath))
 return(list(fogClass,predTRUE,predFALSE,modelPath))
 
 }
