@@ -17,7 +17,7 @@ image_width = 64
 
 
 
-model_path = "/external/models/best-MODEL_NIGHT.h5""
+model_path = "/external/models/best-MODEL_NIGHT.h5"
 
 localTempSavedLocation = sys.argv[1]
 
