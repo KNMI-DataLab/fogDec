@@ -319,9 +319,12 @@ predTRUE<-prediction$predTrue
 predFALSE<-prediction$predFalse
 
 modelPath<-prediction$model_id
+print("****INSIDE PIPPO****")
 
+pippo<-list(fogClass,predTRUE,predFALSE,modelPath)
+print("****INSIDE PIPPO****")
 
-print(list(fogClass,predTRUE,predFALSE,modelPath))
+print(pippo)
 return(list(fogClass,predTRUE,predFALSE,modelPath))
 
 }
