@@ -597,7 +597,7 @@ shinyServer(function(input, output, session) {
   print("########################")
   print(fogginess)
   print("########################")
-  if(fogginess[[1]]$fogClass==1){
+  if(fogginess[[1]][[1]]==1){
     fogChar<-"FOG"
   }else{
     fogChar<-"NO FOG"
