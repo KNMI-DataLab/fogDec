@@ -184,38 +184,12 @@ with(getLogger(), names(handlers))
 
 ##########Dealing with feedback textbox##########
 
-observeEvent(input$submitMessageButton, {
-  cat("Showing", input$item)
-})
+#observeEvent(input$submitMessageButton, {
+#  cat("Showing", input$item)
+#})
 
 #########################
 
-fromImageToFeatures<-function(filename){
-  #print(filename)
-  resolutionImg<-28
-  image<-tryCatch(
-    load.image(filename),
-    
-    error=function(error_message) {
-      #message("Yet another error message.")
-      #message("Here is the actual R error message:")
-      #next
-      return(NA)
-    }
-  )
-  if(is.na(image[[1]])){
-    v<-NA*1:(resolutionImg*resolutionImg)
-    message("Image not available error in acquisition")
-    v
-  }else{
-    image<-resize(image,resolutionImg,resolutionImg)
-    image<-blur_anisotropic(image, amplitude = 10000)
-    df<-as.data.frame(image)
-    v<-df$value
-    #mat<-rbind(mat,v)
-    v
-  }
-}
 
 
 convertToLocalFilepath<-function(remoteFilepath){
@@ -240,52 +214,6 @@ originalPath<-filename
 locationAndID<-timeStampTemp[1]
 
 
-
-# remote=FALSE
-# 
-# if(remote==TRUE){
-#   model_zip_path = "/workspace/andrea/exports/models/dl_grid_model_35.zip"
-#   h2o_jar_path = "/usr/local/lib/R/site-library/h2o/java/h2o.jar"
-#   devel_dir<-"/workspace/andrea/"
-#   #for amazon###
-#   fileLocation<-"/workspace/andrea/exports/A2-HM776-ID10915_20180606_0801.jpg"
-#   #####
-#   results_json<-"/workspace/andrea/exports/results/predictions/test.json"
-#   temp_directory<-"/workspace/andrea/tmp"
-#   ##TO BE CHNAGED THE LOCATIONS
-#   model_zip_path_day = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_35.zip"
-#   model_zip_path_civil_dawn = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_8.zip"
-#   model_zip_path_nautical_dawn = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_15.zip"
-#   model_zip_path_night = "/home/pagani/nndataH2O/frozenModels/usedModelsInPOC/dl_grid_model_NIGHT_15.zip"
-# }else{
-#   model_zip_path_day <- paste0(modelsPath,"dl_grid_model_35.zip")
-#   model_zip_path_civil_dawn <- paste0(modelsPath,"dl_grid_model_8.zip")
-#   model_zip_path_nautical_dawn <- paste0(modelsPath,"dl_grid_model_15.zip")
-#   model_zip_path_night <-paste0(modelsPath, "dl_grid_model_NIGHT_15.zip")
-#   #devel_dir<-"/home/pagani/development/"
-#   #results_json<-"/home/pagani/nndataH2O/frozenModels/results/predictions/test.json"
-# 
-# }
-
-
-
-
-
-#print(filename)
-
-
-
-#featuresImage<-fromImageToFeatures(filename)
-#featuresImage<-t(featuresImage)
-
-#model <- c(model_zip_path_day, model_zip_path_civil_dawn, model_zip_path_nautical_dawn, model_zip_path_night)
-#names(model) <- c("1", "10", "20","0")
-
-
-
-#modelPath<-model[[as.character(dayPhaseImage)]]
-
-#####
 if (dayPhaseImage %in% c(1,10,11)){
 selectedScript<-scriptDayCivilDD
 } else{
@@ -295,23 +223,8 @@ selectedScript<-scriptDayCivilDD
 
 
 system(paste0('python3 ',selectedScript,' ',filename), wait = T)
-#####
 
-#message(modelPath)
-#message(dayPhaseImage)
-
-#logdebug(paste("starting prediction for", args))
-# prediction <- h2o.mojo_predict_df(featuresImage,
-#                                   mojo_zip_path =  modelPath, 
-#                                   classpath = h2o_jar_path, 
-#                                   genmodel_jar_path = h2o_jar_path)
-
-
-#logdebug(paste("finished prediction for", args))
 prediction<-jsonlite::fromJSON("/tmp/predicitonLabel.json")
-print("****INSIDE PREDICTION****")
-print(prediction)
-print("****INSIDE PREDICTION END****")
 
 fogClass<-prediction$fogClass
 
@@ -319,16 +232,8 @@ predTRUE<-prediction$predTrue
 predFALSE<-prediction$predFalse
 
 modelPath<-prediction$model_id
-print("****INSIDE PIPPO****")
 
 pippo<-list(fogClass,predTRUE,predFALSE,modelPath)
-print(pippo)
-print("****INSIDE PIPPO****")
-print(fogClass)
-print(predTRUE)
-print(predFALSE)
-print(modelPath)
-
 
 return(list(fogClass,predTRUE,predFALSE,modelPath))
 
@@ -518,21 +423,13 @@ shinyServer(function(input, output, session) {
   #random sample from the metadataDB and from the archive of foggy detected images
   #15% of the times a detected foggy image should be called
   randNum<-sample(1:100,1)
-  print("--------------------")
-  print(randNum)
-  print("--------------------")
+  # print("--------------------")
+  # print(randNum)
+  # print("--------------------")
   if(randNum<=15){
   #fogArchiveRecord<-queryMongoDetectionArchive()
   fogArchiveRecord<-sampleFoggyCases(dataFoggy)
-  
-  print("--------------------")
-  print(fogArchiveRecord)
-  print("--------------------")
-  
-  
-  
   imagename<-fogArchiveRecord$originalPath
-
   camera_id<-query_camera_id(fogArchiveRecord$cameraID)
 
   #camera_id<-fogArchiveRecord$cameraID
@@ -571,11 +468,7 @@ shinyServer(function(input, output, session) {
   camera_id<-imageDBrecord$camera_id
   timestamp<-imageDBrecord$timestamp
   }
-  #print("##########################")
-  #print(dayPhaseImage)
-  #print("##########################")
-
-  #message(paste0("camera_id is ",camera_id))
+  
   localImageFilepath<-convertToLocalFilepath(imagename)
   filenameImage<-basename(localImageFilepath)
   localTempSavedLocation <- paste0(imagesLocationValidation,filenameImage) 
@@ -592,19 +485,12 @@ shinyServer(function(input, output, session) {
   }
   #print(paste("file location",localTempSavedLocation))
   #print("object saved")
-  
-  
-  
   visibility_qualitative_annotator<-NA
   annotator_name<-Sys.getenv("SHINYPROXY_USERNAME")
   loginfo(paste("annotator",annotator_name))
-     
   if(randNum>15){
   print(localTempSavedLocation)
   fogginess<-predictImage(localTempSavedLocation, dayPhaseImage)
-  print("########################")
-  print(fogginess)
-  print("########################")
   if(fogginess[[1]]==1){
     fogChar<-"FOG"
   }else{
@@ -778,15 +664,8 @@ shinyServer(function(input, output, session) {
       
       visualizeResults(df)
       
-      
-      
     }
   }
-  
-  
-  
-  
-   
  react_fetch_det<-reactivePoll(60000, session, checkFunc = fetchNewFogDetection)
  reactive(react_fetch_det())
   })
