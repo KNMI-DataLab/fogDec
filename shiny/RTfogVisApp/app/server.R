@@ -283,9 +283,11 @@ shinyServer(function(input, output, session) {
                         <img src='iconGreyNoBack.png' style='width:15px;height:20px;'>  NA<br/></div>")
   dfCameras$hyperink<-paste0('<a href="',dfCameras$ipAddr,'" target="_blank">View Camera ', dfCameras$location," " ,dfCameras$cameraID,  '</a>')
   mapInit<-leaflet(dfCameras) %>% addTiles() %>%  addAwesomeMarkers( ~longitude, ~latitude, icon = iconsInit, popup = ~hyperink ) %>% addControl(html= html_legend, position = "topright")
-  ####output$map<-renderLeaflet(mapInit)
-  jsonQueue<-jsonlite::fromJSON(queue_conf_file)
-  
+  output$map<-renderLeaflet(mapInit)
+  #jsonQueue<-jsonlite::fromJSON(queue_conf_file)
+  #added for debug##############
+  firstOccurrence<<-TRUE
+  #############################
   
   visualizeResults<-function(df)
   {
@@ -665,7 +667,7 @@ shinyServer(function(input, output, session) {
       
       df<-fromJSONtoDF(state_file)
       
-      print(df)
+      #print(df)
       print("calling visualize results")
       
       visualizeResults(df)
