@@ -393,7 +393,7 @@ shinyServer(function(input, output, session) {
       
       #message('##############before  output maps#######################')
       
-      print(dfGoodPics)
+      #print(dfGoodPics)
       
       
       if(nrow(missing)!=0){
