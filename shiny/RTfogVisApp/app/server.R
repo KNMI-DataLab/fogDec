@@ -21,7 +21,7 @@ library(imager)
 
 firstOccurrence<<-TRUE
 
-  temp_directory<-"/external/temp/"
+  #temp_directory<-"/external/temp/"
   df_debug_file<-"/external/debug/debugDF.csv"
   log_file<-"/external/log/logFile.log"
   state_file<-"/external/state/currentState.json"
@@ -92,7 +92,7 @@ addHandler(writeToFile, file=log_file, level='DEBUG')
 with(getLogger(), names(handlers))
 
 
-set.tempdir(temp_directory)
+#set.tempdir(temp_directory)
 
 
 prepareDBconnection<-function(){
