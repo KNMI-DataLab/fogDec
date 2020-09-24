@@ -251,7 +251,7 @@ fromJSONtoDF<-function(text){
   #and setting the related names
   colnames(df)<-c("id","location", "cameraID", "longitude", "latitude", "ipAddr", "_note", "fileLocation", "originalPath", "timeStamp", "fogClass", "predTRUE")
   #names(jsoninput[[1]][[3]][[3]])
-  print(df)
+  #print(df)
   df
 }
 
@@ -390,6 +390,8 @@ shinyServer(function(input, output, session) {
       dfGoodPics$hyperink<-paste0('<a href="',dfGoodPics$ipAddr,'" target="_blank">View Camera ', dfGoodPics$location," " ,dfGoodPics$cameraID,  '</a>')
       
       #message('##############before  output maps#######################')
+      
+      print(dfGoodPics)
       
       
       if(nrow(missing)!=0){
