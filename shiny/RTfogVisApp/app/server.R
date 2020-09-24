@@ -662,6 +662,9 @@ shinyServer(function(input, output, session) {
       
       df<-fromJSONtoDF(state_file)
       
+      print(df)
+      print("calling visualize results")
+      
       visualizeResults(df)
       
     }
