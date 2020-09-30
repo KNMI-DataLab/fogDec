@@ -674,6 +674,14 @@ shinyServer(function(input, output, session) {
       
     }
   }
+  
+  autoInvalidate <- reactiveTimer(10000)
+  observe({
+    autoInvalidate()
+    cat(".")
+  })
+  
+  
  react_fetch_det<-reactivePoll(60000, session, checkFunc = fetchNewFogDetection)
  reactive(react_fetch_det())
   })
