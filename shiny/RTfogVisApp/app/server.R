@@ -280,6 +280,7 @@ shinyServer(function(input, output, session) {
   html_legend <- paste0("<link href='shared/font-awesome/css/font-awesome.min.css'/><div class='bold'>
                         <img src='iconGreenNoBack.png' style='width:15px;height:20px;'>   NO FOG<br/>
                         <img src='iconRedNoBack.png'style='width:15px;height:20px;'>  FOG<br/>
+                         <img src='iconBlackNoBack.png'style='width:15px;height:20px;'>  NO VIDEO<br/>
                         <img src='iconGreyNoBack.png' style='width:15px;height:20px;'>  NA<br/></div>")
   dfCameras$hyperink<-paste0('<a href="',dfCameras$ipAddr,'" target="_blank">View Camera ', dfCameras$location," " ,dfCameras$cameraID,  '</a>')
   mapInit<-leaflet(dfCameras) %>% addTiles() %>%  addAwesomeMarkers( ~longitude, ~latitude, icon = iconsInit, popup = ~hyperink ) %>% addControl(html= html_legend, position = "topright")
@@ -317,8 +318,8 @@ shinyServer(function(input, output, session) {
       
       
       df$icon <- factor(df$fogClass,
-                        levels = c("1","0","UNKNOWN"),
-                        labels = c("red", "green","gray"))
+                        levels = c("1","0","UNKNOWN", "3"),
+                        labels = c("red", "green","gray","black"))
       
       df
       df$longitude<-as.numeric(df$longitude)
