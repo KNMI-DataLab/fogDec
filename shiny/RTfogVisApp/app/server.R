@@ -482,12 +482,12 @@ shinyServer(function(input, output, session) {
   head_obj<-head_object(object = localImageFilepath, bucket = 'knmi-fogdetection-dataset')
   
   ##removing NoVideo and NoStream from the images shown to annotators
-  obj_size<-object_size(object = localImageFilepath, bucket = 'knmi-fogdetection-dataset')
-  print("object size:")
-  print(obj_size)
+  #obj_size<-object_size(object = localImageFilepath, bucket = 'knmi-fogdetection-dataset')
+  #print("object size:")
+  object_size<-as.numeric(attr(head_obj,'content-length'))
   ##
-
-  if(head_obj==TRUE & obj_size>10){
+  
+  if(head_obj==TRUE & object_size>=9000){
   save_object(object = localImageFilepath, bucket = 'knmi-fogdetection-dataset',
               file = localTempSavedLocation)
   } else{
