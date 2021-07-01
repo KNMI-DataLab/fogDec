@@ -130,7 +130,8 @@ connectionSetup <-prepareDBconnection()
 #LEFT JOIN manual_annotations t2 ON t2.image_id = t1.image_id
 #WHERE t2.image_id IS NULL and t1.camera_id>260  limit 10000;
 
-queryString<- "select * from non_evaluated_images_rws where random()<0.01 and day_phase in (1,0,20,10) and camera_id>260 limit 1;"
+#queryString<- "select * from non_evaluated_images_rws where random()<0.01 and day_phase in (1,0,20,10) and camera_id>260 limit 1;"
+queryString<- "select * from non_evaluated_images_rws where random()<0.08 and camera_id>260 limit 1;"
 
 
 imageToValidate <- dbGetQuery(connectionSetup, queryString)
