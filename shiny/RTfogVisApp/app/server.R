@@ -13,6 +13,8 @@ library(RJSONIO)
 library(stringr)
 library(logging)
 library(imager)
+library(aws.s3)
+
 #library(h2o)
 ##########
 #local and remote implementation variable naming/setting
@@ -71,7 +73,6 @@ firstOccurrence<<-TRUE
   
   
   
-  library(aws.s3)
   ##AWS S3 section to access to images
   S3config<-jsonlite::fromJSON(aws_S3_config)
   
@@ -432,7 +433,7 @@ shinyServer(function(input, output, session) {
   # print("--------------------")
   # print(randNum)
   # print("--------------------")
-  if(randNum<=15){
+  if(randNum<=10){
   #fogArchiveRecord<-queryMongoDetectionArchive()
   fogArchiveRecord<-sampleFoggyCases(dataFoggy)
   imagename<-fogArchiveRecord$originalPath
@@ -452,7 +453,7 @@ shinyServer(function(input, output, session) {
   probNoFog<-fogArchiveRecord$predFALSE
 
 
-  }else if(randNum<=45){
+  }else if(randNum<=12){
     potentialFoggyRecord<-sampleFoggyCases(promisingFoggyDays)
     
     ########
@@ -479,8 +480,14 @@ shinyServer(function(input, output, session) {
   filenameImage<-basename(localImageFilepath)
   localTempSavedLocation <- paste0(imagesLocationValidation,filenameImage) 
   head_obj<-head_object(object = localImageFilepath, bucket = 'knmi-fogdetection-dataset')
+  
+  ##removing NoVideo and NoStream from the images shown to annotators
+  obj_size<-object_size(object = localImageFilepath, bucket = 'knmi-fogdetection-dataset')
+  print("object size:")
+  print(obj_size)
+  ##
 
-  if(head_obj==TRUE){
+  if(head_obj==TRUE & obj_size>10){
   save_object(object = localImageFilepath, bucket = 'knmi-fogdetection-dataset',
               file = localTempSavedLocation)
   } else{
