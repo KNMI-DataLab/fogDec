@@ -502,7 +502,7 @@ shinyServer(function(input, output, session) {
   visibility_qualitative_annotator<-NA
   annotator_name<-Sys.getenv("SHINYPROXY_USERNAME")
   loginfo(paste("annotator",annotator_name))
-  if(randNum>15){
+  if(randNum>10){
   print(localTempSavedLocation)
   fogginess<-predictImage(localTempSavedLocation, dayPhaseImage)
   if(fogginess[[1]]==1){
