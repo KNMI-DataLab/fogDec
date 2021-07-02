@@ -577,6 +577,10 @@ shinyServer(function(input, output, session) {
       dfInitial<<-NULL
       unlink(paste0(imagesLocationValidation,"*.jpg"))
       dfValid<<-getAndShowNewImage()
+      while(is.null(dfValid)){
+        unlink(paste0(imagesLocationValidation,"*.jpg"))
+        dfInitial<<-getAndShowNewImage()
+      }
       print(dfValid)
     }
 
