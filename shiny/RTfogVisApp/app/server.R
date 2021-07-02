@@ -563,6 +563,10 @@ shinyServer(function(input, output, session) {
     }
     unlink(paste0(imagesLocationValidation,"*.jpg"))
     dfValid<<-getAndShowNewImage()
+    while(is.null(dfValid)){
+      unlink(paste0(imagesLocationValidation,"*.jpg"))
+      dfInitial<<-getAndShowNewImage()
+    }
     print(dfValid)
     Sys.sleep(0.3)
     } else{
@@ -598,6 +602,10 @@ shinyServer(function(input, output, session) {
       }
       unlink(imagesLocationValidation)
       dfValid<<-getAndShowNewImage()
+      while(is.null(dfValid)){
+        unlink(paste0(imagesLocationValidation,"*.jpg"))
+        dfInitial<<-getAndShowNewImage()
+      }
       print(dfValid)
       Sys.sleep(0.3)
 
@@ -613,6 +621,10 @@ shinyServer(function(input, output, session) {
       dfInitial<<-NULL
       unlink(paste0(imagesLocationValidation,"*.jpg"))
       dfValid<<-getAndShowNewImage()
+      while(is.null(dfValid)){
+        unlink(paste0(imagesLocationValidation,"*.jpg"))
+        dfInitial<<-getAndShowNewImage()
+      }
       print(dfValid)
     }
 
@@ -630,6 +642,10 @@ shinyServer(function(input, output, session) {
       }
       unlink(paste0(imagesLocationValidation,"*.jpg"))
       dfValid<<-getAndShowNewImage()
+      while(is.null(dfValid)){
+        unlink(paste0(imagesLocationValidation,"*.jpg"))
+        dfInitial<<-getAndShowNewImage()
+      }
       print(dfValid)
       Sys.sleep(0.3)
 
@@ -645,6 +661,10 @@ shinyServer(function(input, output, session) {
       dfInitial<<-NULL
       unlink(paste0(imagesLocationValidation,"*.jpg"))
       dfValid<<-getAndShowNewImage()
+      while(is.null(dfValid)){
+        unlink(paste0(imagesLocationValidation,"*.jpg"))
+        dfInitial<<-getAndShowNewImage()
+      }
       print(dfValid)
     }
   })
