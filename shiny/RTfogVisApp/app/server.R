@@ -494,6 +494,7 @@ shinyServer(function(input, output, session) {
   } else{
     #print("inside error")
     DFannotation<-NULL
+    getAndShowNewImage()
     #print(DFannotation)
     return(DFannotation)
   }
