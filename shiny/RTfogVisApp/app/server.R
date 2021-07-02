@@ -564,6 +564,7 @@ shinyServer(function(input, output, session) {
     unlink(paste0(imagesLocationValidation,"*.jpg"))
     dfValid<<-getAndShowNewImage()
     while(is.null(dfValid)){
+      print("inside dfValid NULL")
       unlink(paste0(imagesLocationValidation,"*.jpg"))
       dfValid<<-getAndShowNewImage()
     }
@@ -582,6 +583,7 @@ shinyServer(function(input, output, session) {
       unlink(paste0(imagesLocationValidation,"*.jpg"))
       dfValid<<-getAndShowNewImage()
       while(is.null(dfValid)){
+        print("inside dfValid NULL")
         unlink(paste0(imagesLocationValidation,"*.jpg"))
         dfValid<<-getAndShowNewImage()
       }
@@ -603,6 +605,7 @@ shinyServer(function(input, output, session) {
       unlink(imagesLocationValidation)
       dfValid<<-getAndShowNewImage()
       while(is.null(dfValid)){
+        print("inside dfValid NULL")
         unlink(paste0(imagesLocationValidation,"*.jpg"))
         dfValid<<-getAndShowNewImage()
       }
@@ -622,6 +625,7 @@ shinyServer(function(input, output, session) {
       unlink(paste0(imagesLocationValidation,"*.jpg"))
       dfValid<<-getAndShowNewImage()
       while(is.null(dfValid)){
+        print("inside dfValid NULL")
         unlink(paste0(imagesLocationValidation,"*.jpg"))
         dfValid<<-getAndShowNewImage()
       }
@@ -643,6 +647,7 @@ shinyServer(function(input, output, session) {
       unlink(paste0(imagesLocationValidation,"*.jpg"))
       dfValid<<-getAndShowNewImage()
       while(is.null(dfValid)){
+        print("inside dfValid NULL")
         unlink(paste0(imagesLocationValidation,"*.jpg"))
         dfValid<<-getAndShowNewImage()
       }
@@ -662,6 +667,7 @@ shinyServer(function(input, output, session) {
       unlink(paste0(imagesLocationValidation,"*.jpg"))
       dfValid<<-getAndShowNewImage()
       while(is.null(dfValid)){
+        print("inside dfValid NULL")
         unlink(paste0(imagesLocationValidation,"*.jpg"))
         dfValid<<-getAndShowNewImage()
       }
