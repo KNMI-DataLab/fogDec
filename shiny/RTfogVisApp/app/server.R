@@ -131,7 +131,7 @@ connectionSetup <-prepareDBconnection()
 #WHERE t2.image_id IS NULL and t1.camera_id>260  limit 10000;
 
 #queryString<- "select * from non_evaluated_images_rws where random()<0.08 and day_phase in (1,0,20,10) and camera_id>260 limit 1;"
-queryString<- "select * from non_evaluated_images_rws where random()<0.08 and camera_id>260 limit 1;"
+queryString<- "select * from non_evaluated_images_rws where random()<0.01 and day_phase in (1) and camera_id>260 limit 1;"
 
 
 #SELECT * FROM my_table TABLESAMPLE SYSTEM(0.001) LIMIT 1
@@ -433,32 +433,32 @@ shinyServer(function(input, output, session) {
 
   #random sample from the metadataDB and from the archive of foggy detected images
   #15% of the times a detected foggy image should be called
-  randNum<-sample(6:100,1)
+  #randNum<-sample(6:100,1)
   # print("--------------------")
   # print(randNum)
   # print("--------------------")
-  if(randNum<=3){
+  #if(randNum<=3){
   #fogArchiveRecord<-queryMongoDetectionArchive()
-  fogArchiveRecord<-sampleFoggyCases(dataFoggy)
-  imagename<-fogArchiveRecord$originalPath
-  camera_id<-query_camera_id(fogArchiveRecord$cameraID)
-
-  #camera_id<-fogArchiveRecord$cameraID
-  timestamp<-fogArchiveRecord$timeStampMongoFormat
-  image_id<-NA
-  if(fogArchiveRecord$fogClass==1){
-	    fogChar<-"FOG"
-   }else{
-	    fogChar<-"NO FOG"
-	  }
-  visibility_qualitative_detection_model<-fogChar
-  detection_model_name<-NA
-  probFog<-fogArchiveRecord$predTRUE
-  probNoFog<-fogArchiveRecord$predFALSE
-
-
-  }else if(randNum<=5){
-    potentialFoggyRecord<-sampleFoggyCases(promisingFoggyDays)
+#   fogArchiveRecord<-sampleFoggyCases(dataFoggy)
+#   imagename<-fogArchiveRecord$originalPath
+#   camera_id<-query_camera_id(fogArchiveRecord$cameraID)
+# 
+#   #camera_id<-fogArchiveRecord$cameraID
+#   timestamp<-fogArchiveRecord$timeStampMongoFormat
+#   image_id<-NA
+#   if(fogArchiveRecord$fogClass==1){
+# 	    fogChar<-"FOG"
+#    }else{
+# 	    fogChar<-"NO FOG"
+# 	  }
+#   visibility_qualitative_detection_model<-fogChar
+#   detection_model_name<-NA
+#   probFog<-fogArchiveRecord$predTRUE
+#   probNoFog<-fogArchiveRecord$predFALSE
+# 
+# 
+#   }else if(randNum<=5){
+  #  potentialFoggyRecord<-sampleFoggyCases(promisingFoggyDays)
     
     ########
     imagename<-potentialFoggyRecord$filepath
@@ -470,7 +470,7 @@ shinyServer(function(input, output, session) {
     image_id<-potentialFoggyRecord$image_id
     ###########
     
-  }else{ 
+  #}else{ 
   #print("I AM IN >45")  
   imageDBrecord<-queryDBforImage()
   imagename<-imageDBrecord$filepath
@@ -478,7 +478,7 @@ shinyServer(function(input, output, session) {
   image_id<-imageDBrecord$image_id
   camera_id<-imageDBrecord$camera_id
   timestamp<-imageDBrecord$timestamp
-  }
+  #}
   
   localImageFilepath<-convertToLocalFilepath(imagename)
   filenameImage<-basename(localImageFilepath)
