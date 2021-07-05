@@ -507,7 +507,7 @@ shinyServer(function(input, output, session) {
   visibility_qualitative_annotator<-NA
   annotator_name<-Sys.getenv("SHINYPROXY_USERNAME")
   loginfo(paste("annotator",annotator_name))
-  if(randNum>5){
+  #if(randNum>5){
   print(localTempSavedLocation)
   fogginess<-predictImage(localTempSavedLocation, dayPhaseImage)
   if(fogginess[[1]]==1){
@@ -519,7 +519,7 @@ shinyServer(function(input, output, session) {
   detection_model_name<-basename(fogginess[[4]])
   probFog<-fogginess[[2]]
   probNoFog<-fogginess[[3]]
-  }
+  #}
 
   
 
