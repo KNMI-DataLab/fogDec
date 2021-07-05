@@ -433,11 +433,11 @@ shinyServer(function(input, output, session) {
 
   #random sample from the metadataDB and from the archive of foggy detected images
   #15% of the times a detected foggy image should be called
-  randNum<-sample(1:100,1)
+  randNum<-sample(6:100,1)
   # print("--------------------")
   # print(randNum)
   # print("--------------------")
-  if(randNum<=5){
+  if(randNum<=3){
   #fogArchiveRecord<-queryMongoDetectionArchive()
   fogArchiveRecord<-sampleFoggyCases(dataFoggy)
   imagename<-fogArchiveRecord$originalPath
@@ -457,7 +457,7 @@ shinyServer(function(input, output, session) {
   probNoFog<-fogArchiveRecord$predFALSE
 
 
-  }else if(randNum<=7){
+  }else if(randNum<=5){
     potentialFoggyRecord<-sampleFoggyCases(promisingFoggyDays)
     
     ########
@@ -507,7 +507,7 @@ shinyServer(function(input, output, session) {
   visibility_qualitative_annotator<-NA
   annotator_name<-Sys.getenv("SHINYPROXY_USERNAME")
   loginfo(paste("annotator",annotator_name))
-  if(randNum>7){
+  if(randNum>5){
   print(localTempSavedLocation)
   fogginess<-predictImage(localTempSavedLocation, dayPhaseImage)
   if(fogginess[[1]]==1){
