@@ -497,7 +497,7 @@ shinyServer(function(input, output, session) {
   } else{
     #print("inside error")
     DFannotation<-NULL
-    #getAndShowNewImage()
+    getAndShowNewImage()
     #visibility_qualitative_detection_model<-NA
     #print(DFannotation)
     return(DFannotation)
