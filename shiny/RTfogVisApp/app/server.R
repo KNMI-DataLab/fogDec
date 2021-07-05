@@ -461,13 +461,13 @@ shinyServer(function(input, output, session) {
   #  potentialFoggyRecord<-sampleFoggyCases(promisingFoggyDays)
     
     ########
-    imagename<-potentialFoggyRecord$filepath
-    
-    camera_id<-potentialFoggyRecord$camera_id
-    dayPhaseImage<-potentialFoggyRecord$day_phase
-    #camera_id<-fogArchiveRecord$cameraID
-    timestamp<-potentialFoggyRecord$timestamp
-    image_id<-potentialFoggyRecord$image_id
+    # imagename<-potentialFoggyRecord$filepath
+    # 
+    # camera_id<-potentialFoggyRecord$camera_id
+    # dayPhaseImage<-potentialFoggyRecord$day_phase
+    # #camera_id<-fogArchiveRecord$cameraID
+    # timestamp<-potentialFoggyRecord$timestamp
+    # image_id<-potentialFoggyRecord$image_id
     ###########
     
   #}else{ 
