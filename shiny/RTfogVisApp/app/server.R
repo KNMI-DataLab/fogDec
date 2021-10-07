@@ -256,7 +256,7 @@ fromJSONtoDF<-function(text){
   #and setting the related names
   colnames(df)<-c("id","location", "cameraID", "longitude", "latitude", "ipAddr", "_note", "fileLocation", "originalPath", "timeStamp", "fogClass", "predTRUE")
   #names(jsoninput[[1]][[3]][[3]])
-  #print(df)
+  print(df)
   df
 }
 
