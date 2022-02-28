@@ -703,7 +703,7 @@ shinyServer(function(input, output, session) {
     
     
     ##CHANGE HERE FOR THE FIRST OCCURRENCE
-    if(minReminder==4) {
+    if(minReminder==5) {
       
       #removing the pictures previously temporary stored
       unlink(paste0(imagesLocationDetection,"*.jpg"))
