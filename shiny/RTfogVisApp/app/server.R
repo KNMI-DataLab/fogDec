@@ -246,6 +246,9 @@ return(list(fogClass,predTRUE,predFALSE,modelPath))
 
 
 fromJSONtoDF<-function(text){
+  #
+  gsub("NaN", "\"NaN\"", text)
+  #
   parsedJSON<-jsonlite::fromJSON(text)
   #print(parsedJSON)
   jsoninput<-lapply(parsedJSON$payload,jsonlite::fromJSON)
