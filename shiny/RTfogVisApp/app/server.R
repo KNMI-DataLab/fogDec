@@ -76,12 +76,12 @@ firstOccurrence<<-TRUE
   ##AWS S3 section to access to images
   S3config<-jsonlite::fromJSON(aws_S3_config)
   
-  Sys.setenv("AWS_DEFAULT_REGION" = S3config$region_name,
-             "AWS_ACCESS_KEY_ID" = S3config$aws_access_key_id,
-             "AWS_SECRET_ACCESS_KEY" = S3config$aws_secret_access_key
+  Sys.setenv("AWS_DEFAULT_REGION" = S3config$region_name#,
+             #"AWS_ACCESS_KEY_ID" = S3config$aws_access_key_id,
+             #"AWS_SECRET_ACCESS_KEY" = S3config$aws_secret_access_key
   )
   
-  print("initialized S3 credentials")
+  print("initialized S3 region")
   
   
 
