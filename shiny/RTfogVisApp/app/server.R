@@ -14,6 +14,7 @@ library(stringr)
 library(logging)
 library(imager)
 library(aws.s3)
+library(aws.ec2metadata)
 
 #library(h2o)
 ##########
