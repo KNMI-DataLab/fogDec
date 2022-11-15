@@ -14,7 +14,6 @@ library(stringr)
 library(logging)
 library(imager)
 library(aws.s3)
-library(aws.ec2metadata)
 
 #library(h2o)
 ##########
@@ -72,17 +71,23 @@ firstOccurrence<<-TRUE
   model_zip_path_night <-paste0(modelsPath, "dl_grid_model_NIGHT_15.zip")
   
   
-  
-  
+  initializeS3Env<-function(){
   ##AWS S3 section to access to images
-  S3config<-jsonlite::fromJSON(aws_S3_config)
+  curl_string = paste0('curl http://169.254.169.254/latest/meta-data/iam/security-credentials/accessS3bucketFog_SSM_manage/ -H "Accept: application/json"')
+  resp<-system(curl_string, intern = TRUE)
   
-  Sys.setenv("AWS_DEFAULT_REGION" = S3config$region_name#,
-             #"AWS_ACCESS_KEY_ID" = S3config$aws_access_key_id,
-             #"AWS_SECRET_ACCESS_KEY" = S3config$aws_secret_access_key
+  S3config<-jsonlite::fromJSON(aws_S3_config)
+  S3config2<-jsonlite::fromJSON(resp)
+  
+  
+  
+  Sys.setenv("AWS_DEFAULT_REGION" = S3config$region_name,
+             "AWS_ACCESS_KEY_ID" = S3config2$AccessKeyId,
+             "AWS_SECRET_ACCESS_KEY" = S3config$SecretAccessKey
   )
   
-  print("initialized S3 region")
+  print("initialized S3 environment")
+  }
   
   
 
@@ -357,7 +362,8 @@ shinyServer(function(input, output, session) {
       localImageFilepath<-convertToLocalFilepath(df$fileLocation)
  
       localTempSavedLocation <- paste0(imagesLocationDetection,df$filename)
-
+      
+      initializeS3Env()
 
       saveMultipleObjects<-function(AWSPath){
       localTempSavedLocation <-paste0(imagesLocationDetection,basename(AWSPath))
@@ -487,7 +493,8 @@ shinyServer(function(input, output, session) {
   
   localImageFilepath<-convertToLocalFilepath(imagename)
   filenameImage<-basename(localImageFilepath)
-  localTempSavedLocation <- paste0(imagesLocationValidation,filenameImage) 
+  localTempSavedLocation <- paste0(imagesLocationValidation,filenameImage)
+  initializeS3Env()
   head_obj<-head_object(object = localImageFilepath, bucket = 'knmi-fogdetection-dataset')
   
   ##removing NoVideo and NoStream from the images shown to annotators
