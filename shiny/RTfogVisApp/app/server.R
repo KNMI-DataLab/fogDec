@@ -83,7 +83,7 @@ firstOccurrence<<-TRUE
   
   Sys.setenv("AWS_DEFAULT_REGION" = S3config$region_name,
              "AWS_ACCESS_KEY_ID" = S3config2$AccessKeyId,
-             "AWS_SECRET_ACCESS_KEY" = S3config$SecretAccessKey
+             "AWS_SECRET_ACCESS_KEY" = S3config2$SecretAccessKey
   )
   
   print("initialized S3 environment")
